@@ -216,63 +216,77 @@ tr:hover td{background:#FAFBFD}
    PRINT / PDF STYLES
 ════════════════════════════════ */
 @media print {
-  /* 기본 초기화 */
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{background:#fff!important;font-size:11pt}
+  @page { size:A4 portrait; margin:12mm 14mm; }
 
-  /* 레이아웃 — 좌측 패널·헤더·탭·버튼 모두 숨김 */
-  header,.left,.tabs,.krow,.qft,
-  .sc,.aic,.empty,
-  #ts,#ta,
-  [class*="toast"],
-  .no-print{display:none!important}
+  *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
 
-  /* 오른쪽 패널 풀 너비 */
-  .wrap{display:block!important}
-  .right{padding:0!important;overflow:visible!important}
+  /* ── 완전히 숨길 요소 ── */
+  header,
+  .left,
+  .tabs,
+  .krow,
+  .qft,
+  .sc,
+  .aic,
+  .empty,
+  #ts,
+  #ta,
+  .toast,
+  #tq > div:first-child { display:none!important; visibility:hidden!important; width:0!important; height:0!important; overflow:hidden!important; }
 
-  /* 상단 안내 배너 숨김 */
-  #tq > div:first-child{display:none!important}
+  /* ── 레이아웃 완전 override ── */
+  html, body { width:210mm!important; height:auto!important; background:#fff!important; }
 
-  /* 견적서 카드 — 테두리·그림자 제거, 풀 너비 */
-  .qs{
+  .wrap {
+    display:block!important;
+    grid-template-columns:unset!important;
+    width:100%!important;
+  }
+
+  .left {
+    display:none!important;
+    width:0!important;
+    min-width:0!important;
+    max-width:0!important;
+    overflow:hidden!important;
+    position:absolute!important;
+    left:-9999px!important;
+  }
+
+  .right {
+    display:block!important;
+    width:100%!important;
+    padding:0!important;
+    overflow:visible!important;
+    position:static!important;
+  }
+
+  /* ── 견적서 카드 ── */
+  .qs {
     border:none!important;
     box-shadow:none!important;
     border-radius:0!important;
     margin:0!important;
+    width:100%!important;
     page-break-inside:avoid;
   }
 
-  /* 헤더 다크 배경 유지 */
-  .qshd{
-    background:#0F1729!important;
-    color:#fff!important;
-    -webkit-print-color-adjust:exact!important;
-    padding:14px 18px!important;
-  }
-  .qshd *{color:#fff!important}
+  /* ── 다크 헤더 배경 강제 유지 ── */
+  .qshd { background:#0F1729!important; color:#fff!important; padding:14px 18px!important; }
+  .qshd * { color:#fff!important; }
+  .trt { background:#0F1729!important; }
+  .trt td { color:#fff!important; border-color:#1E2D4A!important; }
+  .trs { background:#F4F5F8!important; }
+  th { background:#F4F5F8!important; }
+  .route { background:#F4F5F8!important; }
 
-  /* 테이블 컬러 유지 */
-  .trt{background:#0F1729!important}
-  .trt td{color:#fff!important}
-  .trs{background:#F4F5F8!important}
-  th{background:#F4F5F8!important}
+  /* ── 세그먼트 헤더 배경 ── */
+  .seghd { -webkit-print-color-adjust:exact!important; }
 
-  /* 구간 헤더 배경 유지 */
-  .seghd{-webkit-print-color-adjust:exact!important}
-
-  /* 라우트 배경 */
-  .route{background:#F4F5F8!important}
-
-  /* 페이지 여백 */
-  @page{
-    size:A4 portrait;
-    margin:12mm 14mm;
-  }
-
-  /* 페이지 나눔 방지 */
-  .segblk{page-break-inside:avoid}
-  table{page-break-inside:avoid}
+  /* ── 페이지 나눔 방지 ── */
+  .segblk { page-break-inside:avoid; }
+  table { page-break-inside:avoid; }
+  .qig { page-break-inside:avoid; }
 }
 </style>
 </head>
@@ -1134,77 +1148,108 @@ async function rai(S){
   }catch(e){document.getElementById('ao').textContent='⚠ AI 분석 연결 오류\n\nClaude API 키가 연결되면 마진 적정성, 원가 절감 포인트, 영업 전략을 분석합니다.';}
 }
 
-// ── Print: 견적서만 출력 ──
+// ── Print: 새 창에서 견적서만 출력 ──
 function printQuote() {
-  const el = document.getElementById('tq');
-  if (!el || el.style.display === 'none') {
-    toast('견적서 탭을 먼저 열어주세요');
-    return;
-  }
+  const qs = document.querySelector('#tq .qs');
+  if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
 
-  // 숨겨야 할 요소들 (배너, 안내문구)
-  const hideSels = ['#tq > div:first-child'];
-  const hidden = hideSels.map(s => {
-    const node = document.querySelector(s);
-    if (node) { const prev = node.style.display; node.style.display = 'none'; return {node, prev}; }
-    return null;
-  }).filter(Boolean);
+  const html = `<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<title>Quotation Sheet — LGL</title>
+<style>
+@page { size:A4 portrait; margin:12mm 14mm; }
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif;font-size:11pt;color:#1A1D2B;background:#fff;width:100%}
+/* 견적서 헤더 */
+.qshd{background:#0F1729!important;color:#fff!important;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
+.qshd *{color:#fff!important}
+/* 본문 */
+.qsbody{padding:18px 22px}
+.qig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.ql2{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#A0A6BE;margin-bottom:3px}
+.qv2{font-size:12pt;font-weight:600}.qsub2{font-size:10pt;color:#636880;margin-top:1px}
+/* 루트 */
+.route{display:flex;align-items:center;background:#F4F5F8!important;border-radius:8px;padding:9px 14px;margin-bottom:16px}
+.rn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ri{width:28px;height:28px;background:#fff;border:1px solid #E2E5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12pt}
+.rnm{font-size:10pt;font-weight:600}.rc{font-size:8pt;color:#A0A6BE}
+.ra{color:#A0A6BE;font-size:12pt;padding:0 5px;flex-shrink:0}
+/* 세그먼트 */
+.segblk{margin-bottom:14px;page-break-inside:avoid}
+.seghd{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:4px 4px 0 0;border:1px solid #E2E5EE;border-bottom:none}
+.segnum{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#fff;flex-shrink:0}
+.segtit{font-size:10pt;font-weight:700}.segsub{font-size:9pt;color:#636880;margin-left:auto}
+/* 테이블 */
+table{width:100%;border-collapse:collapse;font-size:10pt;page-break-inside:avoid}
+th{background:#F4F5F8!important;padding:6px 9px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#636880;border:1px solid #E2E5EE}
+th:last-child,td:last-child{text-align:right}
+td{padding:7px 9px;border:1px solid #ECEEF5;color:#1A1D2B}
+tr:nth-child(even) td{background:#FAFBFD}
+.trt{background:#0F1729!important}.trt td{color:#fff!important;font-weight:700;font-size:11pt;border-color:#1E2D4A!important}
+.trs{background:#F4F5F8!important}.trs td{font-weight:600;font-size:9pt}
+.tdp{font-weight:700}
+/* REMARK */
+.remark-box{margin-top:14px;padding:10px 12px;background:#F9FAFB;border:1px solid #E2E5EE;border-radius:8px;font-size:9pt;color:#636880;line-height:1.8}
+.remark-title{font-weight:700;font-size:10pt;color:#1A1D2B;margin-bottom:5px}
+/* 하단 */
+.qft{margin-top:16px;padding-top:12px;border-top:1px solid #E2E5EE;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#A0A6BE}
+.vbadge{font-size:9pt;background:#FEF7EC;color:#A85D08;padding:3px 9px;border-radius:100px;font-weight:600}
+.sign-area{text-align:right;color:#636880}
+span[style*="background:var(--am-bg)"]{background:#FEF7EC!important;color:#A85D08!important;padding:1px 6px;border-radius:100px;font-size:8pt}
+span[style*="background:#ECEEF5"]{background:#ECEEF5!important;color:#636880!important;padding:1px 6px;border-radius:100px;font-size:8pt}
+</style>
+</head><body>${qs.outerHTML}</body></html>`;
 
-  window.print();
-
-  // 복원
-  setTimeout(() => hidden.forEach(({node, prev}) => node.style.display = prev), 500);
+  const w = window.open('', '_blank', 'width=794,height=1123');
+  if (!w) { toast('팝업이 차단됐습니다. 팝업 허용 후 다시 시도하세요'); return; }
+  w.document.write(html);
+  w.document.close();
+  w.onload = () => { w.focus(); w.print(); };
 }
 
 // ── PDF Export ──
 async function exportPDF() {
-  const el = document.querySelector('#tq .qs');
-  if (!el) { toast('견적서를 먼저 생성해주세요'); return; }
+  const qs = document.querySelector('#tq .qs');
+  if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
 
   const btn = document.getElementById('pdf-btn');
   btn.textContent = '⏳ 생성 중...';
   btn.style.pointerEvents = 'none';
 
-  // 파일명: QT-YYYYMMDD-화주명
-  const shipper = (document.getElementById('shipper')?.value || 'QUOTATION').replace(/[^a-zA-Z0-9가-힣]/g, '_');
+  const shipper = (document.getElementById('shipper')?.value || 'QUOTATION').replace(/[^a-zA-Z0-9가-힣]/g,'_');
   const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
   const filename = `LGL_QT_${dateStr}_${shipper}.pdf`;
 
-  // 배너 임시 숨김
-  const banner = document.querySelector('#tq > div:first-child');
-  if (banner) banner.style.visibility = 'hidden';
-  const footer = document.querySelector('.qft');
-  if (footer) footer.style.display = 'none';
+  // 독립 컨테이너 생성 (화면 밖)
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR","Segoe UI",sans-serif';
+  wrapper.innerHTML = qs.outerHTML;
+  document.body.appendChild(wrapper);
+
+  // qft(버튼 영역) 숨김
+  const qft = wrapper.querySelector('.qft');
+  if (qft) qft.style.display = 'none';
 
   const opt = {
-    margin:       [10, 12, 10, 12],
-    filename:     filename,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-    },
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',
-      orientation: 'portrait',
-      compress: true,
-    },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    margin:      [10, 12, 10, 12],
+    filename:    filename,
+    image:       { type:'jpeg', quality:0.98 },
+    html2canvas: { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false, width:794 },
+    jsPDF:       { unit:'mm', format:'a4', orientation:'portrait', compress:true },
+    pagebreak:   { mode:['avoid-all','css','legacy'] },
   };
 
   try {
-    await html2pdf().set(opt).from(el).save();
+    await html2pdf().set(opt).from(wrapper).save();
     toast(`✓ PDF 저장 완료: ${filename}`);
   } catch(e) {
-    toast('⚠ PDF 생성 실패 — 인쇄 기능을 이용해주세요');
+    console.error(e);
+    toast('⚠ PDF 생성 실패 — 인쇄(🖨) 기능을 이용해주세요');
   }
 
-  // 복원
-  if (banner) banner.style.visibility = '';
-  if (footer) footer.style.display = '';
+  document.body.removeChild(wrapper);
   btn.textContent = '📥 PDF 저장';
   btn.style.pointerEvents = '';
 }
