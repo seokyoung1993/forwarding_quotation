@@ -212,6 +212,13 @@ tr:hover td{background:#FAFBFD}
 .toast.on{opacity:1;transform:translateY(0)}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:10px}
 
+/* ── DG Toggle Switch ── */
+.toggle-wrap{cursor:pointer}
+.toggle-track{width:36px;height:20px;background:#D1D5E0;border-radius:100px;position:relative;transition:background .2s}
+.toggle-track.on{background:var(--rd)}
+.toggle-thumb{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-track.on .toggle-thumb{left:18px}
+
 /* ════════════════════════════════
    PRINT / PDF STYLES
 ════════════════════════════════ */
@@ -309,7 +316,7 @@ tr:hover td{background:#FAFBFD}
   <div class="shd" onclick="tog('s0')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">화주 / 화물 기본 정보</span><span class="sarr o" id="s0a">▼</span></div>
   <div class="sbody o" id="s0b">
 
-    <div class="fr c1"><div class="fd"><label>화주명</label><input type="text" id="shipper" placeholder="예: (주)플로원"></div></div>
+    <div class="fr c1"><div class="fd"><label>화주명</label><input type="text" id="shipper" placeholder="예: (주)하이브"></div></div>
 
     <!-- POL -->
     <div class="port-wrap" id="pol-wrap">
@@ -324,6 +331,15 @@ tr:hover td{background:#FAFBFD}
         <input class="port-search-input" id="pol-input" placeholder="항구명 또는 SCAC 코드 검색 (예: KR, KRPUS, Busan...)" oninput="onPortInput('pol')" onfocus="onPortFocus('pol')" autocomplete="off">
       </div>
       <div class="port-dropdown" id="pol-dd"></div>
+      <!-- DOOR 선택 시 출발지 주소 검색 -->
+      <div id="pol-door-addr" style="display:none;margin-top:6px">
+        <div class="flbl" style="margin-bottom:3px">출발지 주소 (시/군/읍 단위)</div>
+        <div style="position:relative">
+          <input type="text" id="pol-addr-input" placeholder="예: 이천시, 평택시, 화성시 팔탄읍..." oninput="onAddrInput('pol')" autocomplete="off" style="padding-right:32px">
+          <div class="port-dropdown" id="pol-addr-dd"></div>
+        </div>
+        <div id="pol-addr-selected" style="display:none;margin-top:4px;padding:5px 8px;background:var(--ac-bg);border:1px solid var(--ac);border-radius:var(--r4);font-size:11px;color:var(--ac);font-weight:600"></div>
+      </div>
       <div class="port-door-note" id="pol-note">⚠ DOOR 선택 시 픽업 트럭킹·포장·제반 비용이 1구간에 추가됩니다</div>
     </div>
 
@@ -340,6 +356,11 @@ tr:hover td{background:#FAFBFD}
         <input class="port-search-input" id="pod-input" placeholder="항구명 또는 SCAC 코드 검색 (예: ID, IDJKT, Jakarta...)" oninput="onPortInput('pod')" onfocus="onPortFocus('pod')" autocomplete="off">
       </div>
       <div class="port-dropdown" id="pod-dd"></div>
+      <!-- DOOR 선택 시 도착지 주소 (자유 입력) -->
+      <div id="pod-door-addr" style="display:none;margin-top:6px">
+        <div class="flbl" style="margin-bottom:3px">도착지 상세 주소</div>
+        <input type="text" id="pod-addr-input" placeholder="예: Jl. Raya Anyer Km.123, Cilegon, Banten" autocomplete="off">
+      </div>
       <div class="port-door-note" id="pod-note">⚠ DOOR 선택 시 현지 내륙운송·통관·제반 비용이 3구간에 추가됩니다</div>
     </div>
 
@@ -359,8 +380,49 @@ tr:hover td{background:#FAFBFD}
       <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="15" min="1" style="font-weight:600"></div>
     </div>
 
+    <!-- DG 여부 -->
+    <div style="margin-top:6px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--r8);background:#FAFBFD">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:11px;font-weight:700;color:var(--t1)">⚠️ 위험물 (DG) 여부</span>
+          <span style="font-size:9px;color:var(--t3)">Dangerous Goods</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none">
+          <div class="toggle-wrap" onclick="toggleDG()">
+            <div class="toggle-track" id="dg-track"><div class="toggle-thumb" id="dg-thumb"></div></div>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:var(--t2)" id="dg-lbl">Non-DG</span>
+        </label>
+      </div>
+      <div id="dg-fields" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)">
+        <div class="fr c2">
+          <div class="fd"><label>UN NO.</label><input type="text" id="dg-un" placeholder="예: UN1263" style="font-family:monospace;font-weight:600;letter-spacing:.05em"></div>
+          <div class="fd"><label>DG Class</label>
+            <select id="dg-class">
+              <option value="">선택</option>
+              <option>Class 1 — Explosives</option>
+              <option>Class 2 — Gases</option>
+              <option>Class 3 — Flammable Liquids</option>
+              <option>Class 4 — Flammable Solids</option>
+              <option>Class 5 — Oxidizing Substances</option>
+              <option>Class 6 — Toxic &amp; Infectious</option>
+              <option>Class 7 — Radioactive</option>
+              <option>Class 8 — Corrosives</option>
+              <option>Class 9 — Misc. Dangerous</option>
+            </select>
+          </div>
+        </div>
+        <div class="fr c2" style="margin-top:0">
+          <div class="fd"><label>Packing Group</label>
+            <select id="dg-pg"><option value="">선택</option><option>PG I — 고위험</option><option>PG II — 중위험</option><option>PG III — 저위험</option></select>
+          </div>
+          <div class="fd"><label>Flash Point (℃, 해당 시)</label><input type="number" id="dg-fp" placeholder="예: -18"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Cargo dims -->
-    <div style="margin-top:4px">
+    <div style="margin-top:7px">
       <div class="flbl" style="margin-bottom:5px">화물 치수 &amp; 중량</div>
       <div class="dims-row">
         <div class="fd"><label>L (cm)</label><input type="number" id="dl" placeholder="0" min="0" oninput="calcCbm()"></div>
@@ -398,8 +460,8 @@ tr:hover td{background:#FAFBFD}
 
 <!-- S1: 컨테이너 -->
 <div class="sec" id="s1">
-  <div class="shd" onclick="tog('s1')"><span class="sdot" style="background:var(--gn)"></span><span class="stit">컨테이너 구성</span><span class="sarr o" id="s1a">▼</span></div>
-  <div class="sbody o" id="s1b">
+  <div class="shd" onclick="tog('s1')"><span class="sdot" style="background:var(--gn)"></span><span class="stit">컨테이너 구성</span><span class="sarr" id="s1a">▼</span></div>
+  <div class="sbody" id="s1b">
     <div id="ct-accordions"></div>
     <div class="ct-summary" id="ct-summary">
       <div class="ct-sum-title">선택된 컨테이너</div>
@@ -410,16 +472,16 @@ tr:hover td{background:#FAFBFD}
 
 <!-- S2~S4: Charges -->
 <div class="sec" id="s2">
-  <div class="shd" onclick="tog('s2')"><span class="sdot" style="background:var(--am)"></span><span class="stit">1구간 — 국내 (KRW)</span><span class="sarr o" id="s2a">▼</span></div>
-  <div class="sbody o" id="s2b"><div class="charge-list" id="g1"></div><div class="add-charge" onclick="addCharge(1)">＋ 항목 추가</div></div>
+  <div class="shd" onclick="tog('s2')"><span class="sdot" style="background:var(--am)"></span><span class="stit">1구간 — 국내 (KRW)</span><span class="sarr" id="s2a">▼</span></div>
+  <div class="sbody" id="s2b"><div class="charge-list" id="g1"></div><div class="add-charge" onclick="addCharge(1)">＋ 항목 추가</div></div>
 </div>
 <div class="sec" id="s3">
-  <div class="shd" onclick="tog('s3')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">2구간 — 해상 운임 (USD)</span><span class="sarr o" id="s3a">▼</span></div>
-  <div class="sbody o" id="s3b"><div class="charge-list" id="g2"></div><div class="add-charge" onclick="addCharge(2)">＋ 항목 추가</div></div>
+  <div class="shd" onclick="tog('s3')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">2구간 — 해상 운임 (USD)</span><span class="sarr" id="s3a">▼</span></div>
+  <div class="sbody" id="s3b"><div class="charge-list" id="g2"></div><div class="add-charge" onclick="addCharge(2)">＋ 항목 추가</div></div>
 </div>
 <div class="sec" id="s4">
-  <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간 — 현지</span><span class="sarr o" id="s4a">▼</span></div>
-  <div class="sbody o" id="s4b"><div class="charge-list" id="g3"></div><div class="add-charge" onclick="addCharge(3)">＋ 항목 추가</div></div>
+  <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간 — 현지</span><span class="sarr" id="s4a">▼</span></div>
+  <div class="sbody" id="s4b"><div class="charge-list" id="g3"></div><div class="add-charge" onclick="addCharge(3)">＋ 항목 추가</div></div>
 </div>
 <div class="sec" id="s5">
   <div class="shd" onclick="tog('s5')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">특이사항 / AI 분석 요청</span><span class="sarr" id="s5a">▼</span></div>
@@ -542,6 +604,112 @@ const PORTS = [
   {c:'BRSSZ',city:'Santos',country:'Brazil',flag:'🇧🇷'},
 ];
 
+// ── DG Toggle ──
+let dgOn = false;
+function toggleDG() {
+  dgOn = !dgOn;
+  const track = document.getElementById('dg-track');
+  const lbl   = document.getElementById('dg-lbl');
+  const fields = document.getElementById('dg-fields');
+  track.classList.toggle('on', dgOn);
+  lbl.textContent  = dgOn ? 'DG' : 'Non-DG';
+  lbl.style.color  = dgOn ? 'var(--rd)' : 'var(--t2)';
+  fields.style.display = dgOn ? 'block' : 'none';
+}
+
+// ── 국내 주소 검색 (시/군/구/읍 단위) ──
+const KR_ADDR = [
+  // 서울
+  '서울특별시 강남구','서울특별시 강동구','서울특별시 강북구','서울특별시 강서구',
+  '서울특별시 관악구','서울특별시 광진구','서울특별시 구로구','서울특별시 금천구',
+  '서울특별시 노원구','서울특별시 도봉구','서울특별시 동대문구','서울특별시 동작구',
+  '서울특별시 마포구','서울특별시 서대문구','서울특별시 서초구','서울특별시 성동구',
+  '서울특별시 성북구','서울특별시 송파구','서울특별시 양천구','서울특별시 영등포구',
+  '서울특별시 용산구','서울특별시 은평구','서울특별시 종로구','서울특별시 중구','서울특별시 중랑구',
+  // 경기
+  '경기도 수원시 장안구','경기도 수원시 권선구','경기도 수원시 팔달구','경기도 수원시 영통구',
+  '경기도 성남시 수정구','경기도 성남시 중원구','경기도 성남시 분당구',
+  '경기도 안양시 만안구','경기도 안양시 동안구',
+  '경기도 고양시 덕양구','경기도 고양시 일산동구','경기도 고양시 일산서구',
+  '경기도 용인시 처인구','경기도 용인시 기흥구','경기도 용인시 수지구',
+  '경기도 부천시','경기도 광명시','경기도 평택시','경기도 안산시 단원구','경기도 안산시 상록구',
+  '경기도 이천시','경기도 김포시','경기도 화성시','경기도 광주시','경기도 양주시',
+  '경기도 오산시','경기도 군포시','경기도 의왕시','경기도 하남시','경기도 파주시',
+  '경기도 남양주시','경기도 의정부시','경기도 구리시','경기도 포천시','경기도 동두천시',
+  '경기도 가평군','경기도 양평군','경기도 여주시','경기도 연천군',
+  '경기도 화성시 팔탄면','경기도 화성시 향남읍','경기도 평택시 포승읍','경기도 평택시 현덕면',
+  // 인천
+  '인천광역시 중구','인천광역시 동구','인천광역시 미추홀구','인천광역시 연수구',
+  '인천광역시 남동구','인천광역시 부평구','인천광역시 계양구','인천광역시 서구',
+  '인천광역시 강화군','인천광역시 옹진군',
+  // 부산
+  '부산광역시 중구','부산광역시 서구','부산광역시 동구','부산광역시 영도구',
+  '부산광역시 부산진구','부산광역시 동래구','부산광역시 남구','부산광역시 북구',
+  '부산광역시 해운대구','부산광역시 사하구','부산광역시 금정구','부산광역시 강서구',
+  '부산광역시 연제구','부산광역시 수영구','부산광역시 사상구','부산광역시 기장군',
+  // 대구/광주/대전/울산
+  '대구광역시 중구','대구광역시 동구','대구광역시 서구','대구광역시 남구','대구광역시 북구',
+  '대구광역시 수성구','대구광역시 달서구','대구광역시 달성군',
+  '광주광역시 동구','광주광역시 서구','광주광역시 남구','광주광역시 북구','광주광역시 광산구',
+  '대전광역시 동구','대전광역시 중구','대전광역시 서구','대전광역시 유성구','대전광역시 대덕구',
+  '울산광역시 중구','울산광역시 남구','울산광역시 동구','울산광역시 북구','울산광역시 울주군',
+  // 충청
+  '충청북도 청주시 상당구','충청북도 청주시 서원구','충청북도 청주시 흥덕구','충청북도 청주시 청원구',
+  '충청북도 충주시','충청북도 제천시','충청북도 음성군','충청북도 진천군',
+  '충청남도 천안시 동남구','충청남도 천안시 서북구','충청남도 아산시','충청남도 당진시',
+  '충청남도 서산시','충청남도 홍성군','충청남도 예산군',
+  // 전라
+  '전라북도 전주시 완산구','전라북도 전주시 덕진구','전라북도 익산시','전라북도 군산시',
+  '전라남도 여수시','전라남도 순천시','전라남도 광양시','전라남도 목포시',
+  // 경상
+  '경상북도 포항시 남구','경상북도 포항시 북구','경상북도 경주시','경상북도 구미시',
+  '경상북도 안동시','경상북도 김천시','경상북도 영주시',
+  '경상남도 창원시 의창구','경상남도 창원시 성산구','경상남도 창원시 마산합포구',
+  '경상남도 창원시 마산회원구','경상남도 창원시 진해구',
+  '경상남도 진주시','경상남도 김해시','경상남도 거제시','경상남도 양산시','경상남도 밀양시',
+  // 제주/세종
+  '제주특별자치도 제주시','제주특별자치도 서귀포시',
+  '세종특별자치시',
+];
+
+function onAddrInput(side) {
+  const q = document.getElementById(`${side}-addr-input`).value.trim();
+  const dd = document.getElementById(`${side}-addr-dd`);
+  if (!q || q.length < 1) { dd.classList.remove('open'); return; }
+
+  const results = KR_ADDR.filter(a => a.includes(q)).slice(0, 12);
+  if (!results.length) {
+    dd.innerHTML = '<div class="pd-empty">검색 결과 없음 — 직접 입력하세요</div>';
+    dd.classList.add('open');
+    return;
+  }
+  dd.innerHTML = results.map(a =>
+    `<div class="pd-item" onclick="selectAddr('${side}','${a}')">
+      <span style="font-size:11px;color:var(--t1)">${a.replace(q, `<strong style="color:var(--ac)">${q}</strong>`)}</span>
+    </div>`
+  ).join('');
+  dd.classList.add('open');
+}
+
+function selectAddr(side, addr) {
+  document.getElementById(`${side}-addr-input`).value = addr;
+  document.getElementById(`${side}-addr-dd`).classList.remove('open');
+  const sel = document.getElementById(`${side}-addr-selected`);
+  if (sel) { sel.textContent = '📍 ' + addr; sel.style.display = 'block'; }
+}
+
+// Close addr dropdowns on outside click (extend existing listener)
+document.addEventListener('click', e => {
+  ['pol','pod'].forEach(side => {
+    const wrap = document.getElementById(side + '-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById(side + '-dd').classList.remove('open');
+      const addrDd = document.getElementById(side + '-addr-dd');
+      if (addrDd) addrDd.classList.remove('open');
+    }
+  });
+});
+
 // Port search state
 const portState = { pol: null, pod: null, polType: 'CY', podType: 'CY' };
 
@@ -598,6 +766,9 @@ function setPT(side, type) {
   document.getElementById(side + '-cy-btn').classList.toggle('on', type === 'CY');
   document.getElementById(side + '-door-btn').classList.toggle('on', type === 'DOOR');
   document.getElementById(side + '-note').style.display = type === 'DOOR' ? 'block' : 'none';
+  // 주소 입력 필드 표시/숨김
+  const addrField = document.getElementById(side + '-door-addr');
+  if (addrField) addrField.style.display = type === 'DOOR' ? 'block' : 'none';
 }
 
 // Close dropdowns on outside click
@@ -910,16 +1081,23 @@ function gen() {
   const podPort = portState.pod || {code: document.getElementById('pod-input').value.split('—')[0].trim(), city:'', country:'', flag:''};
 
   const S={
-    shipper:document.getElementById('shipper').value||'(미입력)',
+    shipper: document.getElementById('shipper').value||'(미입력)',
     pol:polPort,pod:podPort,
     polType:portState.polType,podType:portState.podType,
+    polAddr: portState.polType==='DOOR' ? (document.getElementById('pol-addr-input')?.value||'') : '',
+    podAddr: portState.podType==='DOOR' ? (document.getElementById('pod-addr-input')?.value||'') : '',
     dest:document.getElementById('dest').value||'—',
     inco:document.getElementById('inco').value,
     item:document.getElementById('item').value||'—',
     cbm:document.getElementById('cbm').value||'—',
     gw:document.getElementById('gw').value||'—',
-    val:parseInt(document.getElementById('validity').value)||30,
+    val:parseInt(document.getElementById('validity').value)||15,
     notes:document.getElementById('notes').value,
+    dg: dgOn,
+    dgUn:  dgOn ? (document.getElementById('dg-un')?.value||'') : '',
+    dgClass: dgOn ? (document.getElementById('dg-class')?.value||'') : '',
+    dgPg:  dgOn ? (document.getElementById('dg-pg')?.value||'') : '',
+    dgFp:  dgOn ? (document.getElementById('dg-fp')?.value||'') : '',
     SC,tc,bl,d1,d2,d3,t1,t2,t3,gc,gp,gm,mr
   };
 
@@ -996,7 +1174,7 @@ function rq(S){
         <div class="qig">
           <div class="qib"><div class="ql2">Shipper</div><div class="qv2">${S.shipper}</div></div>
           <div class="qib"><div class="ql2">Route</div><div class="qv2">${polLabel} → ${podLabel}</div><div class="qsub2">최종: ${S.dest}</div></div>
-          <div class="qib"><div class="ql2">Cargo</div><div class="qv2">${S.item}</div><div class="qsub2">${S.inco} · ${ctS}${S.cbm!=='—'?' · '+S.cbm+' CBM':''}${S.gw!=='—'?' · '+S.gw+' KG':''}</div></div>
+          <div class="qib"><div class="ql2">Cargo</div><div class="qv2">${S.item}${S.dg?` <span style="background:#FEF2F1;color:var(--rd);font-size:9px;padding:1px 6px;border-radius:100px;font-weight:700;vertical-align:middle">⚠ DG</span>`:''}</div><div class="qsub2">${S.inco} · ${ctS}${S.cbm!=='—'?' · '+S.cbm+' CBM':''}${S.gw!=='—'?' · '+S.gw+' KG':''}</div></div>
         </div>
         <div class="route">
           <div class="rn"><div class="ri">${S.pol.flag||'🏭'}</div><div class="rnm">${S.pol.code||'—'}</div><div class="rc">POL · ${S.polType}</div></div>
@@ -1027,6 +1205,9 @@ function rq(S){
 
         <div style="margin-top:14px;padding:10px 12px;background:#F9FAFB;border:1px solid var(--bd);border-radius:var(--r8);font-size:11px;color:var(--t2);line-height:1.8">
           <div style="font-weight:700;font-size:11px;color:var(--t1);margin-bottom:5px">REMARK</div>
+          ${S.polAddr?`<div>· 출발지 주소: ${S.polAddr}</div>`:''}
+          ${S.podAddr?`<div>· 도착지 주소: ${S.podAddr}</div>`:''}
+          ${S.dg?`<div style="color:var(--rd);font-weight:600">· 위험물(DG) — ${S.dgUn?'UN NO. '+S.dgUn+' / ':''}${S.dgClass||''}${S.dgPg?' / '+S.dgPg:''}${S.dgFp?' / Flash Point '+S.dgFp+'℃':''}</div>`:''}
           <div>· 국내 발생 비용 부가세 10% 별도</div>
           <div>· 해상 운임은 출항일 기준 환율 적용이며, 견적서는 발행일 기준 임의 환율 적용</div>
           <div>· 관/부가세 발생 시 화주 납부 조건</div>
