@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포워딩 견적 시스템 v0.4</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F4F5F8;--sf:#FFF;--bd:#E2E5EE;--bd2:#C8CCDA;
+  --t1:#1A1D2B;--t2:#636880;--t3:#A0A6BE;
+  --ac:#1A56DB;--ac-bg:#EEF3FD;--ac-h:#1447C0;
+  --gn:#0A6E47;--gn-bg:#E8F8F2;
+  --am:#A85D08;--am-bg:#FEF7EC;
+  --rd:#C0392B;--rd-bg:#FEF2F1;
+  --pu:#5B21B6;--pu-bg:#F1EDFB;
+  --r4:4px;--r8:8px;--r12:12px;--r16:16px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:var(--bg);color:var(--t1);font-size:13px;line-height:1.55;min-height:100vh}
+
+/* ── Header ── */
+header{background:#0F1729;color:#fff;height:50px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300}
+.logo{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700}
+.lm{width:26px;height:26px;background:var(--ac);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.hb{font-size:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.65);padding:3px 8px;border-radius:100px}
+
+/* ── Layout ── */
+.wrap{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 50px)}
+.left{background:var(--sf);border-right:1px solid var(--bd);overflow-y:auto;position:sticky;top:50px;height:calc(100vh - 50px)}
+.li{padding:18px 16px 28px}
+.phd{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--t3);text-transform:uppercase;margin-bottom:12px}
+
+/* ── Accordion section ── */
+.sec{border:1px solid var(--bd);border-radius:var(--r12);margin-bottom:10px;overflow:hidden;background:#FAFBFD}
+.shd{padding:9px 13px;display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;border-bottom:1px solid var(--bd);transition:background .12s}
+.shd:hover{background:#F2F3F8}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.stit{font-size:12px;font-weight:600;flex:1;color:var(--t1)}
+.sarr{font-size:9px;color:var(--t3);transition:transform .18s}
+.sarr.o{transform:rotate(180deg)}
+.sbody{padding:11px 13px;display:none}
+.sbody.o{display:block}
+
+/* ── Form basics ── */
+.fr{display:grid;gap:7px;margin-bottom:7px}
+.c1{grid-template-columns:1fr}.c2{grid-template-columns:1fr 1fr}
+.fd{display:flex;flex-direction:column;gap:3px}
+.fd label,.flbl{font-size:10px;font-weight:600;color:var(--t2);letter-spacing:.01em}
+input,select,textarea{width:100%;padding:6px 8px;border:1px solid var(--bd);border-radius:var(--r4);font-size:12px;color:var(--t1);background:#fff;font-family:inherit;outline:none;transition:border-color .14s}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);box-shadow:0 0 0 2.5px rgba(26,86,219,.12)}
+input[type=number]{text-align:right}
+.ui{display:flex;border:1px solid var(--bd);border-radius:var(--r4);overflow:hidden;transition:border-color .14s;background:#fff}
+.ui:focus-within{border-color:var(--ac);box-shadow:0 0 0 2.5px rgba(26,86,219,.12)}
+.ui input{border:none;box-shadow:none!important;flex:1;min-width:0;background:transparent}
+.usf{padding:0 7px;background:#F0F2F7;font-size:10px;color:var(--t3);border-left:1px solid var(--bd);display:flex;align-items:center;white-space:nowrap;flex-shrink:0}
+
+/* ════════════════════════════════
+   PORT SEARCH
+════════════════════════════════ */
+.port-wrap{position:relative;margin-bottom:7px}
+.port-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.port-label-row .flbl{margin:0}
+.port-type-toggle{display:flex;gap:0;border:1px solid var(--bd);border-radius:var(--r4);overflow:hidden}
+.ptt-btn{padding:2px 10px;font-size:10px;font-weight:700;cursor:pointer;border:none;background:#F0F2F7;color:var(--t2);transition:all .13s;letter-spacing:.03em}
+.ptt-btn.on{background:var(--ac);color:#fff}
+.port-input-row{display:flex;gap:6px;align-items:center}
+.port-selected{display:flex;align-items:center;gap:5px;padding:5px 8px;background:var(--ac-bg);border:1px solid var(--ac);border-radius:var(--r4);font-size:12px;flex:1;min-height:30px}
+.port-selected .ps-code{font-weight:700;color:var(--ac);font-size:12px}
+.port-selected .ps-name{color:var(--t2);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.port-clear{width:16px;height:16px;border:none;background:none;color:var(--t3);cursor:pointer;font-size:12px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.port-clear:hover{color:var(--rd)}
+.port-search-input{flex:1;height:30px;padding:4px 8px;font-size:12px}
+.port-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--bd);border-radius:var(--r8);box-shadow:0 6px 20px rgba(0,0,0,.1);z-index:200;max-height:220px;overflow-y:auto;margin-top:3px;display:none}
+.port-dropdown.open{display:block}
+.pd-section{padding:6px 10px 2px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);border-bottom:1px solid #F0F2F7;margin-bottom:2px}
+.pd-item{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;transition:background .1s}
+.pd-item:hover{background:var(--ac-bg)}
+.pd-code{font-size:12px;font-weight:700;color:var(--ac);min-width:48px;font-family:monospace}
+.pd-flag{font-size:14px;line-height:1}
+.pd-info{flex:1;min-width:0}
+.pd-city{font-size:12px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pd-country{font-size:10px;color:var(--t3)}
+.pd-empty{padding:14px 10px;text-align:center;font-size:12px;color:var(--t3)}
+.port-door-note{font-size:10px;color:var(--am);background:var(--am-bg);padding:4px 8px;border-radius:var(--r4);margin-top:4px;display:none}
+
+/* ════════════════════════════════
+   CONTAINER GROUPS
+════════════════════════════════ */
+.ct-accordion{border:1px solid var(--bd);border-radius:var(--r8);overflow:hidden;margin-bottom:6px}
+.cta-hd{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer;user-select:none;transition:background .12s;background:#F8F9FC}
+.cta-hd:hover{background:#F0F2F8}
+.cta-icon{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.cta-title{font-size:11px;font-weight:700;color:var(--t1);flex:1}
+.cta-count{font-size:10px;font-weight:600;padding:1px 7px;border-radius:100px;background:#E8EAF2;color:var(--t2);display:none}
+.cta-count.has{display:inline-flex;background:var(--ac-bg);color:var(--ac)}
+.cta-arr{font-size:9px;color:var(--t3);transition:transform .16s}
+.cta-arr.o{transform:rotate(180deg)}
+.cta-body{padding:8px 11px 10px;display:none;border-top:1px solid var(--bd);background:#fff}
+.cta-body.o{display:block}
+.ct-type-grid{display:flex;flex-wrap:wrap;gap:5px}
+.ctbtn{display:flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid var(--bd);border-radius:var(--r4);font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;background:#fff;transition:all .13s;user-select:none}
+.ctbtn:hover{border-color:var(--ac);background:var(--ac-bg);color:var(--ac)}
+.ctbtn.on{border-color:var(--ac);background:var(--ac-bg);color:var(--ac)}
+.ctbtn-check{width:13px;height:13px;border:1.5px solid var(--bd2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:8px;color:transparent;transition:all .13s;flex-shrink:0}
+.ctbtn.on .ctbtn-check{background:var(--ac);border-color:var(--ac);color:#fff}
+
+/* ── Selected containers summary ── */
+.ct-summary{margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);display:none}
+.ct-summary.has{display:block}
+.ct-sum-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ct-qty-row{display:flex;align-items:center;gap:8px;padding:4px 0}
+.ct-qty-name{font-size:11px;font-weight:600;color:var(--t1);min-width:88px}
+.qctrl{display:flex;align-items:center;border:1px solid var(--bd);border-radius:var(--r4);overflow:hidden}
+.qbtn{width:22px;height:24px;border:none;background:#F0F2F7;cursor:pointer;font-size:13px;color:var(--t2);display:flex;align-items:center;justify-content:center;transition:background .1s}
+.qbtn:hover{background:var(--bd2)}
+.qnum{width:30px;text-align:center;font-size:12px;font-weight:600;padding:0;border:none;border-left:1px solid var(--bd);border-right:1px solid var(--bd);height:24px}
+.qnum:focus{outline:none;box-shadow:none!important;border-color:var(--bd)!important}
+.ct-del{width:20px;height:20px;border:none;background:none;color:var(--t3);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;border-radius:3px;margin-left:2px}
+.ct-del:hover{background:var(--rd-bg);color:var(--rd)}
+
+/* ── Currency ── */
+.cur-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.add-link{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ac);cursor:pointer;padding:3px 0;user-select:none;font-weight:600}
+.add-link:hover{opacity:.7}
+.del-btn{width:22px;height:22px;border:none;background:#FEF2F1;color:var(--rd);border-radius:var(--r4);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s}
+.del-btn:hover{background:#FCDAD9}
+.fetch-rate{padding:4px 9px;font-size:10px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);background:#fff;color:var(--t2);cursor:pointer;white-space:nowrap;height:28px;display:flex;align-items:center;gap:4px;transition:all .13s}
+.fetch-rate:hover{background:var(--ac-bg);border-color:var(--ac);color:var(--ac)}
+
+/* ── Charge rows ── */
+.cr{display:grid;grid-template-columns:1fr 72px 96px 22px;gap:5px;align-items:start;padding:5px 0;border-bottom:1px solid #ECEEF5}
+.cr:last-child{border-bottom:none}
+.cr-name{font-size:11px;color:var(--t1);padding-top:3px}
+.msel{padding:3px 5px;font-size:10px;height:26px}
+.cv{padding:3px 6px;font-size:11px;text-align:right;height:26px}
+.add-charge{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ac);cursor:pointer;padding:5px 0 2px;user-select:none;font-weight:600}
+.add-charge:hover{opacity:.75}
+
+/* ── Dims / CBM ── */
+.dims-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.cbm-display{background:var(--ac-bg);border-radius:var(--r4);padding:5px 9px;display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.cbm-lbl{font-size:10px;color:var(--ac);font-weight:600}
+.cbm-val{font-size:13px;font-weight:800;color:var(--ac)}
+
+/* ── Gen btn ── */
+.btn-gen{width:100%;padding:10px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:6px;transition:all .14s}
+.btn-gen:hover{background:var(--ac-h)}
+.btn-gen:active{transform:scale(.98)}
+
+/* ════════════════════════════════
+   RIGHT PANEL
+════════════════════════════════ */
+.right{padding:22px 26px;overflow-y:auto}
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:18px}
+.tab{padding:8px 15px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .14s;user-select:none}
+.tab:hover{color:var(--t1)}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac);font-weight:700}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.kpi{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r12);padding:13px 15px}
+.kl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px}
+.kv{font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--t1)}
+.ks{font-size:10px;color:var(--t2);margin-top:2px}
+.kpi.g .kv{color:var(--gn)}.kpi.a .kv{color:var(--am)}
+.qs{background:#fff;border:1px solid var(--bd);border-radius:var(--r16);overflow:hidden;margin-bottom:14px;box-shadow:0 1px 5px rgba(0,0,0,.05)}
+.qshd{background:#0F1729;color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
+.qsbody{padding:18px 22px}
+.qig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.qib .ql2{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:3px}
+.qib .qv2{font-size:13px;font-weight:600}.qib .qsub2{font-size:11px;color:var(--t2);margin-top:1px}
+.route{display:flex;align-items:center;background:#F4F5F8;border-radius:var(--r8);padding:9px 14px;margin-bottom:16px}
+.rn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ri{width:28px;height:28px;background:#fff;border:1px solid var(--bd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+.rnm{font-size:10px;font-weight:600}.rc{font-size:9px;color:var(--t3)}
+.ra{color:var(--t3);font-size:13px;padding:0 5px;flex-shrink:0}
+.segblk{margin-bottom:14px}
+.seghd{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:var(--r4) var(--r4) 0 0;border:1px solid var(--bd);border-bottom:none}
+.segnum{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.segtit{font-size:11px;font-weight:700}.segsub{font-size:10px;color:var(--t2);margin-left:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:#F4F5F8;padding:6px 9px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--t2);border:1px solid var(--bd)}
+th:last-child,td:last-child{text-align:right}
+td{padding:7px 9px;border:1px solid #ECEEF5;color:var(--t1)}
+tr:hover td{background:#FAFBFD}
+.pill{display:inline-flex;padding:1px 6px;border-radius:100px;font-size:9px;font-weight:600}
+.p실비{background:#ECEEF5;color:var(--t2)}.p마진금{background:var(--am-bg);color:var(--am)}.p마진율{background:var(--gn-bg);color:var(--gn)}
+.tdc{color:var(--t2)}.tdp{font-weight:700}.tdm{color:var(--gn);font-weight:600}
+.trt{background:#0F1729}.trt td{color:#fff;font-weight:700;font-size:12px;border-color:#1E2D4A}
+.trs{background:#F4F5F8}.trs td{font-weight:600;font-size:10px}
+.qft{padding:11px 22px;background:#F9FAFB;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.vbadge{font-size:10px;background:var(--am-bg);color:var(--am);padding:3px 9px;border-radius:100px;font-weight:600}
+.bsm{padding:5px 11px;border-radius:var(--r4);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:#fff;color:var(--t1);transition:all .13s}
+.bsm:hover{background:var(--bg)}.bsm.pri{background:var(--ac);color:#fff;border-color:var(--ac)}.bsm.pri:hover{background:var(--ac-h)}
+.sc{background:#fff;border:1px solid var(--bd);border-radius:var(--r12);padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.stit2{font-size:12px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.spill{font-size:9px;background:var(--ac-bg);color:var(--ac);padding:2px 7px;border-radius:100px;font-weight:700}
+.sgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.scard{border:1px solid var(--bd);border-radius:var(--r8);padding:9px 7px;text-align:center;cursor:pointer;transition:all .13s;background:#fff}
+.scard:hover,.scard.on{border-color:var(--ac);background:var(--ac-bg)}
+.sr{font-size:14px;font-weight:800;color:var(--ac)}.sp{font-size:10px;color:var(--t2);margin-top:3px}.stag{font-size:9px;color:var(--t3);margin-top:2px}
+.chw{height:210px;position:relative}.chws{height:195px;position:relative}
+.aic{background:#fff;border:1px solid var(--bd);border-radius:var(--r12);overflow:hidden;margin-bottom:14px}
+.aihd{padding:13px 17px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:9px}
+.aiico{width:24px;height:24px;background:linear-gradient(135deg,#5B21B6,#7C3AED);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;flex-shrink:0}
+.aibody{padding:14px 17px}
+.aiout{background:#FAFBFD;border:1px solid var(--bd);border-radius:var(--r8);padding:11px 13px;font-size:12px;line-height:1.75;min-height:76px;white-space:pre-wrap;color:var(--t1)}
+.dots span{display:inline-block;width:4px;height:4px;background:var(--ac);border-radius:50%;animation:bop 1.2s infinite;margin-right:2px}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bop{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-4px);opacity:1}}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:68px 36px;text-align:center;gap:9px}
+.ei{font-size:36px;opacity:.3}.et{font-size:14px;font-weight:700;color:var(--t2)}.ed{font-size:12px;line-height:1.65;max-width:300px;color:var(--t3)}
+.toast{position:fixed;bottom:18px;right:18px;background:#0F1729;color:#fff;padding:9px 16px;border-radius:var(--r8);font-size:12px;opacity:0;transform:translateY(36px);transition:all .22s;z-index:9999;pointer-events:none}
+.toast.on{opacity:1;transform:translateY(0)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="lm">✈</div>포워딩 견적 시스템</div>
+  <div style="display:flex;gap:7px;align-items:center">
+    <span class="hb">v0.4</span>
+    <span style="font-size:10px;color:rgba(255,255,255,.35)">포워딩3팀 EPC파트</span>
+  </div>
+</header>
+
+<div class="wrap">
+<!-- ════════ LEFT ════════ -->
+<div class="left"><div class="li">
+<div class="phd">견적 정보 입력</div>
+
+<!-- S0: 기본 정보 -->
+<div class="sec" id="s0">
+  <div class="shd" onclick="tog('s0')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">화주 / 화물 기본 정보</span><span class="sarr o" id="s0a">▼</span></div>
+  <div class="sbody o" id="s0b">
+
+    <div class="fr c1"><div class="fd"><label>화주명</label><input type="text" id="shipper" placeholder="예: (주)플로원"></div></div>
+
+    <!-- POL -->
+    <div class="port-wrap" id="pol-wrap">
+      <div class="port-label-row">
+        <span class="flbl">POL (선적항)</span>
+        <div class="port-type-toggle">
+          <button class="ptt-btn on" id="pol-cy-btn" onclick="setPT('pol','CY')">CY</button>
+          <button class="ptt-btn" id="pol-door-btn" onclick="setPT('pol','DOOR')">DOOR</button>
+        </div>
+      </div>
+      <div class="port-input-row">
+        <input class="port-search-input" id="pol-input" placeholder="항구명 또는 SCAC 코드 검색 (예: KR, KRPUS, Busan...)" oninput="onPortInput('pol')" onfocus="onPortFocus('pol')" autocomplete="off">
+      </div>
+      <div class="port-dropdown" id="pol-dd"></div>
+      <div class="port-door-note" id="pol-note">⚠ DOOR 선택 시 픽업 트럭킹·포장·제반 비용이 1구간에 추가됩니다</div>
+    </div>
+
+    <!-- POD -->
+    <div class="port-wrap" id="pod-wrap">
+      <div class="port-label-row">
+        <span class="flbl">POD (양하항)</span>
+        <div class="port-type-toggle">
+          <button class="ptt-btn on" id="pod-cy-btn" onclick="setPT('pod','CY')">CY</button>
+          <button class="ptt-btn" id="pod-door-btn" onclick="setPT('pod','DOOR')">DOOR</button>
+        </div>
+      </div>
+      <div class="port-input-row">
+        <input class="port-search-input" id="pod-input" placeholder="항구명 또는 SCAC 코드 검색 (예: ID, IDJKT, Jakarta...)" oninput="onPortInput('pod')" onfocus="onPortFocus('pod')" autocomplete="off">
+      </div>
+      <div class="port-dropdown" id="pod-dd"></div>
+      <div class="port-door-note" id="pod-note">⚠ DOOR 선택 시 현지 내륙운송·통관·제반 비용이 3구간에 추가됩니다</div>
+    </div>
+
+    <div class="fr c2">
+      <div class="fd"><label>최종 목적지 (Destination)</label><input type="text" id="dest" placeholder="예: CILEGON, INDONESIA"></div>
+      <div class="fd"><label>인코텀즈</label>
+        <select id="inco">
+          <optgroup label="E Group"><option>EXW</option></optgroup>
+          <optgroup label="F Group"><option>FCA</option><option>FAS</option><option>FOB</option></optgroup>
+          <optgroup label="C Group"><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option></optgroup>
+          <optgroup label="D Group"><option selected>DAP</option><option>DPU</option><option>DDP</option></optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="fr c2">
+      <div class="fd"><label>화물 품목 (Commodity)</label><input type="text" id="item" placeholder="예: MACHINERY"></div>
+      <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="30" min="1"></div>
+    </div>
+
+    <!-- Cargo dims -->
+    <div style="margin-top:4px">
+      <div class="flbl" style="margin-bottom:5px">화물 치수 &amp; 중량</div>
+      <div class="dims-row">
+        <div class="fd"><label>L (cm)</label><input type="number" id="dl" placeholder="0" min="0" oninput="calcCbm()"></div>
+        <div class="fd"><label>W (cm)</label><input type="number" id="dw" placeholder="0" min="0" oninput="calcCbm()"></div>
+        <div class="fd"><label>H (cm)</label><input type="number" id="dh" placeholder="0" min="0" oninput="calcCbm()"></div>
+        <div class="fd"><label>수량 (PCS)</label><input type="number" id="dpcs" placeholder="1" value="1" min="1" oninput="calcCbm()"></div>
+      </div>
+      <div class="cbm-display" id="cbm-disp" style="display:none">
+        <span class="cbm-lbl">자동 계산 CBM</span>
+        <span class="cbm-val" id="cbm-val">—</span>
+      </div>
+      <div class="fr c2" style="margin-top:6px">
+        <div class="fd"><label>CBM (직접 입력 가능)</label><input type="number" id="cbm" placeholder="0.000" min="0" step="0.001"></div>
+        <div class="fd"><label>Gross Weight (KG)</label><input type="number" id="gw" placeholder="0" min="0"></div>
+      </div>
+    </div>
+
+    <!-- Exchange rates -->
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <span class="flbl">환율 설정</span>
+        <button class="fetch-rate" id="fetch-btn" onclick="fetchRates()">↻ 당일 기준율 조회</button>
+      </div>
+      <div id="cur-list">
+        <div class="cur-row">
+          <div class="fd"><label>통화</label><select id="cur-0-code" style="height:28px;padding:3px 6px"><option value="USD">USD — 미국 달러</option></select></div>
+          <div class="fd"><label>매매기준율 (원)</label><div class="ui"><input type="number" id="cur-0-rate" value="1448" min="1"><span class="usf">KRW</span></div></div>
+          <div style="padding-top:18px"><button class="del-btn" style="background:#F0F2F7;color:var(--t3);cursor:default" title="기본 통화">—</button></div>
+        </div>
+      </div>
+      <div class="add-link" onclick="addCur()">＋ 환종 추가 (JPY, EUR, IDR 등)</div>
+    </div>
+  </div>
+</div>
+
+<!-- S1: 컨테이너 -->
+<div class="sec" id="s1">
+  <div class="shd" onclick="tog('s1')"><span class="sdot" style="background:var(--gn)"></span><span class="stit">컨테이너 구성</span><span class="sarr o" id="s1a">▼</span></div>
+  <div class="sbody o" id="s1b">
+    <div id="ct-accordions"></div>
+    <div class="ct-summary" id="ct-summary">
+      <div class="ct-sum-title">선택된 컨테이너</div>
+      <div id="ct-qty-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- S2~S4: Charges -->
+<div class="sec" id="s2">
+  <div class="shd" onclick="tog('s2')"><span class="sdot" style="background:var(--am)"></span><span class="stit">1구간 — 국내 (KRW)</span><span class="sarr o" id="s2a">▼</span></div>
+  <div class="sbody o" id="s2b"><div class="charge-list" id="g1"></div><div class="add-charge" onclick="addCharge(1)">＋ 항목 추가</div></div>
+</div>
+<div class="sec" id="s3">
+  <div class="shd" onclick="tog('s3')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">2구간 — 해상 운임 (USD)</span><span class="sarr o" id="s3a">▼</span></div>
+  <div class="sbody o" id="s3b"><div class="charge-list" id="g2"></div><div class="add-charge" onclick="addCharge(2)">＋ 항목 추가</div></div>
+</div>
+<div class="sec" id="s4">
+  <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간 — 현지</span><span class="sarr o" id="s4a">▼</span></div>
+  <div class="sbody o" id="s4b"><div class="charge-list" id="g3"></div><div class="add-charge" onclick="addCharge(3)">＋ 항목 추가</div></div>
+</div>
+<div class="sec" id="s5">
+  <div class="shd" onclick="tog('s5')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">특이사항 / AI 분석 요청</span><span class="sarr" id="s5a">▼</span></div>
+  <div class="sbody" id="s5b"><textarea id="notes" rows="3" placeholder="예: 일부 OOG 화물, CILEGON 높이 제한, 현지 통관 지연 우려" style="resize:vertical"></textarea></div>
+</div>
+
+<button class="btn-gen" onclick="gen()">✨ 견적서 생성 + 수익 분석</button>
+</div></div>
+
+<!-- ════════ RIGHT ════════ -->
+<div class="right">
+  <div class="empty" id="emp"><div class="ei">📋</div><div class="et">견적 정보를 입력해주세요</div><div class="ed">항구 검색 → 컨테이너 선택 → 구간별 원가 입력 후 "견적서 생성"을 누르세요.</div></div>
+  <div id="cont" style="display:none">
+    <div class="tabs">
+      <div class="tab on" onclick="sv('quote')">📄 견적서</div>
+      <div class="tab" onclick="sv('sim')">📊 수익 시뮬레이션</div>
+      <div class="tab" onclick="sv('ai')">✦ AI 인사이트</div>
+    </div>
+    <div class="krow" id="krow"></div>
+    <div id="tq"></div>
+    <div id="ts" style="display:none"></div>
+    <div id="ta" style="display:none"></div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// PORT DATABASE  (SCAC code, city, country, flag)
+// ══════════════════════════════════════════
+const PORTS = [
+  // 🇰🇷 Korea
+  {c:'KRPUS',city:'Busan',country:'South Korea',flag:'🇰🇷'},
+  {c:'KRICN',city:'Incheon',country:'South Korea',flag:'🇰🇷'},
+  {c:'KRKAN',city:'Gwangyang',country:'South Korea',flag:'🇰🇷'},
+  {c:'KRUSN',city:'Ulsan',country:'South Korea',flag:'🇰🇷'},
+  {c:'KRMOK',city:'Mokpo',country:'South Korea',flag:'🇰🇷'},
+  {c:'KRPOH',city:'Pohang',country:'South Korea',flag:'🇰🇷'},
+  {c:'KRINC',city:'Incheon (Air)',country:'South Korea',flag:'🇰🇷'},
+  // 🇨🇳 China
+  {c:'CNSHA',city:'Shanghai',country:'China',flag:'🇨🇳'},
+  {c:'CNNGB',city:'Ningbo',country:'China',flag:'🇨🇳'},
+  {c:'CNTAO',city:'Qingdao',country:'China',flag:'🇨🇳'},
+  {c:'CNTXG',city:'Tianjin',country:'China',flag:'🇨🇳'},
+  {c:'CNSZX',city:'Shenzhen',country:'China',flag:'🇨🇳'},
+  {c:'CNGZU',city:'Guangzhou',country:'China',flag:'🇨🇳'},
+  {c:'CNXMN',city:'Xiamen',country:'China',flag:'🇨🇳'},
+  {c:'CNDLC',city:'Dalian',country:'China',flag:'🇨🇳'},
+  // 🇯🇵 Japan
+  {c:'JPTYO',city:'Tokyo',country:'Japan',flag:'🇯🇵'},
+  {c:'JPOSA',city:'Osaka',country:'Japan',flag:'🇯🇵'},
+  {c:'JPNGO',city:'Nagoya',country:'Japan',flag:'🇯🇵'},
+  {c:'JPYOK',city:'Yokohama',country:'Japan',flag:'🇯🇵'},
+  {c:'JPUKB',city:'Kobe',country:'Japan',flag:'🇯🇵'},
+  // 🇮🇩 Indonesia
+  {c:'IDJKT',city:'Jakarta (Tanjung Priok)',country:'Indonesia',flag:'🇮🇩'},
+  {c:'IDSUB',city:'Surabaya',country:'Indonesia',flag:'🇮🇩'},
+  {c:'IDMAK',city:'Makassar',country:'Indonesia',flag:'🇮🇩'},
+  {c:'IDBPN',city:'Balikpapan',country:'Indonesia',flag:'🇮🇩'},
+  {c:'IDBIT',city:'Bitung',country:'Indonesia',flag:'🇮🇩'},
+  // 🇸🇬 Singapore
+  {c:'SGSIN',city:'Singapore',country:'Singapore',flag:'🇸🇬'},
+  // 🇲🇾 Malaysia
+  {c:'MYPKG',city:'Port Klang',country:'Malaysia',flag:'🇲🇾'},
+  {c:'MYPEN',city:'Penang',country:'Malaysia',flag:'🇲🇾'},
+  {c:'MYJHB',city:'Johor Bahru',country:'Malaysia',flag:'🇲🇾'},
+  // 🇹🇭 Thailand
+  {c:'THBKK',city:'Bangkok (Laem Chabang)',country:'Thailand',flag:'🇹🇭'},
+  {c:'THLCH',city:'Laem Chabang',country:'Thailand',flag:'🇹🇭'},
+  // 🇻🇳 Vietnam
+  {c:'VNHPH',city:'Hai Phong',country:'Vietnam',flag:'🇻🇳'},
+  {c:'VNSGN',city:'Ho Chi Minh City (Cat Lai)',country:'Vietnam',flag:'🇻🇳'},
+  {c:'VNDAD',city:'Da Nang',country:'Vietnam',flag:'🇻🇳'},
+  // 🇮🇳 India
+  {c:'INNSA',city:'Nhava Sheva (JNPT)',country:'India',flag:'🇮🇳'},
+  {c:'INMAA',city:'Chennai',country:'India',flag:'🇮🇳'},
+  {c:'INMUN',city:'Mumbai',country:'India',flag:'🇮🇳'},
+  {c:'INKOL',city:'Kolkata',country:'India',flag:'🇮🇳'},
+  // 🇦🇪 UAE
+  {c:'AEJEA',city:'Jebel Ali (Dubai)',country:'UAE',flag:'🇦🇪'},
+  {c:'AEAUH',city:'Abu Dhabi',country:'UAE',flag:'🇦🇪'},
+  // 🇳🇱 Netherlands
+  {c:'NLRTM',city:'Rotterdam',country:'Netherlands',flag:'🇳🇱'},
+  // 🇩🇪 Germany
+  {c:'DEHAM',city:'Hamburg',country:'Germany',flag:'🇩🇪'},
+  {c:'DEBER',city:'Bremen',country:'Germany',flag:'🇩🇪'},
+  // 🇧🇪 Belgium
+  {c:'BEANR',city:'Antwerp',country:'Belgium',flag:'🇧🇪'},
+  // 🇬🇧 UK
+  {c:'GBFXT',city:'Felixstowe',country:'UK',flag:'🇬🇧'},
+  {c:'GBLGP',city:'London Gateway',country:'UK',flag:'🇬🇧'},
+  // 🇺🇸 USA
+  {c:'USLAX',city:'Los Angeles',country:'USA',flag:'🇺🇸'},
+  {c:'USNYC',city:'New York',country:'USA',flag:'🇺🇸'},
+  {c:'USSAV',city:'Savannah',country:'USA',flag:'🇺🇸'},
+  {c:'USSEAJ',city:'Seattle',country:'USA',flag:'🇺🇸'},
+  // 🇦🇺 Australia
+  {c:'AUSYD',city:'Sydney',country:'Australia',flag:'🇦🇺'},
+  {c:'AUMEL',city:'Melbourne',country:'Australia',flag:'🇦🇺'},
+  // 🇵🇭 Philippines
+  {c:'PHMNL',city:'Manila',country:'Philippines',flag:'🇵🇭'},
+  // 🇧🇩 Bangladesh
+  {c:'BDCGP',city:'Chittagong',country:'Bangladesh',flag:'🇧🇩'},
+  // 🇵🇰 Pakistan
+  {c:'PKKHI',city:'Karachi',country:'Pakistan',flag:'🇵🇰'},
+  // 🇸🇦 Saudi Arabia
+  {c:'SAJED',city:'Jeddah',country:'Saudi Arabia',flag:'🇸🇦'},
+  {c:'SADMM',city:'Dammam',country:'Saudi Arabia',flag:'🇸🇦'},
+  // 🇳🇬 Nigeria
+  {c:'NGAPP',city:'Apapa (Lagos)',country:'Nigeria',flag:'🇳🇬'},
+  // 🇿🇦 South Africa
+  {c:'ZADUR',city:'Durban',country:'South Africa',flag:'🇿🇦'},
+  // 🇲🇽 Mexico
+  {c:'MXLZC',city:'Lazaro Cardenas',country:'Mexico',flag:'🇲🇽'},
+  {c:'MXVER',city:'Veracruz',country:'Mexico',flag:'🇲🇽'},
+  // 🇧🇷 Brazil
+  {c:'BRSSZ',city:'Santos',country:'Brazil',flag:'🇧🇷'},
+];
+
+// Port search state
+const portState = { pol: null, pod: null, polType: 'CY', podType: 'CY' };
+
+function onPortInput(side) {
+  const q = document.getElementById(side + '-input').value.trim().toUpperCase();
+  const dd = document.getElementById(side + '-dd');
+  if (!q) { dd.classList.remove('open'); return; }
+
+  const results = PORTS.filter(p =>
+    p.c.includes(q) ||
+    p.city.toUpperCase().includes(q) ||
+    p.country.toUpperCase().includes(q)
+  ).slice(0, 20);
+
+  if (!results.length) {
+    dd.innerHTML = '<div class="pd-empty">일치하는 항구가 없습니다</div>';
+    dd.classList.add('open');
+    return;
+  }
+
+  // Group by country
+  const grouped = {};
+  results.forEach(p => {
+    if (!grouped[p.country]) grouped[p.country] = [];
+    grouped[p.country].push(p);
+  });
+
+  dd.innerHTML = Object.entries(grouped).map(([country, ports]) =>
+    `<div class="pd-section">${ports[0].flag} ${country}</div>` +
+    ports.map(p =>
+      `<div class="pd-item" onclick="selectPort('${side}','${p.c}','${p.city}','${p.country}','${p.flag}')">
+        <span class="pd-code">${p.c}</span>
+        <div class="pd-info"><div class="pd-city">${p.city}</div></div>
+      </div>`
+    ).join('')
+  ).join('');
+  dd.classList.add('open');
+}
+
+function onPortFocus(side) {
+  const q = document.getElementById(side + '-input').value.trim();
+  if (q) onPortInput(side);
+}
+
+function selectPort(side, code, city, country, flag) {
+  portState[side] = { code, city, country, flag };
+  const input = document.getElementById(side + '-input');
+  input.value = `${code} — ${city}, ${country}`;
+  document.getElementById(side + '-dd').classList.remove('open');
+}
+
+function setPT(side, type) {
+  portState[side + 'Type'] = type;
+  document.getElementById(side + '-cy-btn').classList.toggle('on', type === 'CY');
+  document.getElementById(side + '-door-btn').classList.toggle('on', type === 'DOOR');
+  document.getElementById(side + '-note').style.display = type === 'DOOR' ? 'block' : 'none';
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  ['pol','pod'].forEach(side => {
+    const wrap = document.getElementById(side + '-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById(side + '-dd').classList.remove('open');
+    }
+  });
+});
+
+// ══════════════════════════════════════════
+// CONTAINER GROUPS
+// ══════════════════════════════════════════
+const CT_GROUPS = [
+  { id:'gen', label:'General', icon:'📦', color:'#1A56DB',
+    types:['20DC','40DC','40HC'] },
+  { id:'ref', label:'Reefer', icon:'❄️', color:'#0891B2',
+    types:['20RF','40RF'] },
+  { id:'nor', label:'NOR (Non-Operating Reefer)', icon:'🧊', color:'#6366F1',
+    types:['20NOR','40NOR'] },
+  { id:'ot',  label:'Open Top', icon:'🔓', color:'#D97706',
+    types:['20OT(IG)','40OT(IG)'] },
+  { id:'fr',  label:'Flat Rack', icon:'📐', color:'#DC2626',
+    types:['20FR(IG)','20FR(OW)','20FR(OH)','20FR(FV)',
+           '40FR(IG)','40FR(OW)','40FR(OH)','40FR(FV)',
+           '40HCFR(IG)','40HCFR(OW)','40HCFR(OH)','40HCFR(FV)'] },
+];
+
+let SC = {}; // { typeId: qty }
+
+function buildCtAccordions() {
+  document.getElementById('ct-accordions').innerHTML = CT_GROUPS.map(g => `
+    <div class="ct-accordion" id="cta-${g.id}">
+      <div class="cta-hd" onclick="togCta('${g.id}')">
+        <div class="cta-icon" style="background:${g.color}18;color:${g.color}">${g.icon}</div>
+        <span class="cta-title">${g.label}</span>
+        <span class="cta-count" id="ctc-${g.id}">0</span>
+        <span class="cta-arr" id="ctarr-${g.id}">▼</span>
+      </div>
+      <div class="cta-body" id="ctb-${g.id}">
+        <div class="ct-type-grid">
+          ${g.types.map(t => {
+            const key = t.replace(/[()]/g,'_');
+            return `<div class="ctbtn" id="ctbtn-${key}" onclick="toggleCt('${t}','${g.id}')">
+              <div class="ctbtn-check" id="ctck-${key}">✓</div>
+              ${t}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function togCta(id) {
+  const body = document.getElementById('ctb-' + id);
+  const arr = document.getElementById('ctarr-' + id);
+  const open = body.classList.contains('o');
+  body.classList.toggle('o', !open);
+  arr.classList.toggle('o', !open);
+}
+
+function toggleCt(type, groupId) {
+  const key = type.replace(/[()]/g,'_');
+  if (SC[type]) {
+    delete SC[type];
+    document.getElementById('ctbtn-' + key).classList.remove('on');
+  } else {
+    SC[type] = 1;
+    document.getElementById('ctbtn-' + key).classList.add('on');
+  }
+  updateCtCount(groupId);
+  renderCtSummary();
+}
+
+function updateCtCount(groupId) {
+  const group = CT_GROUPS.find(g => g.id === groupId);
+  const count = group.types.filter(t => SC[t]).length;
+  const el = document.getElementById('ctc-' + groupId);
+  el.textContent = count;
+  el.classList.toggle('has', count > 0);
+}
+
+function renderCtSummary() {
+  const keys = Object.keys(SC);
+  const sum = document.getElementById('ct-summary');
+  const list = document.getElementById('ct-qty-list');
+  if (!keys.length) { sum.classList.remove('has'); return; }
+  sum.classList.add('has');
+  list.innerHTML = keys.map(type => {
+    const key = type.replace(/[()]/g,'_');
+    return `<div class="ct-qty-row">
+      <span class="ct-qty-name">${type}</span>
+      <div class="qctrl">
+        <button class="qbtn" onclick="adjCt('${type}',-1)">−</button>
+        <input type="number" class="qnum" id="cqn-${key}" value="${SC[type]}" min="1" onchange="SC['${type}']=parseInt(this.value)||1">
+        <button class="qbtn" onclick="adjCt('${type}',1)">+</button>
+      </div>
+      <button class="ct-del" onclick="removeCt('${type}','${CT_GROUPS.find(g=>g.types.includes(type))?.id||''}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function adjCt(type, d) {
+  SC[type] = Math.max(1, (SC[type] || 1) + d);
+  const el = document.getElementById('cqn-' + type.replace(/[()]/g,'_'));
+  if (el) el.value = SC[type];
+}
+
+function removeCt(type, groupId) {
+  delete SC[type];
+  const key = type.replace(/[()]/g,'_');
+  const btn = document.getElementById('ctbtn-' + key);
+  if (btn) btn.classList.remove('on');
+  if (groupId) updateCtCount(groupId);
+  renderCtSummary();
+}
+
+// ══════════════════════════════════════════
+// CHARGE ROWS
+// ══════════════════════════════════════════
+const DEFAULT_S1 = [
+  {id:'cfs',n:'CFS 작업료',s:'컨/작업',per:'CTR',m:'실비',cur:'KRW'},
+  {id:'shor',n:'쇼링',s:'고박작업',per:'CTR',m:'실비',cur:'KRW'},
+  {id:'tarp',n:'타포린',s:'방수포',per:'CTR',m:'실비',cur:'KRW'},
+  {id:'shut',n:'컨테이너 셔틀료',s:'국내운송',per:'CTR',m:'실비',cur:'KRW'},
+  {id:'thc1',n:'THC (1구간)',s:'터미널핸들링',per:'CTR',m:'마진금',cur:'KRW'},
+  {id:'wfg',n:'WFG',s:'부두이용료',per:'CTR',m:'실비',cur:'KRW'},
+  {id:'scg',n:'SCG',s:'안전관리료',per:'CTR',m:'실비',cur:'KRW'},
+  {id:'doc1',n:'DOC FEE',s:'서류비',per:'BL',m:'실비',cur:'KRW'},
+  {id:'exp',n:'수출통관 대행료',s:'관세사',per:'BL',m:'마진금',cur:'KRW'},
+];
+const DEFAULT_S2 = [{id:'oft',n:'OFT',s:'해상운임',per:'CTR',m:'마진금',cur:'USD'}];
+const DEFAULT_S3 = [
+  {id:'thc3',n:'THC (3구간)',s:'현지터미널',per:'CTR',m:'실비',cur:'USD'},
+  {id:'doc3',n:'DOC FEE',s:'서류비',per:'BL',m:'실비',cur:'USD'},
+  {id:'adm',n:'ADMIN FEE',s:'관리비',per:'BL',m:'실비',cur:'USD'},
+  {id:'imc',n:'수입통관 대행료',s:'현지관세사',per:'CTR',m:'마진금',cur:'USD'},
+  {id:'do',n:'DO FEE',s:'화물인도지시',per:'CTR',m:'실비',cur:'USD'},
+  {id:'unl',n:'컨테이너 적출료',s:'OOG전용',per:'CTR',m:'실비',cur:'USD'},
+  {id:'inl',n:'내륙운송료',s:'최종목적지',per:'CTR',m:'마진금',cur:'USD'},
+];
+
+const CURRENCIES = ['USD — 미국 달러','EUR — 유로','JPY — 일본 엔','CNY — 중국 위안','VND — 베트남 동','IDR — 인도네시아 루피아','THB — 태국 바트','MYR — 말레이시아 링깃','SGD — 싱가포르 달러','INR — 인도 루피','AUD — 호주 달러','GBP — 영국 파운드','HKD — 홍콩 달러'];
+
+let charges = {1:[],2:[],3:[]};
+let curCount = 1;
+let _uid = 1000;
+function uid() { return 'c' + (_uid++); }
+
+function initCharges(seg, defs) {
+  charges[seg] = defs.map(c => ({...c, uid: uid()}));
+  renderCharges(seg);
+}
+
+function getAvailCurs() {
+  const list = ['KRW'];
+  for (let i = 0; i < curCount; i++) {
+    const el = document.getElementById('cur-' + i + '-code');
+    if (el) list.push(el.value.split(' ')[0]);
+  }
+  return [...new Set(list)];
+}
+
+function renderCharges(seg) {
+  const el = document.getElementById('g' + seg);
+  const curs = getAvailCurs();
+  el.innerHTML = charges[seg].map(c => chargeRowHTML(c, curs)).join('');
+}
+
+function chargeRowHTML(c, curs) {
+  const curOpts = curs.map(cu => `<option value="${cu}"${c.cur===cu?' selected':''}>${cu}</option>`).join('');
+  return `<div class="cr" id="cr-${c.uid}">
+    <div class="cr-name">
+      <input type="text" value="${c.n}" id="name-${c.uid}" style="font-size:11px;padding:3px 5px;margin-bottom:2px;width:100%" placeholder="항목명">
+      <div style="display:flex;gap:4px;margin-top:2px">
+        <select style="font-size:9px;padding:2px 4px;height:20px;width:44px" id="per-${c.uid}">
+          <option value="CTR"${c.per==='CTR'?' selected':''}>컨당</option>
+          <option value="BL"${c.per==='BL'?' selected':''}>BL당</option>
+        </select>
+        <select style="font-size:9px;padding:2px 4px;height:20px" id="cus-${c.uid}" onchange="onCurChange('${c.uid}')">
+          ${curOpts}
+        </select>
+      </div>
+    </div>
+    <select class="msel" id="ms-${c.uid}" onchange="onModeChange('${c.uid}')">
+      <option value="실비"${c.m==='실비'?' selected':''}>실비</option>
+      <option value="마진금"${c.m==='마진금'?' selected':''}>+금액</option>
+      <option value="마진율"${c.m==='마진율'?' selected':''}>+율</option>
+    </select>
+    <div id="ip-${c.uid}">${buildInp(c.uid,c.m,c.cur)}</div>
+    <button class="del-btn" onclick="delCharge('${c.uid}')">✕</button>
+  </div>`;
+}
+
+function buildInp(uid, mode, cur) {
+  if (mode==='실비') return `<div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="0" min="0"><span class="usf">${cur}</span></div>`;
+  if (mode==='마진금') return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="p-${uid}" placeholder="판가" min="0"><span class="usf">${cur}</span></div></div>`;
+  return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100"><span class="usf">%</span></div></div>`;
+}
+
+function onModeChange(uid) {
+  const m = document.getElementById('ms-'+uid).value;
+  const cur = document.getElementById('cus-'+uid)?.value||'USD';
+  document.getElementById('ip-'+uid).innerHTML = buildInp(uid,m,cur);
+}
+
+function onCurChange(uid) {
+  const cur = document.getElementById('cus-'+uid).value;
+  const m = document.getElementById('ms-'+uid).value;
+  document.getElementById('ip-'+uid).innerHTML = buildInp(uid,m,cur);
+}
+
+function delCharge(uid) {
+  for (let s=1;s<=3;s++) {
+    const i = charges[s].findIndex(c=>c.uid===uid);
+    if (i>=0) { charges[s].splice(i,1); renderCharges(s); return; }
+  }
+}
+
+function addCharge(seg) {
+  const defCur = seg<=1?'KRW':'USD';
+  const c = {uid:uid(),n:'신규 항목',s:'',per:'CTR',m:'실비',cur:defCur};
+  charges[seg].push(c);
+  renderCharges(seg);
+  setTimeout(()=>{ const el=document.getElementById('name-'+c.uid); if(el){el.focus();el.select();} },50);
+}
+
+// ── Currencies ──
+function getCurRate(code) {
+  if (code==='KRW') return 1;
+  for (let i=0;i<curCount;i++) {
+    const el = document.getElementById('cur-'+i+'-code');
+    if (el && el.value.startsWith(code)) {
+      return parseFloat(document.getElementById('cur-'+i+'-rate')?.value)||1;
+    }
+  }
+  return 1;
+}
+
+function addCur() {
+  const i = curCount;
+  const opts = CURRENCIES.filter(c=>!c.startsWith('USD')).map(c=>`<option>${c}</option>`).join('');
+  const row = document.createElement('div');
+  row.className='cur-row'; row.id='cur-row-'+i;
+  row.innerHTML=`<div class="fd"><label>통화</label><select id="cur-${i}-code" style="height:28px;padding:3px 6px"><option>JPY — 일본 엔</option>${opts}</select></div><div class="fd"><label>기준율</label><div class="ui"><input type="number" id="cur-${i}-rate" placeholder="0" min="1"><span class="usf">KRW</span></div></div><div style="padding-top:18px"><button class="del-btn" onclick="delCur(${i})">✕</button></div>`;
+  document.getElementById('cur-list').appendChild(row);
+  curCount++;
+}
+
+function delCur(i) { const el=document.getElementById('cur-row-'+i); if(el) el.remove(); }
+
+async function fetchRates() {
+  const btn=document.getElementById('fetch-btn');
+  btn.textContent='⟳ 조회 중...'; btn.style.pointerEvents='none';
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const data = await res.json();
+    const krw = data.rates?.KRW||1448;
+    document.getElementById('cur-0-rate').value=Math.round(krw);
+    for (let i=1;i<curCount;i++) {
+      const sel=document.getElementById('cur-'+i+'-code');
+      const rel=document.getElementById('cur-'+i+'-rate');
+      if(sel&&rel){const code=sel.value.split(' ')[0];const r=data.rates?.[code];if(r)rel.value=Math.round(krw/r);}
+    }
+    toast('✓ 환율 업데이트 완료');
+  } catch(e) { toast('⚠ 환율 조회 실패 — 수동 입력해주세요'); }
+  btn.textContent='↻ 당일 기준율 조회'; btn.style.pointerEvents='';
+}
+
+// ── Utils ──
+function fmt(n){return Math.round(n).toLocaleString('ko-KR')}
+function today(){const d=new Date();return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`}
+function addD(n){const d=new Date();d.setDate(d.getDate()+n);return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`}
+function gno(){const d=new Date();return`QT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*900+100)}`}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
+function tog(id){const b=document.getElementById(id+'b'),a=document.getElementById(id+'a');const o=b.classList.contains('o');b.classList.toggle('o',!o);a.classList.toggle('o',!o)}
+function sv(n){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));const i={quote:0,sim:1,ai:2};document.querySelectorAll('.tab')[i[n]].classList.add('on');document.getElementById('tq').style.display=n==='quote'?'':'none';document.getElementById('ts').style.display=n==='sim'?'':'none';document.getElementById('ta').style.display=n==='ai'?'':'none'}
+function calcCbm(){const l=parseFloat(document.getElementById('dl').value)||0,w=parseFloat(document.getElementById('dw').value)||0,h=parseFloat(document.getElementById('dh').value)||0,pcs=parseFloat(document.getElementById('dpcs').value)||1;if(l&&w&&h){const cbm=(l*w*h*pcs)/1000000;document.getElementById('cbm').value=cbm.toFixed(3);document.getElementById('cbm-val').textContent=cbm.toFixed(3)+' CBM';document.getElementById('cbm-disp').style.display='flex';}else{document.getElementById('cbm-disp').style.display='none';}}
+
+// ── Compute charge ──
+function getCD(c) {
+  const uid=c.uid;
+  const mode=document.getElementById('ms-'+uid)?.value||c.m;
+  const name=document.getElementById('name-'+uid)?.value||c.n;
+  const per=document.getElementById('per-'+uid)?.value||c.per;
+  const cur=(document.getElementById('cus-'+uid)?.value||c.cur).split(' ')[0];
+  const cost=parseFloat(document.getElementById('v-'+uid)?.value)||0;
+  let price=cost,margin=0;
+  if(mode==='실비'){price=cost;margin=0;}
+  else if(mode==='마진금'){price=parseFloat(document.getElementById('p-'+uid)?.value)||cost;margin=price-cost;}
+  else{const r=parseFloat(document.getElementById('r-'+uid)?.value)||0;price=r<100?cost/(1-r/100):cost;margin=price-cost;}
+  const rate=getCurRate(cur);
+  return{uid,name,mode,per,cur,cost,price,margin,costKRW:cost*rate,priceKRW:price*rate,marginKRW:(price-cost)*rate};
+}
+
+// ── Generate ──
+function gen() {
+  if (!Object.keys(SC).length){toast('컨테이너 타입을 하나 이상 선택해주세요');return;}
+  const d1=charges[1].map(getCD),d2=charges[2].map(getCD),d3=charges[3].map(getCD);
+  const tc=Object.values(SC).reduce((a,b)=>a+b,0),bl=1;
+
+  function seg(arr){let c=0,p=0;arr.forEach(x=>{if(!x.cost&&!x.price)return;const m=x.per==='BL'?bl:tc;c+=x.costKRW*m;p+=x.priceKRW*m;});return{cost:c,price:p,margin:p-c};}
+
+  const t1=seg(d1),t2=seg(d2),t3=seg(d3);
+  const gc=t1.cost+t2.cost+t3.cost,gp=t1.price+t2.price+t3.price,gm=gp-gc,mr=gp>0?gm/gp*100:0;
+
+  const polPort = portState.pol || {code: document.getElementById('pol-input').value.split('—')[0].trim(), city:'', country:'', flag:''};
+  const podPort = portState.pod || {code: document.getElementById('pod-input').value.split('—')[0].trim(), city:'', country:'', flag:''};
+
+  const S={
+    shipper:document.getElementById('shipper').value||'(미입력)',
+    pol:polPort,pod:podPort,
+    polType:portState.polType,podType:portState.podType,
+    dest:document.getElementById('dest').value||'—',
+    inco:document.getElementById('inco').value,
+    item:document.getElementById('item').value||'—',
+    cbm:document.getElementById('cbm').value||'—',
+    gw:document.getElementById('gw').value||'—',
+    val:parseInt(document.getElementById('validity').value)||30,
+    notes:document.getElementById('notes').value,
+    SC,tc,bl,d1,d2,d3,t1,t2,t3,gc,gp,gm,mr
+  };
+
+  document.getElementById('emp').style.display='none';
+  document.getElementById('cont').style.display='';
+  rkpi(S);rq(S);rsim(S);
+  setTimeout(()=>rch(S),80);
+  rai(S);sv('quote');
+}
+
+function rkpi(S){
+  document.getElementById('krow').innerHTML=`
+    <div class="kpi"><div class="kl">총 원가</div><div class="kv">${fmt(S.gc)}원</div><div class="ks">3구간 합산</div></div>
+    <div class="kpi g"><div class="kl">총 판가</div><div class="kv">${fmt(S.gp)}원</div><div class="ks">${S.inco} 기준</div></div>
+    <div class="kpi g"><div class="kl">매출총이익</div><div class="kv">${fmt(S.gm)}원</div><div class="ks">판가 − 원가</div></div>
+    <div class="kpi a"><div class="kl">마진율</div><div class="kv">${S.mr.toFixed(1)}%</div><div class="ks">마진 / 판가</div></div>`;
+}
+
+function rq(S){
+  const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+  const polLabel=S.pol.code?`${S.pol.flag} ${S.pol.code}`:(document.getElementById('pol-input').value||'—');
+  const podLabel=S.pod.code?`${S.pod.flag} ${S.pod.code}`:(document.getElementById('pod-input').value||'—');
+
+  function srows(arr,tc,bl){
+    return arr.filter(c=>c.cost>0||c.price>0).map(c=>{
+      const m=c.per==='BL'?bl:tc;
+      const ck=c.costKRW*m,pk=c.priceKRW*m,mk=pk-ck;
+      const pill=`<span class="pill p${c.mode}">${c.mode==='실비'?'실비':c.mode==='마진금'?'+금액':'+율'}</span>`;
+      const cd=c.cur==='KRW'?`${fmt(c.cost*m)}원`:`${c.cur} ${(c.cost*m).toFixed(0)} (${fmt(ck)}원)`;
+      const pd=c.cur==='KRW'?`${fmt(c.price*m)}원`:`${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
+      return`<tr><td>${c.name}<br><small style="color:var(--t3);font-size:9px">${c.per==='BL'?'B/L×'+bl:'컨×'+tc}</small></td><td>${pill}</td><td class="tdc">${cd}</td><td class="tdp">${pd}</td><td class="tdm">${mk>=0?'+':''}${fmt(mk)}원</td></tr>`;
+    }).join('');
+  }
+  function sstrow(t,lbl){return`<tr class="trs"><td colspan="2">${lbl} 소계</td><td>${fmt(t.cost)}원</td><td>${fmt(t.price)}원</td><td class="tdm">+${fmt(t.margin)}원</td></tr>`;}
+  const dtb=(type)=>type==='DOOR'?'<span style="font-size:9px;background:var(--am-bg);color:var(--am);padding:1px 6px;border-radius:100px;margin-left:4px">DOOR</span>':'<span style="font-size:9px;background:#ECEEF5;color:var(--t2);padding:1px 6px;border-radius:100px;margin-left:4px">CY</span>';
+
+  document.getElementById('tq').innerHTML=`
+    <div class="qs">
+      <div class="qshd">
+        <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:3px">롯데글로벌로지스(주) — 포워딩3팀 EPC파트</div><div style="font-size:17px;font-weight:800">Quotation Sheet</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">${gno()}</div></div>
+        <div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.35)">발행일</div><div style="font-size:12px;font-weight:500">${today()}</div><div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:7px">유효기간</div><div style="font-size:12px;font-weight:500">${addD(S.val)}까지</div></div>
+      </div>
+      <div class="qsbody">
+        <div class="qig">
+          <div class="qib"><div class="ql2">Shipper</div><div class="qv2">${S.shipper}</div></div>
+          <div class="qib"><div class="ql2">Route</div><div class="qv2">${polLabel} → ${podLabel}</div><div class="qsub2">최종: ${S.dest}</div></div>
+          <div class="qib"><div class="ql2">Cargo</div><div class="qv2">${S.item}</div><div class="qsub2">${S.inco} · ${ctS}${S.cbm!=='—'?' · '+S.cbm+' CBM':''}${S.gw!=='—'?' · '+S.gw+' KG':''}</div></div>
+        </div>
+        <div class="route">
+          <div class="rn"><div class="ri">${S.pol.flag||'🏭'}</div><div class="rnm">${S.pol.code||'—'}</div><div class="rc">POL · ${S.polType}</div></div>
+          <div class="ra">→</div>
+          <div class="rn"><div class="ri">🚢</div><div class="rnm">Ocean</div><div class="rc">${ctS}</div></div>
+          <div class="ra">→</div>
+          <div class="rn"><div class="ri">${S.pod.flag||'🏬'}</div><div class="rnm">${S.pod.code||'—'}</div><div class="rc">POD · ${S.podType}</div></div>
+          ${S.dest&&S.dest!=='—'?`<div class="ra">→</div><div class="rn"><div class="ri">📍</div><div class="rnm">${S.dest.split(',')[0]}</div><div class="rc">Destination</div></div>`:''}
+        </div>
+        <div class="segblk"><div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간 — 국내 (KRW)${dtb(S.polType)}</div><div class="segsub">소계 ${fmt(S.t1.price)}원</div></div>
+          <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${srows(S.d1,S.tc,S.bl)}${sstrow(S.t1,'1구간')}</tbody></table></div>
+        <div class="segblk"><div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간 — 해상 운임</div><div class="segsub">소계 ${fmt(S.t2.price)}원</div></div>
+          <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${srows(S.d2,S.tc,S.bl)}${sstrow(S.t2,'2구간')}</tbody></table></div>
+        <div class="segblk"><div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간 — 현지${dtb(S.podType)}</div><div class="segsub">소계 ${fmt(S.t3.price)}원</div></div>
+          <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${srows(S.d3,S.tc,S.bl)}${sstrow(S.t3,'3구간')}</tbody></table></div>
+        <table style="margin-top:8px"><tfoot><tr class="trt"><td colspan="2">합계 (Grand Total)</td><td>${fmt(S.gc)}원</td><td>${fmt(S.gp)}원</td><td>+${fmt(S.gm)}원 (${S.mr.toFixed(1)}%)</td></tr></tfoot></table>
+        <div style="font-size:10px;color:var(--t3);margin-top:6px;text-align:right">환율: 1 USD = ${fmt(getCurRate('USD'))}원 기준</div>
+      </div>
+      <div class="qft">
+        <span class="vbadge">유효기간 ${S.val}일 · ${addD(S.val)}까지</span>
+        <div style="display:flex;gap:5px"><button class="bsm" onclick="window.print()">🖨 인쇄</button><button class="bsm pri" onclick="toast('PDF 저장은 정식 버전에서 지원 예정입니다.')">📥 PDF</button></div>
+      </div>
+    </div>`;
+}
+
+function rsim(S){
+  const sc=[5,10,15,20,25].map(r=>{const p=S.gc/(1-r/100),m=p-S.gc;const lb=r<10?'저마진':r<18?'표준':r<22?'권장':'고마진';const on=Math.abs(r-S.mr)<1?'on':'';return`<div class="scard ${on}"><div class="sr">${r}%</div><div class="sp">${fmt(Math.round(m/10000))}만원</div><div class="stag">${lb}</div></div>`;}).join('');
+  document.getElementById('ts').innerHTML=`<div class="sc"><div class="stit2">마진율별 수익 시나리오<span class="spill">5개 구간</span></div><div class="sgrid">${sc}</div></div><div class="sc"><div class="stit2">구간별 원가 vs 판가</div><div class="chw"><canvas id="bc"></canvas></div></div><div class="sc"><div class="stit2">원가 구성 비중</div><div class="chws"><canvas id="pc"></canvas></div></div>`;
+}
+
+let barChart=null,pieChart=null;
+function rch(S){
+  const c1=document.getElementById('bc'),c2=document.getElementById('pc');
+  if(!c1||!c2)return;
+  if(barChart)barChart.destroy();if(pieChart)pieChart.destroy();
+  barChart=new Chart(c1,{type:'bar',data:{labels:['1구간(국내)','2구간(해상)','3구간(현지)','합계'],datasets:[{label:'원가',data:[S.t1.cost,S.t2.cost,S.t3.cost,S.gc],backgroundColor:'#E2E5EE',borderRadius:4,borderSkipped:false},{label:'판가',data:[S.t1.price,S.t2.price,S.t3.price,S.gp],backgroundColor:'#1A56DB',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},padding:10}},tooltip:{callbacks:{label:c=>' '+fmt(c.raw)+'원'}}},scales:{y:{ticks:{callback:v=>(v/10000)+'만',font:{size:10}},grid:{color:'#EEF0F5'}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  const pd=[{l:'1구간 국내',v:S.t1.cost,c:'#A85D08'},{l:'2구간 해상',v:S.t2.cost,c:'#1A56DB'},{l:'3구간 현지',v:S.t3.cost,c:'#5B21B6'}].filter(x=>x.v>0);
+  pieChart=new Chart(c2,{type:'doughnut',data:{labels:pd.map(x=>x.l),datasets:[{data:pd.map(x=>x.v),backgroundColor:pd.map(x=>x.c),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:12,usePointStyle:true}},tooltip:{callbacks:{label:c=>` ${c.label}: ${fmt(c.raw)}원 (${S.gc>0?Math.round(c.raw/S.gc*100):0}%)`}}}}});
+}
+
+async function rai(S){
+  const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+  const mi=[...S.d1,...S.d2,...S.d3].filter(c=>c.mode!=='실비'&&(c.cost>0||c.price>0)).map(c=>`  - ${c.name}: 원가 ${fmt(c.costKRW*S.tc)}원 → 판가 ${fmt(c.priceKRW*S.tc)}원`).join('\n');
+  const pr=`당신은 국제 포워딩 업계 10년 경력의 견적 전문가입니다. 아래 견적 데이터를 분석해 영업사원에게 실용적 인사이트 3가지를 한국어로 제공해주세요. 각 항목은 "•"로 시작하고 2줄 이내로 작성하세요.\n\n【개요】화주: ${S.shipper} / ${S.pol.code||'—'}(${S.polType}) → ${S.pod.code||'—'}(${S.podType}) → ${S.dest} / ${S.inco} / ${S.item} / ${ctS}${S.cbm!=='—'?' / CBM: '+S.cbm:''}${S.gw!=='—'?' / GW: '+S.gw+'KG':''}\n【수익】원가: ${fmt(S.gc)}원 / 판가: ${fmt(S.gp)}원 / 매총: ${fmt(S.gm)}원 / 마진율: ${S.mr.toFixed(1)}%\n구간비중: 1구간 ${S.gc>0?Math.round(S.t1.cost/S.gc*100):0}% / 2구간 ${S.gc>0?Math.round(S.t2.cost/S.gc*100):0}% / 3구간 ${S.gc>0?Math.round(S.t3.cost/S.gc*100):0}%\n【마진항목】\n${mi||'없음'}\n${S.notes?'【특이사항】\n'+S.notes:''}\n\n분석: 1) 마진율 ${S.mr.toFixed(1)}% 적정성/리스크 2) 원가구성 주의점/절감포인트 3) 수주가능성 높이는 영업포인트`;
+  document.getElementById('ta').innerHTML=`<div class="aic"><div class="aihd"><div class="aiico">✦</div><div><div style="font-size:12px;font-weight:700">AI 견적 인사이트</div><div style="font-size:10px;color:var(--t2)">Claude API · 3구간 종합 분석</div></div></div><div class="aibody"><div class="aiout" id="ao"><span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span></div></div></div>`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:pr}]})});
+    const data=await r.json();
+    document.getElementById('ao').textContent=data.content?.map(c=>c.text||'').join('')||'결과 없음';
+  }catch(e){document.getElementById('ao').textContent='⚠ AI 분석 연결 오류\n\nClaude API 키가 연결되면 마진 적정성, 원가 절감 포인트, 영업 전략을 분석합니다.';}
+}
+
+// ── Init ──
+buildCtAccordions();
+initCharges(1, DEFAULT_S1);
+initCharges(2, DEFAULT_S2);
+initCharges(3, DEFAULT_S3);
+</script>
+</body>
+</html>
