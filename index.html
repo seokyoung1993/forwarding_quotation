@@ -365,7 +365,7 @@ tr:hover td{background:#FAFBFD}
     </div>
 
     <div class="fr c2">
-      <div class="fd"><label>최종 목적지 (Destination)</label><input type="text" id="dest" placeholder="예: CILEGON, INDONESIA"></div>
+      <div class="fd"><label>화물 품목 (Commodity)</label><input type="text" id="item" placeholder="예: MACHINERY"></div>
       <div class="fd"><label>인코텀즈</label>
         <select id="inco">
           <optgroup label="E Group"><option>EXW</option></optgroup>
@@ -375,9 +375,8 @@ tr:hover td{background:#FAFBFD}
         </select>
       </div>
     </div>
-    <div class="fr c2">
-      <div class="fd"><label>화물 품목 (Commodity)</label><input type="text" id="item" placeholder="예: MACHINERY"></div>
-      <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="15" min="1" style="font-weight:600"></div>
+    <div class="fr c1">
+      <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="15" min="1" style="font-weight:600;max-width:120px"></div>
     </div>
 
     <!-- DG 여부 -->
@@ -1086,7 +1085,6 @@ function gen() {
     polType:portState.polType,podType:portState.podType,
     polAddr: portState.polType==='DOOR' ? (document.getElementById('pol-addr-input')?.value||'') : '',
     podAddr: portState.podType==='DOOR' ? (document.getElementById('pod-addr-input')?.value||'') : '',
-    dest:document.getElementById('dest').value||'—',
     inco:document.getElementById('inco').value,
     item:document.getElementById('item').value||'—',
     cbm:document.getElementById('cbm').value||'—',
@@ -1173,7 +1171,7 @@ function rq(S){
       <div class="qsbody">
         <div class="qig">
           <div class="qib"><div class="ql2">Shipper</div><div class="qv2">${S.shipper}</div></div>
-          <div class="qib"><div class="ql2">Route</div><div class="qv2">${polLabel} → ${podLabel}</div><div class="qsub2">최종: ${S.dest}</div></div>
+          <div class="qib"><div class="ql2">Route</div><div class="qv2">${polLabel} → ${podLabel}</div><div class="qsub2">${S.polType} → ${S.podType}${S.podAddr?' · '+S.podAddr:''}</div></div>
           <div class="qib"><div class="ql2">Cargo</div><div class="qv2">${S.item}${S.dg?` <span style="background:#FEF2F1;color:var(--rd);font-size:9px;padding:1px 6px;border-radius:100px;font-weight:700;vertical-align:middle">⚠ DG</span>`:''}</div><div class="qsub2">${S.inco} · ${ctS}${S.cbm!=='—'?' · '+S.cbm+' CBM':''}${S.gw!=='—'?' · '+S.gw+' KG':''}</div></div>
         </div>
         <div class="route">
@@ -1182,7 +1180,6 @@ function rq(S){
           <div class="rn"><div class="ri">🚢</div><div class="rnm">Ocean</div><div class="rc">${ctS}</div></div>
           <div class="ra">→</div>
           <div class="rn"><div class="ri">${S.pod.flag||'🏬'}</div><div class="rnm">${S.pod.code||'—'}</div><div class="rc">POD · ${S.podType}</div></div>
-          ${S.dest&&S.dest!=='—'?`<div class="ra">→</div><div class="rn"><div class="ri">📍</div><div class="rnm">${S.dest.split(',')[0]}</div><div class="rc">Destination</div></div>`:''}
         </div>
 
         <div class="segblk">
@@ -1320,7 +1317,7 @@ function rch(S){
 async function rai(S){
   const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
   const mi=[...S.d1,...S.d2,...S.d3].filter(c=>c.mode!=='실비'&&(c.cost>0||c.price>0)).map(c=>`  - ${c.name}: 원가 ${fmt(c.costKRW*S.tc)}원 → 판가 ${fmt(c.priceKRW*S.tc)}원`).join('\n');
-  const pr=`당신은 국제 포워딩 업계 10년 경력의 견적 전문가입니다. 아래 견적 데이터를 분석해 영업사원에게 실용적 인사이트 3가지를 한국어로 제공해주세요. 각 항목은 "•"로 시작하고 2줄 이내로 작성하세요.\n\n【개요】화주: ${S.shipper} / ${S.pol.code||'—'}(${S.polType}) → ${S.pod.code||'—'}(${S.podType}) → ${S.dest} / ${S.inco} / ${S.item} / ${ctS}${S.cbm!=='—'?' / CBM: '+S.cbm:''}${S.gw!=='—'?' / GW: '+S.gw+'KG':''}\n【수익】원가: ${fmt(S.gc)}원 / 판가: ${fmt(S.gp)}원 / 매총: ${fmt(S.gm)}원 / 마진율: ${S.mr.toFixed(1)}%\n구간비중: 1구간 ${S.gc>0?Math.round(S.t1.cost/S.gc*100):0}% / 2구간 ${S.gc>0?Math.round(S.t2.cost/S.gc*100):0}% / 3구간 ${S.gc>0?Math.round(S.t3.cost/S.gc*100):0}%\n【마진항목】\n${mi||'없음'}\n${S.notes?'【특이사항】\n'+S.notes:''}\n\n분석: 1) 마진율 ${S.mr.toFixed(1)}% 적정성/리스크 2) 원가구성 주의점/절감포인트 3) 수주가능성 높이는 영업포인트`;
+  const pr=`당신은 국제 포워딩 업계 10년 경력의 견적 전문가입니다. 아래 견적 데이터를 분석해 영업사원에게 실용적 인사이트 3가지를 한국어로 제공해주세요. 각 항목은 "•"로 시작하고 2줄 이내로 작성하세요.\n\n【개요】화주: ${S.shipper} / ${S.pol.code||'—'}(${S.polType}) → ${S.pod.code||'—'}(${S.podType}) / ${S.inco} / ${S.item} / ${ctS}${S.cbm!=='—'?' / CBM: '+S.cbm:''}${S.gw!=='—'?' / GW: '+S.gw+'KG':''}${S.dg?' / ⚠DG '+S.dgUn:''}\n【수익】원가: ${fmt(S.gc)}원 / 판가: ${fmt(S.gp)}원 / 매총: ${fmt(S.gm)}원 / 마진율: ${S.mr.toFixed(1)}%\n구간비중: 1구간 ${S.gc>0?Math.round(S.t1.cost/S.gc*100):0}% / 2구간 ${S.gc>0?Math.round(S.t2.cost/S.gc*100):0}% / 3구간 ${S.gc>0?Math.round(S.t3.cost/S.gc*100):0}%\n【마진항목】\n${mi||'없음'}\n${S.notes?'【특이사항】\n'+S.notes:''}\n\n분석: 1) 마진율 ${S.mr.toFixed(1)}% 적정성/리스크 2) 원가구성 주의점/절감포인트 3) 수주가능성 높이는 영업포인트`;
   document.getElementById('ta').innerHTML=`<div class="aic"><div class="aihd"><div class="aiico">✦</div><div><div style="font-size:12px;font-weight:700">AI 견적 인사이트</div><div style="font-size:10px;color:var(--t2)">Claude API · 3구간 종합 분석</div></div></div><div class="aibody"><div class="aiout" id="ao"><span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span></div></div></div>`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:pr}]})});
