@@ -279,7 +279,7 @@ tr:hover td{background:#FAFBFD}
     </div>
     <div class="fr c2">
       <div class="fd"><label>화물 품목 (Commodity)</label><input type="text" id="item" placeholder="예: MACHINERY"></div>
-      <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="30" min="1"></div>
+      <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="15" min="1" style="font-weight:600"></div>
     </div>
 
     <!-- Cargo dims -->
@@ -798,7 +798,7 @@ function addD(n){const d=new Date();d.setDate(d.getDate()+n);return`${d.getFullY
 function gno(){const d=new Date();return`QT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*900+100)}`}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
 function tog(id){const b=document.getElementById(id+'b'),a=document.getElementById(id+'a');const o=b.classList.contains('o');b.classList.toggle('o',!o);a.classList.toggle('o',!o)}
-function sv(n){document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));const i={quote:0,sim:1,ai:2};document.querySelectorAll('.tab')[i[n]].classList.add('on');document.getElementById('tq').style.display=n==='quote'?'':'none';document.getElementById('ts').style.display=n==='sim'?'':'none';document.getElementById('ta').style.display=n==='ai'?'':'none'}
+
 function calcCbm(){const l=parseFloat(document.getElementById('dl').value)||0,w=parseFloat(document.getElementById('dw').value)||0,h=parseFloat(document.getElementById('dh').value)||0,pcs=parseFloat(document.getElementById('dpcs').value)||1;if(l&&w&&h){const cbm=(l*w*h*pcs)/1000000;document.getElementById('cbm').value=cbm.toFixed(3);document.getElementById('cbm-val').textContent=cbm.toFixed(3)+' CBM';document.getElementById('cbm-disp').style.display='flex';}else{document.getElementById('cbm-disp').style.display='none';}}
 
 // ── Compute charge ──
@@ -853,36 +853,66 @@ function gen() {
 }
 
 function rkpi(S){
+  // 견적서 탭: 판가만 / 시뮬레이션 탭: 전체
   document.getElementById('krow').innerHTML=`
-    <div class="kpi"><div class="kl">총 원가</div><div class="kv">${fmt(S.gc)}원</div><div class="ks">3구간 합산</div></div>
-    <div class="kpi g"><div class="kl">총 판가</div><div class="kv">${fmt(S.gp)}원</div><div class="ks">${S.inco} 기준</div></div>
-    <div class="kpi g"><div class="kl">매출총이익</div><div class="kv">${fmt(S.gm)}원</div><div class="ks">판가 − 원가</div></div>
-    <div class="kpi a"><div class="kl">마진율</div><div class="kv">${S.mr.toFixed(1)}%</div><div class="ks">마진 / 판가</div></div>`;
+    <div class="kpi kpi-pub" style="grid-column:span 2"><div class="kl">견적 총액 (${S.inco})</div><div class="kv" style="font-size:22px">${fmt(S.gp)}원</div><div class="ks">${Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ')} · 유효기간 ${S.val}일</div></div>
+    <div class="kpi kpi-pub"><div class="kl">발행일</div><div class="kv" style="font-size:14px;letter-spacing:0">${today()}</div><div class="ks">만료 ${addD(S.val)}</div></div>
+    <div class="kpi kpi-pub"><div class="kl">환율 기준</div><div class="kv" style="font-size:14px;letter-spacing:0">1 USD = ${fmt(getCurRate('USD'))}원</div><div class="ks">발행일 기준</div></div>
+    <div class="kpi kpi-int" style="display:none"><div class="kl">총 원가</div><div class="kv">${fmt(S.gc)}원</div><div class="ks">3구간 합산</div></div>
+    <div class="kpi g kpi-int" style="display:none"><div class="kl">총 판가</div><div class="kv">${fmt(S.gp)}원</div><div class="ks">${S.inco} 기준</div></div>
+    <div class="kpi g kpi-int" style="display:none"><div class="kl">매출총이익</div><div class="kv">${fmt(S.gm)}원</div><div class="ks">판가 − 원가</div></div>
+    <div class="kpi a kpi-int" style="display:none"><div class="kl">마진율</div><div class="kv">${S.mr.toFixed(1)}%</div><div class="ks">마진 / 판가</div></div>`;
+}
+
+function sv(n){
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));
+  const i={quote:0,sim:1,ai:2};
+  document.querySelectorAll('.tab')[i[n]].classList.add('on');
+  document.getElementById('tq').style.display=n==='quote'?'':'none';
+  document.getElementById('ts').style.display=n==='sim'?'':'none';
+  document.getElementById('ta').style.display=n==='ai'?'':'none';
+  // KPI 카드 전환
+  document.querySelectorAll('.kpi-pub').forEach(el=>el.style.display=n==='quote'?'':'none');
+  document.querySelectorAll('.kpi-int').forEach(el=>el.style.display=n==='sim'?'':'none');
 }
 
 function rq(S){
+  // ── 화주용 견적서: 판가만 표시 ──
   const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
   const polLabel=S.pol.code?`${S.pol.flag} ${S.pol.code}`:(document.getElementById('pol-input').value||'—');
   const podLabel=S.pod.code?`${S.pod.flag} ${S.pod.code}`:(document.getElementById('pod-input').value||'—');
-
-  function srows(arr,tc,bl){
-    return arr.filter(c=>c.cost>0||c.price>0).map(c=>{
-      const m=c.per==='BL'?bl:tc;
-      const ck=c.costKRW*m,pk=c.priceKRW*m,mk=pk-ck;
-      const pill=`<span class="pill p${c.mode}">${c.mode==='실비'?'실비':c.mode==='마진금'?'+금액':'+율'}</span>`;
-      const cd=c.cur==='KRW'?`${fmt(c.cost*m)}원`:`${c.cur} ${(c.cost*m).toFixed(0)} (${fmt(ck)}원)`;
-      const pd=c.cur==='KRW'?`${fmt(c.price*m)}원`:`${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
-      return`<tr><td>${c.name}<br><small style="color:var(--t3);font-size:9px">${c.per==='BL'?'B/L×'+bl:'컨×'+tc}</small></td><td>${pill}</td><td class="tdc">${cd}</td><td class="tdp">${pd}</td><td class="tdm">${mk>=0?'+':''}${fmt(mk)}원</td></tr>`;
-    }).join('');
-  }
-  function sstrow(t,lbl){return`<tr class="trs"><td colspan="2">${lbl} 소계</td><td>${fmt(t.cost)}원</td><td>${fmt(t.price)}원</td><td class="tdm">+${fmt(t.margin)}원</td></tr>`;}
   const dtb=(type)=>type==='DOOR'?'<span style="font-size:9px;background:var(--am-bg);color:var(--am);padding:1px 6px;border-radius:100px;margin-left:4px">DOOR</span>':'<span style="font-size:9px;background:#ECEEF5;color:var(--t2);padding:1px 6px;border-radius:100px;margin-left:4px">CY</span>';
 
+  // 판가만 보여주는 행 (화주용)
+  function pubRows(arr, tc, bl) {
+    return arr.filter(c=>c.price>0).map(c=>{
+      const m = c.per==='BL' ? bl : tc;
+      const pk = c.priceKRW * m;
+      const pd = c.cur==='KRW' ? `${fmt(c.price*m)}원` : `${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
+      return `<tr><td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${c.per==='BL'?'B/L 기준':'컨테이너당'}</small></td><td class="tdp">${pd}</td></tr>`;
+    }).join('');
+  }
+  function pubSubrow(price, lbl) {
+    return `<tr class="trs"><td>${lbl} 소계</td><td style="font-weight:700">${fmt(price)}원</td></tr>`;
+  }
+
   document.getElementById('tq').innerHTML=`
+    <div style="font-size:10px;color:var(--t3);background:var(--gn-bg);border:1px solid #B7EDD8;border-radius:var(--r4);padding:5px 10px;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <span style="color:var(--gn);font-weight:700">📄 화주 제출용</span> 원가·마진 정보는 표시되지 않습니다. 내부 분석은 "수익 시뮬레이션" 탭을 확인하세요.
+    </div>
     <div class="qs">
       <div class="qshd">
-        <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:3px">롯데글로벌로지스(주) — 포워딩3팀 EPC파트</div><div style="font-size:17px;font-weight:800">Quotation Sheet</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">${gno()}</div></div>
-        <div style="text-align:right"><div style="font-size:9px;color:rgba(255,255,255,.35)">발행일</div><div style="font-size:12px;font-weight:500">${today()}</div><div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:7px">유효기간</div><div style="font-size:12px;font-weight:500">${addD(S.val)}까지</div></div>
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:3px">롯데글로벌로지스(주) — 포워딩3팀 EPC파트</div>
+          <div style="font-size:17px;font-weight:800">Quotation Sheet</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">${gno()}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:9px;color:rgba(255,255,255,.35)">발행일</div>
+          <div style="font-size:12px;font-weight:500">${today()}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:7px">유효기간 만료</div>
+          <div style="font-size:12px;font-weight:500">${addD(S.val)}까지 (${S.val}일)</div>
+        </div>
       </div>
       <div class="qsbody">
         <div class="qig">
@@ -898,25 +928,124 @@ function rq(S){
           <div class="rn"><div class="ri">${S.pod.flag||'🏬'}</div><div class="rnm">${S.pod.code||'—'}</div><div class="rc">POD · ${S.podType}</div></div>
           ${S.dest&&S.dest!=='—'?`<div class="ra">→</div><div class="rn"><div class="ri">📍</div><div class="rnm">${S.dest.split(',')[0]}</div><div class="rc">Destination</div></div>`:''}
         </div>
-        <div class="segblk"><div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간 — 국내 (KRW)${dtb(S.polType)}</div><div class="segsub">소계 ${fmt(S.t1.price)}원</div></div>
-          <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${srows(S.d1,S.tc,S.bl)}${sstrow(S.t1,'1구간')}</tbody></table></div>
-        <div class="segblk"><div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간 — 해상 운임</div><div class="segsub">소계 ${fmt(S.t2.price)}원</div></div>
-          <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${srows(S.d2,S.tc,S.bl)}${sstrow(S.t2,'2구간')}</tbody></table></div>
-        <div class="segblk"><div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간 — 현지${dtb(S.podType)}</div><div class="segsub">소계 ${fmt(S.t3.price)}원</div></div>
-          <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${srows(S.d3,S.tc,S.bl)}${sstrow(S.t3,'3구간')}</tbody></table></div>
-        <table style="margin-top:8px"><tfoot><tr class="trt"><td colspan="2">합계 (Grand Total)</td><td>${fmt(S.gc)}원</td><td>${fmt(S.gp)}원</td><td>+${fmt(S.gm)}원 (${S.mr.toFixed(1)}%)</td></tr></tfoot></table>
-        <div style="font-size:10px;color:var(--t3);margin-top:6px;text-align:right">환율: 1 USD = ${fmt(getCurRate('USD'))}원 기준</div>
+
+        <div class="segblk">
+          <div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간 — 국내${dtb(S.polType)}</div><div class="segsub">소계 ${fmt(S.t1.price)}원</div></div>
+          <table><thead><tr><th>항목</th><th style="text-align:right">금액</th></tr></thead><tbody>${pubRows(S.d1,S.tc,S.bl)}${pubSubrow(S.t1.price,'1구간')}</tbody></table>
+        </div>
+        <div class="segblk">
+          <div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간 — 해상 운임</div><div class="segsub">소계 ${fmt(S.t2.price)}원</div></div>
+          <table><thead><tr><th>항목</th><th style="text-align:right">금액</th></tr></thead><tbody>${pubRows(S.d2,S.tc,S.bl)}${pubSubrow(S.t2.price,'2구간')}</tbody></table>
+        </div>
+        <div class="segblk">
+          <div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간 — 현지${dtb(S.podType)}</div><div class="segsub">소계 ${fmt(S.t3.price)}원</div></div>
+          <table><thead><tr><th>항목</th><th style="text-align:right">금액</th></tr></thead><tbody>${pubRows(S.d3,S.tc,S.bl)}${pubSubrow(S.t3.price,'3구간')}</tbody></table>
+        </div>
+
+        <table style="margin-top:8px">
+          <tfoot><tr class="trt"><td>합계 (Grand Total · ${S.inco})</td><td style="font-size:15px;font-weight:800;text-align:right">${fmt(S.gp)}원</td></tr></tfoot>
+        </table>
+        <div style="font-size:10px;color:var(--t3);margin-top:6px;text-align:right">※ 상기 금액은 환율 기준 1 USD = ${fmt(getCurRate('USD'))}원 적용</div>
+
+        <div style="margin-top:14px;padding:10px 12px;background:#F9FAFB;border:1px solid var(--bd);border-radius:var(--r8);font-size:11px;color:var(--t2);line-height:1.8">
+          <div style="font-weight:700;font-size:11px;color:var(--t1);margin-bottom:5px">REMARK</div>
+          <div>· 국내 발생 비용 부가세 10% 별도</div>
+          <div>· 해상 운임은 출항일 기준 환율 적용이며, 견적서는 발행일 기준 임의 환율 적용</div>
+          <div>· 관/부가세 발생 시 화주 납부 조건</div>
+          <div>· 적하보험 화주 가입 조건, 필요 시 운송사 측 가입 후 실비 정산</div>
+          <div>· 기타 견적서 상 명시되지 않은 비용은 발생 시 사전 협의 후 진행</div>
+          ${S.notes?`<div style="margin-top:4px;padding-top:6px;border-top:1px solid var(--bd)">· ${S.notes}</div>`:''}
+        </div>
       </div>
       <div class="qft">
         <span class="vbadge">유효기간 ${S.val}일 · ${addD(S.val)}까지</span>
-        <div style="display:flex;gap:5px"><button class="bsm" onclick="window.print()">🖨 인쇄</button><button class="bsm pri" onclick="toast('PDF 저장은 정식 버전에서 지원 예정입니다.')">📥 PDF</button></div>
+        <div style="display:flex;gap:5px">
+          <button class="bsm" onclick="window.print()">🖨 인쇄</button>
+          <button class="bsm pri" onclick="toast('PDF 저장은 정식 버전에서 지원 예정입니다.')">📥 PDF</button>
+        </div>
       </div>
     </div>`;
 }
 
 function rsim(S){
-  const sc=[5,10,15,20,25].map(r=>{const p=S.gc/(1-r/100),m=p-S.gc;const lb=r<10?'저마진':r<18?'표준':r<22?'권장':'고마진';const on=Math.abs(r-S.mr)<1?'on':'';return`<div class="scard ${on}"><div class="sr">${r}%</div><div class="sp">${fmt(Math.round(m/10000))}만원</div><div class="stag">${lb}</div></div>`;}).join('');
-  document.getElementById('ts').innerHTML=`<div class="sc"><div class="stit2">마진율별 수익 시나리오<span class="spill">5개 구간</span></div><div class="sgrid">${sc}</div></div><div class="sc"><div class="stit2">구간별 원가 vs 판가</div><div class="chw"><canvas id="bc"></canvas></div></div><div class="sc"><div class="stit2">원가 구성 비중</div><div class="chws"><canvas id="pc"></canvas></div></div>`;
+  const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+
+  // 내부용 상세 원가/마진 테이블
+  function intRows(arr, tc, bl) {
+    return arr.filter(c=>c.cost>0||c.price>0).map(c=>{
+      const m = c.per==='BL' ? bl : tc;
+      const ck=c.costKRW*m, pk=c.priceKRW*m, mk=pk-ck;
+      const pill=`<span class="pill p${c.mode}">${c.mode==='실비'?'실비':c.mode==='마진금'?'+금액':'+율'}</span>`;
+      const cd=c.cur==='KRW'?`${fmt(c.cost*m)}원`:`${c.cur} ${(c.cost*m).toFixed(0)} (${fmt(ck)}원)`;
+      const pd=c.cur==='KRW'?`${fmt(c.price*m)}원`:`${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
+      return `<tr>
+        <td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${c.per==='BL'?'BL당':'컨당'}</small></td>
+        <td>${pill}</td>
+        <td class="tdc">${cd}</td>
+        <td class="tdp">${pd}</td>
+        <td class="tdm">${mk>=0?'+':''}${fmt(mk)}원</td>
+      </tr>`;
+    }).join('');
+  }
+  function intSub(t, lbl) {
+    return `<tr class="trs"><td colspan="2">${lbl} 소계</td><td>${fmt(t.cost)}원</td><td>${fmt(t.price)}원</td><td class="tdm">+${fmt(t.margin)}원</td></tr>`;
+  }
+  const dtb=(type)=>type==='DOOR'?'<span style="font-size:9px;background:var(--am-bg);color:var(--am);padding:1px 6px;border-radius:100px;margin-left:4px">DOOR</span>':'';
+
+  const sc=[5,10,15,20,25].map(r=>{
+    const p=S.gc/(1-r/100),m=p-S.gc;
+    const lb=r<10?'저마진':r<18?'표준':r<22?'권장':'고마진';
+    const on=Math.abs(r-S.mr)<1?'on':'';
+    return`<div class="scard ${on}"><div class="sr">${r}%</div><div class="sp">${fmt(Math.round(m/10000))}만원</div><div class="stag">${lb}</div></div>`;
+  }).join('');
+
+  document.getElementById('ts').innerHTML=`
+    <div style="font-size:10px;color:var(--t3);background:#FEF7EC;border:1px solid #F5D9A8;border-radius:var(--r4);padding:5px 10px;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+      <span style="color:var(--am);font-weight:700">🔒 내부용</span> 원가·마진 정보가 포함됩니다. 외부 공유 금지.
+    </div>
+
+    <div class="sc">
+      <div class="stit2">수익 요약</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        <div style="background:#F4F5F8;border-radius:var(--r8);padding:12px 14px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">총 원가</div>
+          <div style="font-size:18px;font-weight:800;color:var(--t1)">${fmt(S.gc)}원</div>
+        </div>
+        <div style="background:var(--gn-bg);border-radius:var(--r8);padding:12px 14px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gn);opacity:.7;margin-bottom:4px">총 판가</div>
+          <div style="font-size:18px;font-weight:800;color:var(--gn)">${fmt(S.gp)}원</div>
+        </div>
+        <div style="background:var(--gn-bg);border-radius:var(--r8);padding:12px 14px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gn);opacity:.7;margin-bottom:4px">매출총이익</div>
+          <div style="font-size:18px;font-weight:800;color:var(--gn)">${fmt(S.gm)}원</div>
+        </div>
+        <div style="background:var(--am-bg);border-radius:var(--r8);padding:12px 14px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--am);opacity:.7;margin-bottom:4px">마진율</div>
+          <div style="font-size:18px;font-weight:800;color:var(--am)">${S.mr.toFixed(1)}%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="stit2">구간별 원가 / 판가 / 마진 상세 <span class="spill">내부용</span></div>
+      <div class="segblk">
+        <div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간 — 국내 (KRW)${dtb(S.polType)}</div><div class="segsub">판가 소계 ${fmt(S.t1.price)}원</div></div>
+        <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${intRows(S.d1,S.tc,S.bl)}${intSub(S.t1,'1구간')}</tbody></table>
+      </div>
+      <div class="segblk">
+        <div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간 — 해상 운임</div><div class="segsub">판가 소계 ${fmt(S.t2.price)}원</div></div>
+        <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${intRows(S.d2,S.tc,S.bl)}${intSub(S.t2,'2구간')}</tbody></table>
+      </div>
+      <div class="segblk">
+        <div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간 — 현지${dtb(S.podType)}</div><div class="segsub">판가 소계 ${fmt(S.t3.price)}원</div></div>
+        <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${intRows(S.d3,S.tc,S.bl)}${intSub(S.t3,'3구간')}</tbody></table>
+      </div>
+      <table style="margin-top:8px"><tfoot><tr class="trt"><td colspan="2">합계</td><td>${fmt(S.gc)}원</td><td>${fmt(S.gp)}원</td><td>+${fmt(S.gm)}원 (${S.mr.toFixed(1)}%)</td></tr></tfoot></table>
+    </div>
+
+    <div class="sc"><div class="stit2">마진율별 수익 시나리오<span class="spill">5개 구간</span></div><div class="sgrid">${sc}</div></div>
+    <div class="sc"><div class="stit2">구간별 원가 vs 판가</div><div class="chw"><canvas id="bc"></canvas></div></div>
+    <div class="sc"><div class="stit2">원가 구성 비중</div><div class="chws"><canvas id="pc"></canvas></div></div>`;
 }
 
 let barChart=null,pieChart=null;
