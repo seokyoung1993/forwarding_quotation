@@ -475,8 +475,52 @@ tr:hover td{background:#FAFBFD}
   <div class="sbody" id="s2b"><div class="charge-list" id="g1"></div><div class="add-charge" onclick="addCharge(1)">＋ 항목 추가</div></div>
 </div>
 <div class="sec" id="s3">
-  <div class="shd" onclick="tog('s3')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">2구간 — 해상 운임 (USD)</span><span class="sarr" id="s3a">▼</span></div>
+  <div class="shd" onclick="tog('s3')" style="justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:7px">
+      <span class="sdot" style="background:var(--ac)"></span>
+      <span class="stit">2구간 — 해상 운임 (USD)</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px" onclick="event.stopPropagation()">
+      <button id="fak-btn" onclick="openFAK()" style="padding:3px 9px;font-size:10px;font-weight:700;border:1px solid var(--ac);border-radius:var(--r4);background:var(--ac-bg);color:var(--ac);cursor:pointer;letter-spacing:.02em;white-space:nowrap">FAK 조회</button>
+      <span class="sarr" id="s3a">▼</span>
+    </div>
+  </div>
   <div class="sbody" id="s3b"><div class="charge-list" id="g2"></div><div class="add-charge" onclick="addCharge(2)">＋ 항목 추가</div></div>
+</div>
+
+<!-- ── FAK Modal ── -->
+<div id="fak-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:var(--r16);width:540px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+    <!-- Modal Header -->
+    <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1)">FAK 운임 조회</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:1px">6월下 기준 · 부산발 북미</div>
+      </div>
+      <button onclick="closeFAK()" style="width:26px;height:26px;border:none;background:#F0F2F7;border-radius:5px;cursor:pointer;font-size:14px;color:var(--t2)">✕</button>
+    </div>
+    <!-- Search + Filter -->
+    <div style="padding:12px 20px;border-bottom:1px solid var(--bd);flex-shrink:0">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="fak-search" placeholder="SCAC 코드 입력 (예: USLGB, USNYC...)" oninput="fakSearch()" style="flex:1;height:32px;font-size:12px">
+        <select id="fak-carrier" onchange="fakSearch()" style="height:32px;font-size:11px;padding:4px 8px;min-width:90px">
+          <option value="">전체 선사</option>
+          <option>SM</option><option>HMM</option><option>YML</option><option>ONE</option>
+          <option>HAPAG</option><option>COSCO</option><option>MSC</option><option>ZIM</option>
+        </select>
+        <select id="fak-ctype" onchange="fakSearch()" style="height:32px;font-size:11px;padding:4px 8px;min-width:72px">
+          <option value="40HC">40HC</option>
+          <option value="40">40DC</option>
+          <option value="20">20DC</option>
+        </select>
+      </div>
+      <div id="fak-scac-hint" style="font-size:10px;color:var(--t3)">POD를 먼저 선택하면 SCAC 코드가 자동으로 입력됩니다.</div>
+    </div>
+    <!-- Results -->
+    <div style="overflow-y:auto;flex:1;padding:8px 20px 16px">
+      <div id="fak-results"></div>
+    </div>
+  </div>
 </div>
 <div class="sec" id="s4">
   <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간 — 현지</span><span class="sarr" id="s4a">▼</span></div>
@@ -1431,6 +1475,170 @@ async function exportPDF() {
   btn.textContent = '📥 PDF 저장';
   btn.style.pointerEvents = '';
 }
+
+// ══════════════════════════════════════════
+// FAK RATE DATABASE  (6월下 부산발 북미, USD)
+// ══════════════════════════════════════════
+const FAK_DB = {
+  "USLAX":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""},"ONE":{"20":3880,"40":4850,"40HC":4850,"via":"USLAXUSLGB"}},
+  "USLGB":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""},"ONE":{"20":3880,"40":4850,"40HC":4850,"via":"USLAXUSLGB"}},
+  "USOAK":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""}},
+  "USSEA":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""}},
+  "USTIW":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""}},
+  "USPDX":{"SM":{"20":5280,"40":6600,"40HC":6500,"via":"USWC"}},
+  "USNYC":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""},"HMM":{"20":6750,"40":7500,"40HC":7500,"via":"EC"}},
+  "USSAV":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""},"HMM":{"20":6750,"40":7500,"40HC":7500,"via":"EC"}},
+  "USORF":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""},"HMM":{"20":6750,"40":7500,"40HC":7500,"via":"EC"}},
+  "USCHS":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""}},
+  "USJAX":{"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""}},
+  "USHOU":{"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6120,"40":7650,"40HC":7650,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5360,"40":6700,"40HC":6700,"via":""},"ZIM":{"20":6080,"40":7600,"40HC":7600,"via":""},"HMM":{"20":6840,"40":7600,"40HC":7600,"via":"GC"}},
+  "USMOB":{"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6120,"40":7650,"40HC":7650,"via":""},"COSCO":{"20":5185,"40":6100,"40HC":6100,"via":""},"MSC":{"20":5360,"40":6700,"40HC":6700,"via":""},"ZIM":{"20":6160,"40":7700,"40HC":7700,"via":""}},
+  "USMIA":{"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"ZIM":{"20":6160,"40":7700,"40HC":7700,"via":""}},
+  "USTPA":{"HAPAG":{"20":6120,"40":7650,"40HC":7650,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"ZIM":{"20":6080,"40":7600,"40HC":7600,"via":""}},
+  "USBAL":{"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""}},
+  "USCHI":{"HMM":{"20":7140,"40":8400,"40HC":8400,"via":"LA/LGB"}},
+  "USATL":{"HMM":{"20":8245,"40":9700,"40HC":9700,"via":"LA/LGB"}},
+  "USCLT":{"HMM":{"20":7515,"40":8350,"40HC":8350,"via":"SAV/CST"}},
+  "USDET":{"HMM":{"20":8245,"40":9700,"40HC":9700,"via":"LA/LGB"}},
+  "USKCK":{"HMM":{"20":7395,"40":8700,"40HC":8700,"via":"LA/LGB"}},
+  "USMEM":{"HMM":{"20":7225,"40":8500,"40HC":8500,"via":"LA/LGB"}},
+  "USMSP":{"HMM":{"20":7225,"40":8500,"40HC":8500,"via":"TIW"}},
+  "USDEN":{"HMM":{"20":8415,"40":9900,"40HC":9900,"via":"OAK"}},
+  "USSLC":{"HMM":{"20":8245,"40":9700,"40HC":9700,"via":"OAK"}},
+  "USSTL":{"HMM":{"20":8415,"40":9900,"40HC":9900,"via":"LA/LGB"}},
+  "USBNA":{"HMM":{"20":8190,"40":9100,"40HC":9100,"via":"SAV/CST"}},
+  "CAVAN":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":""},"YML":{"20":5040,"40":6300,"40HC":6300,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""},"HMM":{"20":5040,"40":6300,"40HC":6300,"via":"WC"}},
+  "CACAL":{"HMM":{"20":6375,"40":7500,"40HC":7500,"via":"VAN"}},
+  "CAYEA":{"HMM":{"20":6375,"40":7500,"40HC":7500,"via":"VAN"}},
+  "CATOR":{"HMM":{"20":7055,"40":8300,"40HC":8300,"via":"VAN"}},
+  "CAMTR":{"HMM":{"20":7055,"40":8300,"40HC":8300,"via":"VAN"},"HAPAG":{"20":7440,"40":9550,"40HC":9550,"via":""}},
+  "CAWNP":{"HMM":{"20":7225,"40":8500,"40HC":8500,"via":"VAN"}},
+};
+
+const FAK_VALIDITY = '2026.06.15 ~ 06.30';
+
+// ── POD SCAC → FAK 자동 매칭 테이블 (port DB 연동)
+const POD_TO_SCAC = {
+  'USLAX':'USLAX','USLGB':'USLGB','USOAK':'USOAK','USSEA':'USSEA','USTIW':'USTIW',
+  'USPDX':'USPDX','USNYC':'USNYC','USSAV':'USSAV','USORF':'USORF','USCHS':'USCHS',
+  'USJAX':'USJAX','USHOU':'USHOU','USMOB':'USMOB','USMIA':'USMIA','USTPA':'USTPA',
+  'USBAL':'USBAL','CAVAN':'CAVAN','CACAL':'CACAL','CAMTR':'CAMTR',
+};
+
+function openFAK() {
+  const overlay = document.getElementById('fak-overlay');
+  overlay.style.display = 'flex';
+  // POD 선택값 있으면 자동 입력
+  const podCode = portState.pod?.code?.split(' ')[0]?.trim()?.toUpperCase();
+  const scac = podCode ? (POD_TO_SCAC[podCode] || podCode) : '';
+  document.getElementById('fak-search').value = scac;
+  document.getElementById('fak-scac-hint').textContent = scac
+    ? `POD ${podCode} → SCAC ${scac} 자동 입력됨`
+    : 'POD를 먼저 선택하면 SCAC 코드가 자동으로 입력됩니다.';
+  fakSearch();
+}
+
+function closeFAK() {
+  document.getElementById('fak-overlay').style.display = 'none';
+}
+
+function fakSearch() {
+  const q = document.getElementById('fak-search').value.trim().toUpperCase();
+  const carrier = document.getElementById('fak-carrier').value;
+  const ctype = document.getElementById('fak-ctype').value; // '20','40','40HC'
+
+  const res = document.getElementById('fak-results');
+
+  if (!q) {
+    res.innerHTML = '<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">SCAC 코드를 입력하세요 (예: USLGB, USNYC)</div>';
+    return;
+  }
+
+  // 부분 일치 검색
+  const matches = Object.entries(FAK_DB).filter(([scac]) => scac.includes(q));
+
+  if (!matches.length) {
+    res.innerHTML = `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">"${q}"에 해당하는 운임이 없습니다</div>`;
+    return;
+  }
+
+  let html = '';
+  matches.forEach(([scac, carriers]) => {
+    const filteredCarriers = carrier ? {[carrier]: carriers[carrier]} : carriers;
+    const validCarriers = Object.entries(filteredCarriers).filter(([c,v]) => v && v[ctype]);
+
+    if (!validCarriers.length) return;
+
+    html += `<div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:6px;display:flex;align-items:center;gap:8px">
+        <span style="font-family:monospace;background:#F0F2F7;padding:2px 7px;border-radius:4px;color:var(--ac)">${scac}</span>
+        <span style="font-size:9px;color:var(--t3)">${FAK_VALIDITY}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:6px">`;
+
+    validCarriers.forEach(([c, v]) => {
+      const rate = v[ctype];
+      const ctLabel = ctype==='40HC'?'40HC':ctype==='40'?'40DC':'20DC';
+      html += `
+        <div style="border:1px solid var(--bd);border-radius:var(--r8);padding:9px 11px;cursor:pointer;transition:all .13s;background:white"
+          onmouseover="this.style.borderColor='var(--ac)';this.style.background='var(--ac-bg)'"
+          onmouseout="this.style.borderColor='var(--bd)';this.style.background='white'"
+          onclick="applyFAK('${scac}','${c}',${v['20']||0},${v['40']||0},${v['40HC']||0},'${v.via||''}')">
+          <div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:3px">${c}</div>
+          <div style="font-size:16px;font-weight:800;color:var(--ac)">$${rate.toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--t3);margin-top:2px">${ctLabel}${v.via?' · via '+v.via:''}</div>
+          <div style="font-size:9px;color:var(--gn);margin-top:3px;font-weight:600">↗ 적용</div>
+        </div>`;
+    });
+
+    html += '</div></div>';
+  });
+
+  res.innerHTML = html || `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">선택한 필터에 해당하는 운임이 없습니다</div>`;
+}
+
+function applyFAK(scac, carrier, r20, r40, r40hc, via) {
+  const oftCharge = charges[2].find(c => c.n.includes('OFT') || c.id === 'oft');
+  if (!oftCharge) { toast('2구간에 OFT 항목이 없습니다'); return; }
+
+  // 선택된 컨타입에 맞는 운임 결정
+  const selTypes = Object.keys(SC);
+  let rate = r40hc;
+  if (selTypes.some(t => t.includes('20') && !t.includes('40'))) rate = r20;
+  else if (selTypes.some(t => t.includes('HC') || t.includes('40HC'))) rate = r40hc;
+  else if (selTypes.some(t => t.includes('40'))) rate = r40;
+
+  // 2구간 패널 열기
+  document.getElementById('s3b').classList.add('o');
+  document.getElementById('s3a').classList.add('o');
+
+  // 현재 모드 확인 — +금액이면 원가(v-)에 주입, 실비면 v-에 주입
+  const ms = document.getElementById('ms-' + oftCharge.uid);
+  const currentMode = ms ? ms.value : '마진금';
+
+  // +금액 모드가 아니면 +금액으로 전환
+  if (currentMode !== '마진금') {
+    if (ms) { ms.value = '마진금'; onModeChange(oftCharge.uid); }
+  }
+
+  setTimeout(() => {
+    // 원가 필드(v-)에 FAK 운임 입력
+    const vEl = document.getElementById('v-' + oftCharge.uid);
+    if (vEl) vEl.value = rate;
+
+    // 항목명 업데이트
+    const nameEl = document.getElementById('name-' + oftCharge.uid);
+    if (nameEl) nameEl.value = `OFT (${carrier} FAK · ${scac})`;
+  }, 60);
+
+  closeFAK();
+  toast(`✓ ${carrier} FAK → OFT 원가 적용 $${rate.toLocaleString()}/CTR`);
+}
+
+// Close modal on overlay click
+document.getElementById('fak-overlay')?.addEventListener('click', function(e) {
+  if (e.target === this) closeFAK();
+});
 
 // ── Init ──
 buildCtAccordions();
