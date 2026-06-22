@@ -235,6 +235,9 @@ tr:hover td{background:#FAFBFD}
 .cs-icon{font-size:52px;opacity:.3}
 .cs-title{font-size:17px;font-weight:700;color:var(--t2)}
 .cs-desc{font-size:13px;line-height:1.7;text-align:center;max-width:340px;color:var(--t3)}
+@keyframes shake {
+  0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
+}
 .toggle-wrap{cursor:pointer}
 .toggle-track{width:36px;height:20px;background:#D1D5E0;border-radius:100px;position:relative;transition:background .2s}
 .toggle-track.on{background:var(--rd)}
@@ -320,6 +323,42 @@ tr:hover td{background:#FAFBFD}
 </style>
 </head>
 <body>
+
+<!-- ════════════════════════════════════════
+     사이트 접근 잠금 — 담당자 전용
+════════════════════════════════════════ -->
+<div id="site-lock" style="position:fixed;inset:0;background:linear-gradient(135deg,#0F1729 0%,#1A2744 60%,#0F1729 100%);z-index:9999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;width:400px;padding:40px 36px;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center">
+    <div style="margin-bottom:6px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:#0F1729;border-radius:10px;padding:8px 16px">
+        <span style="font-size:14px;font-weight:800;color:#C9A227;letter-spacing:.5px">LGL</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.7);font-weight:500">포워딩 견적 시스템</span>
+      </div>
+    </div>
+    <div style="width:64px;height:64px;background:#EEF3FD;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:20px auto 16px;font-size:28px">🔒</div>
+    <div style="font-size:16px;font-weight:800;color:#111827;margin-bottom:8px">담당자 전용 시스템</div>
+    <div style="font-size:12px;color:#6B7280;line-height:1.8;margin-bottom:6px">
+      본 시스템은 <strong style="color:#111827">포워딩3팀 EPC파트</strong> 담당자만<br>
+      접근 가능합니다. 비밀번호를 입력해주세요.
+    </div>
+    <div style="height:1px;background:#F3F4F6;margin:20px 0"></div>
+    <input type="password" id="site-pw-input"
+      placeholder="비밀번호 입력"
+      maxlength="20"
+      style="width:100%;padding:13px 16px;border:2px solid #E5E7EB;border-radius:10px;font-size:16px;text-align:center;letter-spacing:8px;box-sizing:border-box;outline:none;transition:border-color .15s;margin-bottom:10px"
+      onfocus="this.style.borderColor='#1A56DB'"
+      onblur="this.style.borderColor='#E5E7EB'"
+      onkeydown="if(event.key==='Enter')unlockSite()">
+    <div id="site-pw-err" style="font-size:11px;color:#DC2626;font-weight:600;margin-bottom:10px;min-height:18px"></div>
+    <button onclick="unlockSite()"
+      style="width:100%;padding:13px;background:#1A56DB;border:none;border-radius:10px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:background .15s"
+      onmouseover="this.style.background='#1747B8'" onmouseout="this.style.background='#1A56DB'">
+      입장하기 →
+    </button>
+    <div style="margin-top:16px;font-size:10px;color:#9CA3AF">접근 권한 문의: 포워딩3팀 EPC파트 이석영 대리</div>
+  </div>
+</div>
+
 <header>
   <div class="logo">포워딩 견적 시스템</div>
   <div style="display:flex;gap:7px;align-items:center">
@@ -552,17 +591,30 @@ tr:hover td{background:#FAFBFD}
 </div>
 
 <!-- ── FAK 비밀번호 모달 ── -->
-<div id="fak-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;align-items:center;justify-content:center">
-  <div style="background:#fff;border-radius:var(--r16);width:340px;padding:28px 24px;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center">
-    <div style="font-size:28px;margin-bottom:10px">🔒</div>
-    <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:6px">담당자 전용 기능</div>
-    <div style="font-size:12px;color:var(--t3);margin-bottom:18px;line-height:1.6">FAK 운임 엑셀 업로드는 담당자만 접근 가능합니다.<br>비밀번호를 입력해주세요.</div>
-    <input type="password" id="fak-pw-input" placeholder="비밀번호 입력" style="width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r8);font-size:13px;text-align:center;margin-bottom:10px" onkeydown="if(event.key==='Enter')confirmFAKPassword()">
-    <div id="fak-pw-err" style="font-size:11px;color:var(--rd);margin-bottom:10px;display:none">비밀번호가 틀렸습니다.</div>
-    <div style="display:flex;gap:8px">
-      <button onclick="cancelFAKPassword()" style="flex:1;padding:9px;background:#F4F5F8;border:none;border-radius:var(--r8);font-size:12px;cursor:pointer;color:var(--t2)">취소</button>
-      <button onclick="confirmFAKPassword()" style="flex:1;padding:9px;background:var(--ac);border:none;border-radius:var(--r8);font-size:12px;font-weight:700;color:#fff;cursor:pointer">확인</button>
+<div id="fak-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;width:360px;padding:32px 28px;box-shadow:0 12px 40px rgba(0,0,0,.22);text-align:center">
+    <div style="width:52px;height:52px;background:#EEF3FD;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px">🔐</div>
+    <div style="font-size:15px;font-weight:800;color:var(--t1);margin-bottom:6px">담당자 전용 기능</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:6px;line-height:1.7">
+      FAK 운임 엑셀 업로드는<br>
+      <strong style="color:var(--t2)">담당자만 접근 가능</strong>한 기능입니다.<br>
+      비밀번호를 입력해주세요.
     </div>
+    <div style="height:1px;background:#F0F1F6;margin:16px 0"></div>
+    <input type="password" id="fak-pw-input" placeholder="비밀번호 4자리 입력"
+      maxlength="20"
+      style="width:100%;padding:11px 14px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;text-align:center;letter-spacing:4px;margin-bottom:8px;box-sizing:border-box;outline:none;transition:border-color .15s"
+      onfocus="this.style.borderColor='var(--ac)'"
+      onblur="this.style.borderColor='var(--bd)'"
+      onkeydown="if(event.key==='Enter')confirmFAKPassword()">
+    <div id="fak-pw-err" style="font-size:11px;color:#DC2626;margin-bottom:10px;display:none;font-weight:600">
+      ⚠ 비밀번호가 올바르지 않습니다.
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button onclick="cancelFAKPassword()" style="flex:1;padding:10px;background:#F4F5F8;border:none;border-radius:8px;font-size:12px;cursor:pointer;color:var(--t2);font-weight:600">취소</button>
+      <button onclick="confirmFAKPassword()" style="flex:2;padding:10px;background:var(--ac);border:none;border-radius:8px;font-size:13px;font-weight:700;color:#fff;cursor:pointer">확인 →</button>
+    </div>
+    <div style="margin-top:14px;font-size:10px;color:var(--t3)">비밀번호 변경 문의: 포워딩3팀 EPC파트</div>
   </div>
 </div>
 <div id="fak-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center">
@@ -574,10 +626,11 @@ tr:hover td{background:#FAFBFD}
         <div style="font-size:10px;color:var(--t3);margin-top:1px" id="fak-db-label">6월下 기준 · 부산발 북미 (내장 DB)</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
-        <label id="fak-upload-btn" style="padding:4px 9px;font-size:10px;font-weight:600;border:1px solid var(--gn);border-radius:var(--r4);background:var(--gn-bg);color:var(--gn);cursor:pointer;white-space:nowrap">
+        <button id="fak-upload-btn" onclick="checkFAKPassword()" style="padding:4px 9px;font-size:10px;font-weight:600;border:1px solid var(--gn);border-radius:var(--r4);background:var(--gn-bg);color:var(--gn);cursor:pointer;white-space:nowrap">
           📂 엑셀 업로드
-          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="checkFAKPassword(this)">
-        </label>
+        </button>
+        <!-- 숨겨진 실제 파일 input -->
+        <input type="file" id="fak-file-input" accept=".xlsx,.xls" style="display:none" onchange="loadFAKExcel(this)">
         <button onclick="closeFAK()" style="width:26px;height:26px;border:none;background:#F0F2F7;border-radius:5px;cursor:pointer;font-size:14px;color:var(--t2)">✕</button>
       </div>
     </div>
@@ -2553,36 +2606,40 @@ const POD_TO_SCAC = {
 };
 
 // ── FAK 업로드 비밀번호 보호 ──
-const FAK_PASSWORD = 'lgl2024!'; // 담당자 비밀번호 (변경 가능)
-let _fakPendingFile = null;
+const FAK_PASSWORD = '0000'; // 초기 비밀번호 (담당자가 변경 가능)
 
-function checkFAKPassword(input) {
-  _fakPendingFile = input;
+function checkFAKPassword() {
+  // 버튼 클릭 시 먼저 비밀번호 모달 표시
   document.getElementById('fak-pw-input').value = '';
   document.getElementById('fak-pw-err').style.display = 'none';
   document.getElementById('fak-pw-overlay').style.display = 'flex';
-  setTimeout(() => document.getElementById('fak-pw-input').focus(), 100);
+  setTimeout(() => document.getElementById('fak-pw-input').focus(), 120);
 }
 
 function confirmFAKPassword() {
   const pw = document.getElementById('fak-pw-input').value;
   if (pw === FAK_PASSWORD) {
     document.getElementById('fak-pw-overlay').style.display = 'none';
-    if (_fakPendingFile) loadFAKExcel(_fakPendingFile);
+    // 비밀번호 확인 후 파일 선택 다이얼로그 열기
+    const fi = document.getElementById('fak-file-input');
+    fi.value = ''; // 이전 선택 초기화
+    fi.click();
   } else {
-    document.getElementById('fak-pw-err').style.display = 'block';
+    const errEl = document.getElementById('fak-pw-err');
+    errEl.style.display = 'block';
     document.getElementById('fak-pw-input').value = '';
     document.getElementById('fak-pw-input').focus();
+    // 흔들기 애니메이션
+    const input = document.getElementById('fak-pw-input');
+    input.style.animation = 'shake .3s';
+    setTimeout(() => input.style.animation = '', 300);
   }
 }
 
 function cancelFAKPassword() {
   document.getElementById('fak-pw-overlay').style.display = 'none';
-  _fakPendingFile = null;
-  // 파일 input 초기화
-  const label = document.getElementById('fak-upload-btn');
-  const fi = label?.querySelector('input[type=file]');
-  if (fi) fi.value = '';
+  document.getElementById('fak-pw-input').value = '';
+  document.getElementById('fak-pw-err').style.display = 'none';
 }
 let FAK_LOADED_DB = null; // 업로드된 DB (없으면 내장 DB 사용)
 
@@ -3014,6 +3071,39 @@ function deleteHist(id) {
 
 document.getElementById('hist-modal')?.addEventListener('click', function(e) {
   if (e.target === this) closeHistModal();
+});
+
+// ── 사이트 접근 잠금 해제 ──
+const SITE_PASSWORD = '8312';
+
+function unlockSite() {
+  const pw  = document.getElementById('site-pw-input').value;
+  const err = document.getElementById('site-pw-err');
+  const inp = document.getElementById('site-pw-input');
+
+  if (pw === SITE_PASSWORD) {
+    const lock = document.getElementById('site-lock');
+    lock.style.transition = 'opacity .4s';
+    lock.style.opacity = '0';
+    setTimeout(() => { lock.style.display = 'none'; }, 400);
+    // 잠금 해제 후 포커스
+    setTimeout(() => document.getElementById('shipper')?.focus(), 450);
+  } else {
+    err.textContent = '⚠ 비밀번호가 올바르지 않습니다. 다시 입력해주세요.';
+    inp.value = '';
+    inp.style.borderColor = '#DC2626';
+    inp.style.animation = 'shake .35s';
+    setTimeout(() => {
+      inp.style.animation = '';
+      inp.style.borderColor = '#E5E7EB';
+      inp.focus();
+    }, 380);
+  }
+}
+
+// 페이지 로드 시 잠금 화면 input에 포커스
+window.addEventListener('load', () => {
+  document.getElementById('site-pw-input')?.focus();
 });
 
 // ── Init ──
