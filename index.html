@@ -666,11 +666,6 @@ tr:hover td{background:#FAFBFD}
   <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간</span><span class="sarr" id="s4a">▼</span></div>
   <div class="sbody" id="s4b"><div class="charge-list" id="g3"></div><div class="add-charge" onclick="addCharge(3)">＋ 항목 추가</div></div>
 </div>
-<div class="sec" id="s5">
-  <div class="shd" onclick="tog('s5')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">특이사항 / AI 분석 요청</span><span class="sarr" id="s5a">▼</span></div>
-  <div class="sbody" id="s5b"><textarea id="notes" rows="3" placeholder="예: 일부 OOG 화물, CILEGON 높이 제한, 현지 통관 지연 우려" style="resize:vertical"></textarea></div>
-</div>
-
 <button class="btn-gen" onclick="gen()">✨ 견적서 생성 + 수익 분석</button>
 </div></div>
 
@@ -2190,7 +2185,8 @@ function gen() {
     cbm:document.getElementById('cbm').value||'—',
     gw:document.getElementById('gw').value||'—',
     val:parseInt(document.getElementById('validity').value)||15,
-    notes:document.getElementById('notes').value,
+    exRate: parseFloat(document.getElementById('cur-0-rate')?.value) || null,
+    notes: '',
     dg: dgOn,
     dgUn:  dgOn ? (document.getElementById('dg-un')?.value||'') : '',
     dgClass: dgOn ? (document.getElementById('dg-class')?.value||'') : '',
@@ -2444,15 +2440,212 @@ function rch(S){
 }
 
 async function rai(S){
-  const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
-  const mi=[...S.d1,...S.d2,...S.d3].filter(c=>c.mode!=='실비'&&(c.cost>0||c.price>0)).map(c=>`  - ${c.name}: 원가 ${fmt(c.costKRW*S.tc)}원 → 판가 ${fmt(c.priceKRW*S.tc)}원`).join('\n');
-  const pr=`당신은 국제 포워딩 업계 10년 경력의 견적 전문가입니다. 아래 견적 데이터를 분석해 영업사원에게 실용적 인사이트 3가지를 한국어로 제공해주세요. 각 항목은 "•"로 시작하고 2줄 이내로 작성하세요.\n\n【개요】화주: ${S.shipper} / ${S.pol.code||'—'}(${S.polType}) → ${S.pod.code||'—'}(${S.podType}) / ${S.inco} / ${S.item} / ${ctS}${S.cbm!=='—'?' / CBM: '+S.cbm:''}${S.gw!=='—'?' / GW: '+S.gw+'KG':''}${S.dg?' / ⚠DG '+S.dgUn:''}\n【수익】원가: ${fmt(S.gc)}원 / 판가: ${fmt(S.gp)}원 / 매총: ${fmt(S.gm)}원 / 마진율: ${S.mr.toFixed(1)}%\n구간비중: 1구간 ${S.gc>0?Math.round(S.t1.cost/S.gc*100):0}% / 2구간 ${S.gc>0?Math.round(S.t2.cost/S.gc*100):0}% / 3구간 ${S.gc>0?Math.round(S.t3.cost/S.gc*100):0}%\n【마진항목】\n${mi||'없음'}\n${S.notes?'【특이사항】\n'+S.notes:''}\n\n분석: 1) 마진율 ${S.mr.toFixed(1)}% 적정성/리스크 2) 원가구성 주의점/절감포인트 3) 수주가능성 높이는 영업포인트`;
-  document.getElementById('ta').innerHTML=`<div class="aic"><div class="aihd"><div class="aiico">✦</div><div><div style="font-size:12px;font-weight:700">AI 견적 인사이트</div><div style="font-size:10px;color:var(--t2)">Claude API · 3구간 종합 분석</div></div></div><div class="aibody"><div class="aiout" id="ao"><span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span></div></div></div>`;
-  try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:pr}]})});
-    const data=await r.json();
-    document.getElementById('ao').textContent=data.content?.map(c=>c.text||'').join('')||'결과 없음';
-  }catch(e){document.getElementById('ao').textContent='⚠ AI 분석 연결 오류\n\nClaude API 키가 연결되면 마진 적정성, 원가 절감 포인트, 영업 전략을 분석합니다.';}
+  const ctS = Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+  const polCode = S.pol.code || '—';
+  const podCode = S.pod.code || '—';
+  const route = `${polCode} → ${podCode}`;
+
+  // ── AI 탭 UI 렌더 ──
+  document.getElementById('ta').innerHTML = `
+  <div style="padding:0 2px">
+
+    <!-- ① 화주 전달용 시황 브리핑 -->
+    <div class="aic" style="margin-bottom:14px">
+      <div class="aihd">
+        <div class="aiico" style="background:#EEF3FD;color:#1A56DB">📢</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--t1)">화주 전달용 시황 브리핑</div>
+          <div style="font-size:10px;color:var(--t3)">${route} 구간 · 선사 SPACE / 운임 동향 / 항만 혼잡</div>
+        </div>
+        <button onclick="genShipperBriefing()" id="btn-briefing"
+          style="margin-left:auto;padding:5px 13px;background:#1A56DB;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+          생성하기
+        </button>
+      </div>
+      <div class="aibody">
+        <div class="aiout" id="ao-briefing" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
+          버튼을 눌러 ${route} 구간 시황 분석을 생성하세요.
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 내부 수익성 분석 -->
+    <div class="aic">
+      <div class="aihd">
+        <div class="aiico" style="background:#F0FDF4;color:#047857">🔒</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--t1)">내부 수익성 분석</div>
+          <div style="font-size:10px;color:var(--t3)">마진 적정성 · 원가 절감 · 영업 전략 · 리스크</div>
+        </div>
+        <button onclick="genInternalAnalysis()" id="btn-internal"
+          style="margin-left:auto;padding:5px 13px;background:#047857;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
+          생성하기
+        </button>
+      </div>
+      <div class="aibody">
+        <div class="aiout" id="ao-internal" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
+          버튼을 눌러 내부 수익성 분석을 생성하세요.
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+
+  // ── S를 전역에 캐시 (버튼 클릭 시 사용) ──
+  window._aiS = S;
+}
+
+// ── ① 화주 전달용 시황 브리핑 생성 ──
+async function genShipperBriefing() {
+  const S = window._aiS;
+  if (!S) return;
+  const ctS    = Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+  const polCode = S.pol.code || '—';
+  const podCode = S.pod.code || '—';
+  const polCity = S.pol.city || '';
+  const podCity = S.pod.city || '';
+
+  const btn = document.getElementById('btn-briefing');
+  const out = document.getElementById('ao-briefing');
+  btn.disabled = true;
+  btn.textContent = '생성 중...';
+  out.innerHTML = `<span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span>`;
+
+  const pr = `당신은 국제 포워딩/물류 업계 10년 경력의 시장 전문가입니다.
+아래 구간과 화물 정보를 바탕으로, 화주에게 전달할 수 있는 **물류 시황 브리핑**을 작성해주세요.
+화주 입장에서 의사결정에 도움이 되는 정보 위주로, 전문적이면서도 이해하기 쉽게 한국어로 작성하세요.
+
+【견적 구간】 ${polCode}(${polCity}) → ${podCode}(${podCity})
+【인코텀즈】 ${S.inco}
+【컨테이너】 ${ctS}
+【화물】 ${S.item}
+【견적 환율】 1 USD = ${S.exRate ? S.exRate.toFixed(1) : '—'}원
+${S.dg ? `【위험물】 UN No.${S.dgUn} / Class ${S.dgClass}` : ''}
+${S.notes ? `【특이사항】 ${S.notes}` : ''}
+
+아래 항목들을 포함해서 브리핑을 작성해주세요. 각 항목은 소제목(##)으로 구분하고, bullet point(•)로 세부 내용을 작성해주세요:
+
+1. **해당 구간 운임 동향**
+   - 최근 운임이 상승/하락/보합 추세인지, 주요 원인
+   - PSS(성수기 할증), GRI(운임 인상) 등 예정된 부대비용 변동 예고
+   - 빠른 선적 확정 시 비용 절감 가능 여부
+
+2. **선사 SPACE 상황**
+   - 해당 구간 주요 선사들의 SPACE 여유 여부
+   - 예약 권장 시기 및 주의사항
+
+3. **도착 항만 현황** (${podCity || podCode})
+   - 현재 항만 혼잡도 및 예상 체류·대기 시간
+   - 혼잡으로 인한 추가 비용 발생 가능성 (Demurrage/Detention)
+
+4. **환율 리스크 안내**
+   - 현재 견적 기준 환율(USD/KRW) 및 변동 리스크
+   - 실제 정산 시 환율 차이 발생 가능성
+   - 환 헤지 또는 조기 확정 권고 여부
+
+5. **적하보험 가입 권고**
+   - 화물 특성상 보험 가입 필요성
+   - 미가입 시 손상·분실 리스크
+   - ${S.inco}조건 기준 화주의 보험 책임 범위
+
+6. **수입지 통관 및 규제 이슈** (${podCity || podCode} 기준)
+   - ISF(Importer Security Filing) / AMS(Advance Manifest) 제출 의무
+   - 해당 품목(${S.item}) 관련 수입 규제·인증 요건 여부
+   - 한-${S.pod.country || '수입국'} FTA 적용 가능 여부 및 원산지 증명서 준비 안내
+   - 최근 관세 정책 변동 사항 (해당되는 경우)
+
+7. **인코텀즈(${S.inco}) 기준 화주 책임 범위**
+   - ${S.inco} 조건에서 화주가 부담하는 구간과 비용 명확히 안내
+   - 책임 범위 오해로 인한 분쟁 예방 포인트
+
+8. **화주에게 권고하는 즉시 액션**
+   - 지금 당장 화주가 취해야 할 액션 2~3가지
+   - 확정 기한 또는 주의 시기
+
+전체 내용은 화주에게 직접 전달 가능한 수준으로 작성하되, 불필요한 기술 용어는 괄호로 설명을 추가해주세요.`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:2000,
+        messages:[{role:'user', content:pr}]})
+    });
+    const data = await r.json();
+    out.textContent = data.content?.map(c=>c.text||'').join('') || '결과 없음';
+  } catch(e) {
+    out.textContent = '⚠ 연결 오류\n\nClaude API가 연결된 환경에서 사용 가능합니다.';
+  }
+  btn.disabled = false;
+  btn.textContent = '재생성';
+}
+
+// ── ② 내부 수익성 분석 생성 ──
+async function genInternalAnalysis() {
+  const S = window._aiS;
+  if (!S) return;
+  const ctS = Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+  const mi  = [...S.d1,...S.d2,...S.d3]
+    .filter(c => c.price > 0 || c.priceKRW > 0)
+    .map(c => {
+      const pk = c.isCtype ? c.priceKRW : c.priceKRW * (c.per==='BL'?1:S.tc);
+      const ck = c.isCtype ? c.costKRW  : c.costKRW  * (c.per==='BL'?1:S.tc);
+      const margin = pk - ck;
+      return `  - ${c.name} [${c.per}/${c.mode}]: 원가 ${fmt(ck)}원 → 판가 ${fmt(pk)}원 (마진 ${fmt(margin)}원)`;
+    }).join('\n');
+
+  const seg1pct = S.gc>0 ? Math.round(S.t1.cost/S.gc*100) : 0;
+  const seg2pct = S.gc>0 ? Math.round(S.t2.cost/S.gc*100) : 0;
+  const seg3pct = S.gc>0 ? Math.round(S.t3.cost/S.gc*100) : 0;
+
+  const btn = document.getElementById('btn-internal');
+  const out = document.getElementById('ao-internal');
+  btn.disabled = true;
+  btn.textContent = '생성 중...';
+  out.innerHTML = `<span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span>`;
+
+  const pr = `당신은 국제 포워딩 업계 10년 경력의 견적 전문가입니다.
+아래 견적 데이터를 분석해 영업사원이 내부적으로 참조할 수 있는 **수익성 분석 리포트**를 작성해주세요.
+각 항목은 bullet point(•)로 시작하고, 실무에 바로 활용 가능한 수준으로 한국어로 작성하세요.
+
+【견적 개요】
+• 화주: ${S.shipper}
+• 구간: ${S.pol.code||'—'}(${S.polType}) → ${S.pod.code||'—'}(${S.podType})
+• 인코텀즈: ${S.inco} / 화물: ${S.item} / 컨테이너: ${ctS}
+${S.cbm!=='—'?`• CBM: ${S.cbm} / GW: ${S.gw}KG`:''}
+${S.dg?`• ⚠ 위험물: UN No.${S.dgUn} Class ${S.dgClass}`:''}
+
+【수익 현황】
+• 총 원가: ${fmt(S.gc)}원 / 총 판가: ${fmt(S.gp)}원
+• 매출총이익: ${fmt(S.gm)}원 / 마진율: ${S.mr.toFixed(1)}%
+• 구간 원가 비중: 1구간 ${seg1pct}% / 2구간 ${seg2pct}% / 3구간 ${seg3pct}%
+
+【항목별 수익 내역】
+${mi || '없음'}
+
+${S.notes?`【특이사항】\n${S.notes}`:''}
+
+아래 4가지 항목을 분석해주세요:
+
+1. **마진율 적정성 평가** — ${S.mr.toFixed(1)}%가 해당 구간/인코텀즈에서 적정한지, 리스크 요인은 무엇인지
+2. **원가 구조 분석 및 절감 포인트** — 원가 비중이 높은 구간/항목과 절감 가능한 방법
+3. **수주 가능성 및 영업 전략** — 경쟁력 있는 포인트와 화주 설득 포인트
+4. **리스크 포인트** — 인코텀즈, DG, DOOR 조건, 환율, 유효기간 등 주의해야 할 사항`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1400,
+        messages:[{role:'user', content:pr}]})
+    });
+    const data = await r.json();
+    out.textContent = data.content?.map(c=>c.text||'').join('') || '결과 없음';
+  } catch(e) {
+    out.textContent = '⚠ 연결 오류\n\nClaude API가 연결된 환경에서 사용 가능합니다.';
+  }
+  btn.disabled = false;
+  btn.textContent = '재생성';
 }
 
 // ── Print: 새 창에서 견적서만 출력 ──
@@ -3283,6 +3476,7 @@ async function loadSample() {
 
   toast('✨ 샘플 데이터가 입력됐습니다 — 견적서 생성 버튼을 눌러 확인해보세요!');
 }
+// ── 사이트 접근 잠금 해제 ──
 const SITE_PASSWORD = '8312';
 
 function unlockSite() {
@@ -3295,22 +3489,17 @@ function unlockSite() {
     lock.style.transition = 'opacity .4s';
     lock.style.opacity = '0';
     setTimeout(() => { lock.style.display = 'none'; }, 400);
-    // 잠금 해제 후 포커스
     setTimeout(() => document.getElementById('shipper')?.focus(), 450);
   } else {
     err.textContent = '⚠ 비밀번호가 올바르지 않습니다. 다시 입력해주세요.';
     inp.value = '';
     inp.style.borderColor = '#DC2626';
     inp.style.animation = 'shake .35s';
-    setTimeout(() => {
-      inp.style.animation = '';
-      inp.style.borderColor = '#E5E7EB';
-      inp.focus();
-    }, 380);
+    setTimeout(() => { inp.style.animation=''; inp.style.borderColor='#E5E7EB'; inp.focus(); }, 380);
   }
 }
 
-// 페이지 로드 시 잠금 화면 input에 포커스
+// 페이지 로드 시 잠금 화면 포커스
 window.addEventListener('load', () => {
   document.getElementById('site-pw-input')?.focus();
 });
