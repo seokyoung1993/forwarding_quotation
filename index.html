@@ -396,7 +396,12 @@ tr:hover td{background:#FAFBFD}
 <div class="wrap">
 <!-- ════════ LEFT ════════ -->
 <div class="left"><div class="li">
-<div class="phd">견적 정보 입력</div>
+<div class="phd" style="display:flex;align-items:center;justify-content:space-between">
+  <span>견적 정보 입력</span>
+  <button onclick="loadSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.background='#FFF3CC'" onmouseout="this.style.background='#FFFBEE'">
+    ✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span>
+  </button>
+</div>
 
 <!-- S0: 기본 정보 -->
 <div class="sec" id="s0">
@@ -3073,7 +3078,211 @@ document.getElementById('hist-modal')?.addEventListener('click', function(e) {
   if (e.target === this) closeHistModal();
 });
 
-// ── 사이트 접근 잠금 해제 ──
+// ════════════════════════════════════════
+// 샘플 데이터 자동 입력
+// ════════════════════════════════════════
+async function loadSample() {
+  if (!confirm('샘플 데이터를 입력하면 현재 작성 중인 내용이 초기화됩니다.\n계속하시겠습니까?')) return;
+
+  // ── 1. 기본 정보 ──
+  document.getElementById('shipper').value = '(주)하이브';
+  document.getElementById('item').value    = 'Merchandise';
+  document.getElementById('validity').value = '15';
+  document.getElementById('inco').value    = 'EXW';
+
+  // ── 2. CBM / GW ──
+  document.getElementById('dl').value   = '120';
+  document.getElementById('dw').value   = '100';
+  document.getElementById('dh').value   = '100';
+  document.getElementById('dpcs').value = '8';
+  calcCbm();
+  document.getElementById('gw').value = '5200';
+
+  // ── 3. 환율 ──
+  document.getElementById('cur-0-rate').value = '1531.0';
+
+  // ── 4. POL 선택 (KRPUS) ──
+  selectPort('pol', 'KRPUS', 'Busan', 'South Korea', '🇰🇷');
+  document.getElementById('pol-input').value = 'KRPUS — Busan, South Korea';
+  setPT('pol', 'DOOR');
+  // POL 주소
+  const polAddr = document.getElementById('pol-addr-input');
+  if (polAddr) {
+    polAddr.value = '원창동, 신현원창동, 서구, 인천광역시, 22766, 대한민국';
+    const polSel = document.getElementById('pol-addr-selected');
+    if (polSel) { polSel.textContent = '📍 원창동, 신현원창동, 서구, 인천광역시'; polSel.style.display = 'block'; }
+  }
+
+  // ── 5. POD 선택 (USLAX) ──
+  selectPort('pod', 'USLAX', 'Los Angeles', 'USA', '🇺🇸');
+  document.getElementById('pod-input').value = 'USLAX — Los Angeles, USA';
+  setPT('pod', 'DOOR');
+  // POD 주소
+  const podAddr = document.getElementById('pod-addr-input');
+  if (podAddr) {
+    podAddr.value = 'Carson, Los Angeles County, California, United States';
+    const podSel = document.getElementById('pod-addr-selected');
+    if (podSel) { podSel.textContent = '📍 Carson, Los Angeles County, California'; podSel.style.display = 'block'; }
+  }
+
+  // ── 6. 컨테이너 선택: 20DC×1, 40HC×2 ──
+  // 기존 SC 초기화
+  Object.keys(SC).forEach(t => {
+    const key = t.replace(/[()]/g,'_');
+    const btn = document.getElementById('ctbtn-' + key);
+    if (btn) btn.classList.remove('on');
+  });
+  SC = {};
+
+  // 컨테이너 그룹 열기
+  const genBody = document.getElementById('ctbody-gen');
+  const genArr  = document.getElementById('ctarr-gen');
+  if (genBody && !genBody.classList.contains('o')) {
+    genBody.classList.add('o');
+    if (genArr) genArr.classList.add('o');
+  }
+
+  // 20DC 선택
+  toggleCt('20DC', 'gen');
+  // 40HC 선택
+  toggleCt('40HC', 'gen');
+  // 수량 설정 40HC×2
+  SC['40HC'] = 2;
+  const qEl = document.getElementById('cqn-40HC');
+  if (qEl) qEl.value = 2;
+
+  renderCtSummary();
+  updateCtCount('gen');
+
+  // 구간 섹션 열기
+  await new Promise(r => setTimeout(r, 100));
+
+  // s1(컨테이너) 열기
+  const s1b = document.getElementById('s1b'), s1a = document.getElementById('s1a');
+  if (s1b && !s1b.classList.contains('o')) { s1b.classList.add('o'); s1a?.classList.add('o'); }
+  // s2(1구간) 열기
+  const s2b = document.getElementById('s2b'), s2a = document.getElementById('s2a');
+  if (s2b && !s2b.classList.contains('o')) { s2b.classList.add('o'); s2a?.classList.add('o'); }
+  // s3(2구간) 열기
+  const s3b = document.getElementById('s3b'), s3a = document.getElementById('s3a');
+  if (s3b && !s3b.classList.contains('o')) { s3b.classList.add('o'); s3a?.classList.add('o'); }
+  // s4(3구간) 열기
+  const s4b = document.getElementById('s4b'), s4a = document.getElementById('s4a');
+  if (s4b && !s4b.classList.contains('o')) { s4b.classList.add('o'); s4a?.classList.add('o'); }
+
+  refreshAllCtrInputs();
+  await new Promise(r => setTimeout(r, 150));
+
+  // ── 7. 1구간 값 입력 ──
+  const seg1 = charges[1];
+
+  // Inland Trucking (DOOR로 자동 추가됨) — 타입별 500k/600k
+  const truck = seg1.find(c => c.id === 'truck');
+  if (truck) {
+    truck.byType = true;
+    if (!truck.ctVals) truck.ctVals = {};
+    truck.ctVals['20DC'] = { v:'500000', p:'500000' };
+    truck.ctVals['40HC'] = { v:'600000', p:'600000' };
+    // 모드 +금액
+    truck.m = '마진금';
+    renderCharges(1);
+    await new Promise(r => setTimeout(r, 80));
+  }
+
+  // THC — 타입별
+  const thc1 = seg1.find(c => c.id === 'thc1');
+  if (thc1) {
+    thc1.byType = true;
+    if (!thc1.ctVals) thc1.ctVals = {};
+    thc1.ctVals['20DC'] = { v:'170000', p:'170000' };
+    thc1.ctVals['40HC'] = { v:'210000', p:'210000' };
+    thc1.m = '실비';
+    renderCharges(1);
+    await new Promise(r => setTimeout(r, 80));
+  }
+
+  // WFG — 컨타입별 실비
+  const wfg = seg1.find(c => c.id === 'wfg');
+  if (wfg) {
+    wfg.byType = true;
+    if (!wfg.ctVals) wfg.ctVals = {};
+    wfg.ctVals['20DC'] = { v:'4420', p:'4420' };
+    wfg.ctVals['40HC'] = { v:'8840', p:'8840' };
+    wfg.m = '실비';
+  }
+
+  // SCG — 단일 실비
+  const scg = seg1.find(c => c.id === 'scg');
+  if (scg) { if (!scg.vals) scg.vals = {}; scg.vals.v = '4817'; }
+
+  // DOC FEE — 단일 실비
+  const doc1 = seg1.find(c => c.id === 'doc1');
+  if (doc1) { if (!doc1.vals) doc1.vals = {}; doc1.vals.v = '50000'; }
+
+  // Export Customs Clearance — 원가 70000, 판가 100000
+  const exp = seg1.find(c => c.id === 'exp');
+  if (exp) {
+    if (!exp.vals) exp.vals = {};
+    exp.vals.v = '70000'; exp.vals.p = '100000';
+    exp.m = '마진금';
+  }
+
+  renderCharges(1);
+  await new Promise(r => setTimeout(r, 100));
+
+  // ── 8. 2구간 값 입력 (OFT 타입별) ──
+  const oft = charges[2].find(c => c.id === 'oft');
+  if (oft) {
+    oft.byType = true;
+    if (!oft.ctVals) oft.ctVals = {};
+    oft.ctVals['20DC'] = { v:'5040', p:'5500' };
+    oft.ctVals['40HC'] = { v:'6300', p:'6500' };
+    oft.m = '마진금';
+    renderCharges(2);
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  // ── 9. 3구간 값 입력 ──
+  const seg3 = charges[3];
+
+  // THC (CTR·실비) — 단일 원가
+  const thc3 = seg3.find(c => c.id === 'thc3');
+  if (thc3) { if (!thc3.vals) thc3.vals = {}; thc3.vals.v = '150'; }
+
+  // DOC FEE (BL·실비)
+  const doc3 = seg3.find(c => c.id === 'doc3');
+  if (doc3) { if (!doc3.vals) doc3.vals = {}; doc3.vals.v = '50'; }
+
+  // Import Customs Clearance (BL·마진금)
+  const imc = seg3.find(c => c.id === 'imc');
+  if (imc) {
+    if (!imc.vals) imc.vals = {};
+    imc.vals.v = '100'; imc.vals.p = '150';
+    imc.m = '마진금';
+  }
+
+  // D/O FEE (BL·실비)
+  const doFee = seg3.find(c => c.id === 'do');
+  if (doFee) { if (!doFee.vals) doFee.vals = {}; doFee.vals.v = '50'; }
+
+  // Inland Transportation (DOOR로 자동 추가됨 — 타입별)
+  const inl = seg3.find(c => c.id === 'inl');
+  if (inl) {
+    inl.byType = true;
+    if (!inl.ctVals) inl.ctVals = {};
+    inl.ctVals['20DC'] = { v:'800',  p:'1000' };
+    inl.ctVals['40HC'] = { v:'800',  p:'1200' };
+    inl.m = '마진금';
+  }
+
+  renderCharges(3);
+  await new Promise(r => setTimeout(r, 100));
+
+  // ── 10. 모든 구간 값 DOM에 반영 ──
+  refreshAllCtrInputs();
+
+  toast('✨ 샘플 데이터가 입력됐습니다 — 견적서 생성 버튼을 눌러 확인해보세요!');
+}
 const SITE_PASSWORD = '8312';
 
 function unlockSite() {
