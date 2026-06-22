@@ -128,13 +128,22 @@ input[type=number]{text-align:right}
 .fetch-rate:hover{background:var(--ac-bg);border-color:var(--ac);color:var(--ac)}
 
 /* ── Charge rows ── */
-.cr{display:grid;grid-template-columns:1fr 72px 96px 22px;gap:5px;align-items:start;padding:5px 0;border-bottom:1px solid #ECEEF5}
+.cr{display:grid;grid-template-columns:minmax(130px,2fr) 62px 1fr 22px;gap:6px;align-items:start;padding:7px 0;border-bottom:1px solid #ECEEF5}
 .cr:last-child{border-bottom:none}
 .cr-name{font-size:11px;color:var(--t1);padding-top:3px}
-.msel{padding:3px 5px;font-size:10px;height:26px}
-.cv{padding:3px 6px;font-size:11px;text-align:right;height:26px}
+.msel{padding:3px 5px;font-size:10px;height:26px;min-width:58px}
+.cv{padding:3px 6px;font-size:11px;text-align:right;height:26px;width:100%}
+/* ctype input row — 8자리 숫자(99,999.99) 여유있게 */
+.ctype-inp-row{display:grid;grid-template-columns:104px 1fr 18px 1fr;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid #F0F1F6}
+.ctype-inp-row:last-of-type{border-bottom:none}
+.ctype-inp-row input{width:100%;min-width:96px;padding:5px 8px;font-size:12px;font-weight:500;text-align:right;border:1px solid var(--bd);border-radius:var(--r4);height:30px;transition:border-color .13s;letter-spacing:-.01em}
+.ctype-inp-row input:focus{border-color:var(--ac);box-shadow:0 0 0 2px rgba(26,86,219,.1);outline:none}
+.ctype-inp-row input.fak-target{border-color:var(--ac);background:var(--ac-bg);box-shadow:0 0 0 2px rgba(26,86,219,.15)}
 .add-charge{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ac);cursor:pointer;padding:5px 0 2px;user-select:none;font-weight:600}
 .add-charge:hover{opacity:.75}
+/* refresh button */
+.refresh-btn{display:flex;align-items:center;gap:4px;padding:3px 9px;font-size:10px;font-weight:700;border:1px solid var(--bd);border-radius:var(--r4);background:#fff;color:var(--t2);cursor:pointer;transition:all .13s;white-space:nowrap}
+.refresh-btn:hover{border-color:var(--ac);background:var(--ac-bg);color:var(--ac)}
 
 /* ── Dims / CBM ── */
 .dims-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
@@ -212,7 +221,20 @@ tr:hover td{background:#FAFBFD}
 .toast.on{opacity:1;transform:translateY(0)}
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:10px}
 
-/* ── DG Toggle Switch ── */
+/* ── Mode tabs (top) ── */
+.mode-bar{background:#0F1729;border-bottom:3px solid #C9A227;display:flex;align-items:flex-end;gap:0;padding:0 22px}
+.mode-tab{display:flex;align-items:center;gap:7px;padding:10px 22px 9px;font-size:13px;font-weight:700;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .18s;user-select:none;white-space:nowrap;letter-spacing:-.01em}
+.mode-tab:hover{color:rgba(255,255,255,.75)}
+.mode-tab.on{background:#C9A227;color:#1A1000;border-radius:6px 6px 0 0;border-bottom:3px solid #C9A227}
+.mode-tab .mt-ico{font-size:15px;line-height:1}
+.mode-tab .mt-num{font-size:9px;font-weight:800;background:rgba(0,0,0,.15);border-radius:100px;padding:1px 5px;margin-left:2px}
+.mode-tab.on .mt-num{background:rgba(0,0,0,.18);color:#1A1000}
+
+/* ── Coming soon panels ── */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 106px);gap:14px;color:var(--t3)}
+.cs-icon{font-size:52px;opacity:.3}
+.cs-title{font-size:17px;font-weight:700;color:var(--t2)}
+.cs-desc{font-size:13px;line-height:1.7;text-align:center;max-width:340px;color:var(--t3)}
 .toggle-wrap{cursor:pointer}
 .toggle-track{width:36px;height:20px;background:#D1D5E0;border-radius:100px;position:relative;transition:background .2s}
 .toggle-track.on{background:var(--rd)}
@@ -299,13 +321,39 @@ tr:hover td{background:#FAFBFD}
 </head>
 <body>
 <header>
-  <div class="logo"><div class="lm">✈</div>포워딩 견적 시스템</div>
+  <div class="logo">포워딩 견적 시스템</div>
   <div style="display:flex;gap:7px;align-items:center">
     <span class="hb">v0.4</span>
     <span style="font-size:10px;color:rgba(255,255,255,.35)">포워딩3팀 EPC파트</span>
   </div>
 </header>
 
+<!-- ══ 견적 모드 탭 ══ -->
+<div class="mode-bar">
+  <div class="mode-tab on" id="mt-ocean" onclick="switchMode('ocean')">
+    <span class="mt-ico">🚢</span>
+    해상 컨테이너 견적
+    <span class="mt-num">1</span>
+  </div>
+  <div class="mode-tab" id="mt-air" onclick="switchMode('air')">
+    <span class="mt-ico">✈️</span>
+    항공 견적
+    <span class="mt-num">2</span>
+  </div>
+  <div class="mode-tab" id="mt-bulk" onclick="switchMode('bulk')">
+    <span class="mt-ico">📦</span>
+    벌크 견적
+    <span class="mt-num">3</span>
+  </div>
+  <div class="mode-tab" id="mt-history" onclick="switchMode('history')">
+    <span class="mt-ico">🗂</span>
+    견적 History
+    <span class="mt-num">4</span>
+  </div>
+</div>
+
+<!-- ══ 해상 컨테이너 견적 패널 ══ -->
+<div id="panel-ocean">
 <div class="wrap">
 <!-- ════════ LEFT ════════ -->
 <div class="left"><div class="li">
@@ -331,13 +379,14 @@ tr:hover td{background:#FAFBFD}
         <input class="port-search-input" id="pol-input" placeholder="항구명 또는 SCAC 코드 검색 (예: KR, KRPUS, Busan...)" oninput="onPortInput('pol')" onfocus="onPortFocus('pol')" autocomplete="off">
       </div>
       <div class="port-dropdown" id="pol-dd"></div>
-      <!-- DOOR 선택 시 출발지 주소 검색 -->
+      <!-- DOOR 선택 시 출발지 주소: Nominatim 자동완성 (국내+해외 모두) -->
       <div id="pol-door-addr" style="display:none;margin-top:6px">
-        <div class="flbl" style="margin-bottom:3px">출발지 주소 (시/군/읍 단위)</div>
+        <div class="flbl" style="margin-bottom:3px">출발지 상세 주소 <span style="font-size:9px;color:var(--t3)">한글·영문 모두 입력 가능</span></div>
         <div style="position:relative">
-          <input type="text" id="pol-addr-input" placeholder="예: 이천시, 평택시, 화성시 팔탄읍..." oninput="onAddrInput('pol')" autocomplete="off" style="padding-right:32px">
-          <div class="port-dropdown" id="pol-addr-dd"></div>
+          <input type="text" id="pol-addr-input" placeholder="주소 입력 — 예: 이천시, Cilegon, Jakarta..." oninput="onPolAddrInput()" autocomplete="off" style="padding-right:30px">
+          <span id="pol-addr-spinner" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--t3);display:none">⟳</span>
         </div>
+        <div class="port-dropdown" id="pol-addr-dd"></div>
         <div id="pol-addr-selected" style="display:none;margin-top:4px;padding:5px 8px;background:var(--ac-bg);border:1px solid var(--ac);border-radius:var(--r4);font-size:11px;color:var(--ac);font-weight:600"></div>
       </div>
       <div class="port-door-note" id="pol-note">⚠ DOOR 선택 시 픽업 트럭킹·포장·제반 비용이 1구간에 추가됩니다</div>
@@ -356,10 +405,15 @@ tr:hover td{background:#FAFBFD}
         <input class="port-search-input" id="pod-input" placeholder="항구명 또는 SCAC 코드 검색 (예: ID, IDJKT, Jakarta...)" oninput="onPortInput('pod')" onfocus="onPortFocus('pod')" autocomplete="off">
       </div>
       <div class="port-dropdown" id="pod-dd"></div>
-      <!-- DOOR 선택 시 도착지 주소 (자유 입력) -->
+      <!-- DOOR 선택 시 도착지 주소: Google Maps Places Autocomplete -->
       <div id="pod-door-addr" style="display:none;margin-top:6px">
-        <div class="flbl" style="margin-bottom:3px">도착지 상세 주소</div>
-        <input type="text" id="pod-addr-input" placeholder="예: Jl. Raya Anyer Km.123, Cilegon, Banten" autocomplete="off">
+        <div class="flbl" style="margin-bottom:3px">도착지 상세 주소 <span style="font-size:9px;color:var(--t3)">Google Maps 자동완성</span></div>
+        <div style="position:relative">
+          <input type="text" id="pod-addr-input" placeholder="주소 입력 — 예: Cilegon, Banten..." autocomplete="off" oninput="onPodAddrInput()" style="padding-right:30px">
+          <span id="pod-addr-spinner" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--t3);display:none">⟳</span>
+        </div>
+        <div id="pod-addr-dd" class="port-dropdown"></div>
+        <div id="pod-addr-selected" style="display:none;margin-top:4px;padding:5px 8px;background:var(--gn-bg);border:1px solid #A7E3C8;border-radius:var(--r4);font-size:11px;color:var(--gn);font-weight:600"></div>
       </div>
       <div class="port-door-note" id="pod-note">⚠ DOOR 선택 시 현지 내륙운송·통관·제반 비용이 3구간에 추가됩니다</div>
     </div>
@@ -448,7 +502,7 @@ tr:hover td{background:#FAFBFD}
       <div id="cur-list">
         <div class="cur-row">
           <div class="fd"><label>통화</label><select id="cur-0-code" style="height:28px;padding:3px 6px"><option value="USD">USD — 미국 달러</option></select></div>
-          <div class="fd"><label>매매기준율 (원)</label><div class="ui"><input type="number" id="cur-0-rate" value="1448" min="1"><span class="usf">KRW</span></div></div>
+          <div class="fd"><label>매매기준율 (원)</label><div class="ui"><input type="number" id="cur-0-rate" value="1448.0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div>
           <div style="padding-top:18px"><button class="del-btn" style="background:#F0F2F7;color:var(--t3);cursor:default" title="기본 통화">—</button></div>
         </div>
       </div>
@@ -459,7 +513,16 @@ tr:hover td{background:#FAFBFD}
 
 <!-- S1: 컨테이너 -->
 <div class="sec" id="s1">
-  <div class="shd" onclick="tog('s1')"><span class="sdot" style="background:var(--gn)"></span><span class="stit">컨테이너 구성</span><span class="sarr" id="s1a">▼</span></div>
+  <div class="shd" style="justify-content:space-between" onclick="tog('s1')">
+    <div style="display:flex;align-items:center;gap:7px">
+      <span class="sdot" style="background:var(--gn)"></span>
+      <span class="stit">컨테이너 구성</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px" onclick="event.stopPropagation()">
+      <button class="refresh-btn" onclick="refreshAllCtrInputs();toast('↻ 구간별 운임 입력 칸 갱신 완료')">↻ 구간 갱신</button>
+      <span class="sarr" id="s1a">▼</span>
+    </div>
+  </div>
   <div class="sbody" id="s1b">
     <div id="ct-accordions"></div>
     <div class="ct-summary" id="ct-summary">
@@ -471,14 +534,14 @@ tr:hover td{background:#FAFBFD}
 
 <!-- S2~S4: Charges -->
 <div class="sec" id="s2">
-  <div class="shd" onclick="tog('s2')"><span class="sdot" style="background:var(--am)"></span><span class="stit">1구간 — 국내 (KRW)</span><span class="sarr" id="s2a">▼</span></div>
+  <div class="shd" onclick="tog('s2')"><span class="sdot" style="background:var(--am)"></span><span class="stit">1구간</span><span class="sarr" id="s2a">▼</span></div>
   <div class="sbody" id="s2b"><div class="charge-list" id="g1"></div><div class="add-charge" onclick="addCharge(1)">＋ 항목 추가</div></div>
 </div>
 <div class="sec" id="s3">
   <div class="shd" onclick="tog('s3')" style="justify-content:space-between">
     <div style="display:flex;align-items:center;gap:7px">
       <span class="sdot" style="background:var(--ac)"></span>
-      <span class="stit">2구간 — 해상 운임 (USD)</span>
+      <span class="stit">2구간</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px" onclick="event.stopPropagation()">
       <button id="fak-btn" onclick="openFAK()" style="padding:3px 9px;font-size:10px;font-weight:700;border:1px solid var(--ac);border-radius:var(--r4);background:var(--ac-bg);color:var(--ac);cursor:pointer;letter-spacing:.02em;white-space:nowrap">FAK 조회</button>
@@ -488,16 +551,35 @@ tr:hover td{background:#FAFBFD}
   <div class="sbody" id="s3b"><div class="charge-list" id="g2"></div><div class="add-charge" onclick="addCharge(2)">＋ 항목 추가</div></div>
 </div>
 
-<!-- ── FAK Modal ── -->
+<!-- ── FAK 비밀번호 모달 ── -->
+<div id="fak-pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--r16);width:340px;padding:28px 24px;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center">
+    <div style="font-size:28px;margin-bottom:10px">🔒</div>
+    <div style="font-size:14px;font-weight:700;color:var(--t1);margin-bottom:6px">담당자 전용 기능</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:18px;line-height:1.6">FAK 운임 엑셀 업로드는 담당자만 접근 가능합니다.<br>비밀번호를 입력해주세요.</div>
+    <input type="password" id="fak-pw-input" placeholder="비밀번호 입력" style="width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r8);font-size:13px;text-align:center;margin-bottom:10px" onkeydown="if(event.key==='Enter')confirmFAKPassword()">
+    <div id="fak-pw-err" style="font-size:11px;color:var(--rd);margin-bottom:10px;display:none">비밀번호가 틀렸습니다.</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="cancelFAKPassword()" style="flex:1;padding:9px;background:#F4F5F8;border:none;border-radius:var(--r8);font-size:12px;cursor:pointer;color:var(--t2)">취소</button>
+      <button onclick="confirmFAKPassword()" style="flex:1;padding:9px;background:var(--ac);border:none;border-radius:var(--r8);font-size:12px;font-weight:700;color:#fff;cursor:pointer">확인</button>
+    </div>
+  </div>
+</div>
 <div id="fak-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center">
   <div style="background:white;border-radius:var(--r16);width:540px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18)">
     <!-- Modal Header -->
     <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
       <div>
         <div style="font-size:13px;font-weight:700;color:var(--t1)">FAK 운임 조회</div>
-        <div style="font-size:10px;color:var(--t3);margin-top:1px">6월下 기준 · 부산발 북미</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:1px" id="fak-db-label">6월下 기준 · 부산발 북미 (내장 DB)</div>
       </div>
-      <button onclick="closeFAK()" style="width:26px;height:26px;border:none;background:#F0F2F7;border-radius:5px;cursor:pointer;font-size:14px;color:var(--t2)">✕</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <label id="fak-upload-btn" style="padding:4px 9px;font-size:10px;font-weight:600;border:1px solid var(--gn);border-radius:var(--r4);background:var(--gn-bg);color:var(--gn);cursor:pointer;white-space:nowrap">
+          📂 엑셀 업로드
+          <input type="file" accept=".xlsx,.xls" style="display:none" onchange="checkFAKPassword(this)">
+        </label>
+        <button onclick="closeFAK()" style="width:26px;height:26px;border:none;background:#F0F2F7;border-radius:5px;cursor:pointer;font-size:14px;color:var(--t2)">✕</button>
+      </div>
     </div>
     <!-- Search + Filter -->
     <div style="padding:12px 20px;border-bottom:1px solid var(--bd);flex-shrink:0">
@@ -523,7 +605,7 @@ tr:hover td{background:#FAFBFD}
   </div>
 </div>
 <div class="sec" id="s4">
-  <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간 — 현지</span><span class="sarr" id="s4a">▼</span></div>
+  <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간</span><span class="sarr" id="s4a">▼</span></div>
   <div class="sbody" id="s4b"><div class="charge-list" id="g3"></div><div class="add-charge" onclick="addCharge(3)">＋ 항목 추가</div></div>
 </div>
 <div class="sec" id="s5">
@@ -552,6 +634,122 @@ tr:hover td{background:#FAFBFD}
 </div>
 
 <div class="toast" id="toast"></div>
+
+</div><!-- /panel-ocean -->
+
+<!-- ══ 항공 견적 패널 ══ -->
+<div id="panel-air" style="display:none">
+  <div class="coming-soon">
+    <div class="cs-icon">✈️</div>
+    <div class="cs-title">항공 견적</div>
+    <div class="cs-desc">
+      해상 컨테이너 견적의 구조를 기반으로<br>
+      <strong>항공 견적 (Air Freight)</strong> 화면을 설계 중입니다.<br><br>
+      주요 항목: AWB No. / MAWB·HAWB / Chargeable Weight /<br>
+      공항별 운임 (FSC·SSC 포함) / Origin·Destination
+    </div>
+    <div style="margin-top:8px;padding:10px 20px;background:#F8F9FC;border:1px solid var(--bd);border-radius:var(--r8);font-size:12px;color:var(--t2);text-align:center">
+      🔧 다음 작업 시 구현 예정
+    </div>
+  </div>
+</div>
+
+<!-- ══ 벌크 견적 패널 ══ -->
+<div id="panel-bulk" style="display:none">
+  <div class="coming-soon">
+    <div class="cs-icon">📦</div>
+    <div class="cs-title">벌크 견적</div>
+    <div class="cs-desc">
+      해상 컨테이너 견적의 구조를 기반으로<br>
+      <strong>벌크 견적 (Break Bulk / Project Cargo)</strong> 화면을 설계 중입니다.<br><br>
+      주요 항목: 화물 치수·중량 기반 운임 / 선박 Charter /<br>
+      Lashing·Seafastening / 중장비 특수 운송
+    </div>
+    <div style="margin-top:8px;padding:10px 20px;background:#F8F9FC;border:1px solid var(--bd);border-radius:var(--r8);font-size:12px;color:var(--t2);text-align:center">
+      🔧 다음 작업 시 구현 예정
+    </div>
+  </div>
+</div>
+
+<!-- ══ 견적 History 패널 ══ -->
+<div id="panel-history" style="display:none">
+  <div style="padding:24px 32px;max-width:1100px;margin:0 auto">
+
+    <!-- 상단: 타이틀 + 저장 버튼 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.01em">견적 History</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">팀원들이 작성한 견적서를 저장·조회합니다. 브라우저 세션 내 보관됩니다.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="saveCurrentQuote()" style="padding:8px 16px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .14s" onmouseover="this.style.background='var(--ac-h)'" onmouseout="this.style.background='var(--ac)'">
+          💾 현재 견적 저장
+        </button>
+        <button onclick="clearHistory()" style="padding:8px 14px;background:#fff;color:var(--rd);border:1px solid var(--rd);border-radius:var(--r8);font-size:11px;font-weight:600;cursor:pointer;transition:all .14s" onmouseover="this.style.background='var(--rd-bg)'" onmouseout="this.style.background='#fff'">
+          전체 삭제
+        </button>
+      </div>
+    </div>
+
+    <!-- 검색/필터 바 -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
+      <input type="text" id="hist-search" placeholder="화주명, POL/POD, 품목으로 검색..." oninput="renderHistory()" style="flex:1;height:34px;font-size:12px;padding:0 12px;border:1px solid var(--bd);border-radius:var(--r8)">
+      <select id="hist-filter-type" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 10px;border:1px solid var(--bd);border-radius:var(--r8)">
+        <option value="">전체 견적유형</option>
+        <option value="해상">🚢 해상</option>
+        <option value="항공">✈ 항공</option>
+        <option value="벌크">📦 벌크</option>
+      </select>
+      <select id="hist-filter-author" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 10px;border:1px solid var(--bd);border-radius:var(--r8)">
+        <option value="">전체 작성자</option>
+      </select>
+    </div>
+
+    <!-- 통계 카드 -->
+    <div id="hist-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+
+    <!-- 목록 테이블 -->
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:var(--r12);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#F4F5F8">
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">No.</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">화주</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">구간</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">품목 / 컨</th>
+            <th style="padding:10px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">총 판가</th>
+            <th style="padding:10px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">마진율</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">작성자</th>
+            <th style="padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);border-bottom:1px solid var(--bd)">저장일</th>
+            <th style="padding:10px 14px;border-bottom:1px solid var(--bd)"></th>
+          </tr>
+        </thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+      <div id="hist-empty" style="display:none;padding:52px;text-align:center;color:var(--t3)">
+        <div style="font-size:32px;margin-bottom:10px;opacity:.3">🗂</div>
+        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:4px">저장된 견적이 없습니다</div>
+        <div style="font-size:12px">견적서를 생성한 후 "현재 견적 저장" 버튼을 누르세요.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── History 상세 모달 ── -->
+<div id="hist-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--r16);width:620px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:13px;font-weight:700;color:var(--t1)" id="hm-title">견적 상세</div>
+      <button onclick="closeHistModal()" style="width:26px;height:26px;border:none;background:#F0F2F7;border-radius:5px;cursor:pointer;font-size:14px;color:var(--t2)">✕</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:18px 20px" id="hm-body"></div>
+    <div style="padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:8px;flex-shrink:0">
+      <button id="hm-load-btn" style="flex:1;padding:9px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer">↩ 이 견적 불러오기</button>
+      <button id="hm-del-btn" style="padding:9px 16px;background:#fff;color:var(--rd);border:1px solid var(--rd);border-radius:var(--r8);font-size:12px;font-weight:600;cursor:pointer">삭제</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
@@ -662,57 +860,259 @@ function toggleDG() {
 
 // ── 국내 주소 검색 (시/군/구/읍 단위) ──
 const KR_ADDR = [
-  // 서울
-  '서울특별시 강남구','서울특별시 강동구','서울특별시 강북구','서울특별시 강서구',
-  '서울특별시 관악구','서울특별시 광진구','서울특별시 구로구','서울특별시 금천구',
-  '서울특별시 노원구','서울특별시 도봉구','서울특별시 동대문구','서울특별시 동작구',
-  '서울특별시 마포구','서울특별시 서대문구','서울특별시 서초구','서울특별시 성동구',
-  '서울특별시 성북구','서울특별시 송파구','서울특별시 양천구','서울특별시 영등포구',
+
+  // ════════════════════════════════════════
+  // 서울특별시
+  // ════════════════════════════════════════
+  '서울특별시 강남구','서울특별시 강남구 역삼동','서울특별시 강남구 삼성동','서울특별시 강남구 논현동',
+  '서울특별시 강동구','서울특별시 강북구','서울특별시 강서구','서울특별시 강서구 마곡동',
+  '서울특별시 관악구','서울특별시 광진구','서울특별시 구로구','서울특별시 구로구 구로동',
+  '서울특별시 금천구','서울특별시 금천구 가산동','서울특별시 노원구',
+  '서울특별시 도봉구','서울특별시 동대문구','서울특별시 동작구',
+  '서울특별시 마포구','서울특별시 서대문구','서울특별시 서초구',
+  '서울특별시 성동구','서울특별시 성북구','서울특별시 송파구',
+  '서울특별시 양천구','서울특별시 영등포구','서울특별시 영등포구 문래동',
   '서울특별시 용산구','서울특별시 은평구','서울특별시 종로구','서울특별시 중구','서울특별시 중랑구',
-  // 경기
-  '경기도 수원시 장안구','경기도 수원시 권선구','경기도 수원시 팔달구','경기도 수원시 영통구',
-  '경기도 성남시 수정구','경기도 성남시 중원구','경기도 성남시 분당구',
-  '경기도 안양시 만안구','경기도 안양시 동안구',
-  '경기도 고양시 덕양구','경기도 고양시 일산동구','경기도 고양시 일산서구',
-  '경기도 용인시 처인구','경기도 용인시 기흥구','경기도 용인시 수지구',
-  '경기도 부천시','경기도 광명시','경기도 평택시','경기도 안산시 단원구','경기도 안산시 상록구',
-  '경기도 이천시','경기도 김포시','경기도 화성시','경기도 광주시','경기도 양주시',
-  '경기도 오산시','경기도 군포시','경기도 의왕시','경기도 하남시','경기도 파주시',
-  '경기도 남양주시','경기도 의정부시','경기도 구리시','경기도 포천시','경기도 동두천시',
-  '경기도 가평군','경기도 양평군','경기도 여주시','경기도 연천군',
-  '경기도 화성시 팔탄면','경기도 화성시 향남읍','경기도 평택시 포승읍','경기도 평택시 현덕면',
-  // 인천
-  '인천광역시 중구','인천광역시 동구','인천광역시 미추홀구','인천광역시 연수구',
-  '인천광역시 남동구','인천광역시 부평구','인천광역시 계양구','인천광역시 서구',
+
+  // ════════════════════════════════════════
+  // 인천광역시 (인천항 픽업 핵심)
+  // ════════════════════════════════════════
+  '인천광역시 중구','인천광역시 중구 항동','인천광역시 중구 신항동','인천광역시 중구 운북동',
+  '인천광역시 중구 을왕동','인천광역시 중구 남북동','인천광역시 중구 덕교동',
+  '인천광역시 동구','인천광역시 미추홀구',
+  '인천광역시 연수구','인천광역시 연수구 송도동','인천광역시 연수구 옥련동',
+  '인천광역시 남동구','인천광역시 남동구 논현동','인천광역시 남동구 고잔동',
+  '인천광역시 부평구','인천광역시 계양구',
+  '인천광역시 서구','인천광역시 서구 원창동','인천광역시 서구 가좌동',
+  '인천광역시 서구 검단동','인천광역시 서구 당하동',
   '인천광역시 강화군','인천광역시 옹진군',
-  // 부산
-  '부산광역시 중구','부산광역시 서구','부산광역시 동구','부산광역시 영도구',
-  '부산광역시 부산진구','부산광역시 동래구','부산광역시 남구','부산광역시 북구',
-  '부산광역시 해운대구','부산광역시 사하구','부산광역시 금정구','부산광역시 강서구',
-  '부산광역시 연제구','부산광역시 수영구','부산광역시 사상구','부산광역시 기장군',
-  // 대구/광주/대전/울산
+
+  // ════════════════════════════════════════
+  // 경기도 (안전운임 핵심 구간 읍/면/동 포함)
+  // ════════════════════════════════════════
+  // 수원
+  '경기도 수원시 장안구','경기도 수원시 권선구','경기도 수원시 팔달구','경기도 수원시 영통구',
+  // 성남
+  '경기도 성남시 수정구','경기도 성남시 중원구','경기도 성남시 분당구',
+  // 안양
+  '경기도 안양시 만안구','경기도 안양시 동안구',
+  // 고양
+  '경기도 고양시 덕양구','경기도 고양시 일산동구','경기도 고양시 일산서구',
+  // 용인
+  '경기도 용인시 처인구','경기도 용인시 처인구 남사읍','경기도 용인시 처인구 이동읍',
+  '경기도 용인시 처인구 양지면','경기도 용인시 처인구 원삼면',
+  '경기도 용인시 기흥구','경기도 용인시 수지구',
+  // 평택 (평택항 핵심)
+  '경기도 평택시','경기도 평택시 포승읍','경기도 평택시 청북읍',
+  '경기도 평택시 현덕면','경기도 평택시 팽성읍','경기도 평택시 오성면',
+  '경기도 평택시 안중읍','경기도 평택시 진위면','경기도 평택시 서탄면',
+  '경기도 평택시 고덕면','경기도 평택시 송탄동','경기도 평택시 통복동',
+  '경기도 평택시 비전동','경기도 평택시 지제동',
+  // 화성 (반도체·자동차·물류 밀집)
+  '경기도 화성시','경기도 화성시 향남읍','경기도 화성시 팔탄면',
+  '경기도 화성시 매송면','경기도 화성시 비봉면','경기도 화성시 마도면',
+  '경기도 화성시 송산면','경기도 화성시 서신면','경기도 화성시 남양읍',
+  '경기도 화성시 우정읍','경기도 화성시 장안면','경기도 화성시 양감면',
+  '경기도 화성시 정남면','경기도 화성시 봉담읍','경기도 화성시 동탄동',
+  '경기도 화성시 기배동','경기도 화성시 반월동',
+  // 안산
+  '경기도 안산시 단원구','경기도 안산시 단원구 원시동','경기도 안산시 단원구 신길동',
+  '경기도 안산시 단원구 성곡동','경기도 안산시 단원구 목내동',
+  '경기도 안산시 상록구','경기도 안산시 상록구 사동',
+  // 시흥
+  '경기도 시흥시','경기도 시흥시 정왕동','경기도 시흥시 월곶동',
+  '경기도 시흥시 배곧동','경기도 시흥시 목감동','경기도 시흥시 군자동',
+  // 부천
+  '경기도 부천시','경기도 부천시 오정동','경기도 부천시 원미동',
+  // 광명
+  '경기도 광명시','경기도 광명시 소하동','경기도 광명시 일직동',
+  // 김포
+  '경기도 김포시','경기도 김포시 양촌읍','경기도 김포시 대곶면',
+  '경기도 김포시 통진읍','경기도 김포시 하성면','경기도 김포시 감정동',
+  '경기도 김포시 장기동','경기도 김포시 운양동',
+  // 파주
+  '경기도 파주시','경기도 파주시 문산읍','경기도 파주시 탄현면',
+  '경기도 파주시 법원읍','경기도 파주시 조리읍','경기도 파주시 월롱면',
+  '경기도 파주시 파주읍','경기도 파주시 적성면',
+  // 이천 (물류창고 밀집)
+  '경기도 이천시','경기도 이천시 마장면','경기도 이천시 장호원읍',
+  '경기도 이천시 부발읍','경기도 이천시 호법면','경기도 이천시 신둔면',
+  '경기도 이천시 백사면','경기도 이천시 모가면','경기도 이천시 설성면',
+  '경기도 이천시 율면','경기도 이천시 대월면',
+  // 광주시
+  '경기도 광주시','경기도 광주시 오포읍','경기도 광주시 초월읍',
+  '경기도 광주시 곤지암읍','경기도 광주시 도척면','경기도 광주시 퇴촌면',
+  // 여주
+  '경기도 여주시','경기도 여주시 가남읍','경기도 여주시 점동면',
+  // 남양주
+  '경기도 남양주시','경기도 남양주시 화도읍','경기도 남양주시 오남읍',
+  '경기도 남양주시 진건읍','경기도 남양주시 별내면','경기도 남양주시 퇴계원읍',
+  // 구리·하남
+  '경기도 구리시','경기도 하남시','경기도 하남시 미사동',
+  // 의정부·양주·포천
+  '경기도 의정부시','경기도 양주시','경기도 포천시','경기도 동두천시',
+  // 오산·군포·의왕
+  '경기도 오산시','경기도 오산시 가수동','경기도 오산시 갈곶동',
+  '경기도 군포시','경기도 의왕시','경기도 의왕시 포일동',
+  // 안성
+  '경기도 안성시','경기도 안성시 공도읍','경기도 안성시 미양면',
+  '경기도 안성시 보개면','경기도 안성시 서운면','경기도 안성시 양성면',
+  '경기도 안성시 원곡면','경기도 안성시 일죽면','경기도 안성시 죽산면',
+  // 가평·양평·연천
+  '경기도 가평군','경기도 양평군','경기도 연천군',
+
+  // ════════════════════════════════════════
+  // 부산광역시 (부산항 픽업 핵심)
+  // ════════════════════════════════════════
+  '부산광역시 중구','부산광역시 서구','부산광역시 동구',
+  '부산광역시 영도구','부산광역시 부산진구','부산광역시 동래구',
+  '부산광역시 남구','부산광역시 북구',
+  '부산광역시 해운대구','부산광역시 해운대구 우동','부산광역시 해운대구 송정동',
+  '부산광역시 사하구','부산광역시 사하구 감천동','부산광역시 사하구 다대동',
+  '부산광역시 금정구','부산광역시 강서구',
+  '부산광역시 강서구 명지동','부산광역시 강서구 녹산동','부산광역시 강서구 신호동',
+  '부산광역시 강서구 지사동','부산광역시 강서구 미음동',
+  '부산광역시 연제구','부산광역시 수영구','부산광역시 사상구',
+  '부산광역시 사상구 학장동','부산광역시 사상구 엄궁동',
+  '부산광역시 기장군','부산광역시 기장군 정관읍','부산광역시 기장군 철마면',
+
+  // ════════════════════════════════════════
+  // 울산광역시 (울산항·자동차·화학)
+  // ════════════════════════════════════════
+  '울산광역시 중구','울산광역시 남구','울산광역시 남구 여천동',
+  '울산광역시 동구','울산광역시 동구 화정동','울산광역시 북구',
+  '울산광역시 울주군','울산광역시 울주군 온산읍','울산광역시 울주군 온양읍',
+  '울산광역시 울주군 청량읍','울산광역시 울주군 범서읍','울산광역시 울주군 언양읍',
+  '울산광역시 울주군 삼남읍','울산광역시 울주군 두동면','울산광역시 울주군 두서면',
+
+  // ════════════════════════════════════════
+  // 경상남도 (마산·진해·거제·창원항)
+  // ════════════════════════════════════════
+  '경상남도 창원시 의창구','경상남도 창원시 성산구',
+  '경상남도 창원시 마산합포구','경상남도 창원시 마산회원구',
+  '경상남도 창원시 진해구','경상남도 창원시 진해구 용원동',
+  '경상남도 진주시','경상남도 진주시 문산읍','경상남도 진주시 내동면',
+  '경상남도 김해시','경상남도 김해시 한림면','경상남도 김해시 진례면',
+  '경상남도 김해시 생림면','경상남도 김해시 상동면','경상남도 김해시 대동면',
+  '경상남도 김해시 장유동','경상남도 김해시 주촌면',
+  '경상남도 거제시','경상남도 거제시 거제면','경상남도 거제시 장목면',
+  '경상남도 양산시','경상남도 양산시 물금읍','경상남도 양산시 웅상읍',
+  '경상남도 양산시 원동면','경상남도 양산시 동면',
+  '경상남도 밀양시','경상남도 밀양시 삼랑진읍','경상남도 밀양시 하남읍',
+  '경상남도 고성군','경상남도 통영시','경상남도 사천시',
+  '경상남도 함안군','경상남도 함안군 칠서면','경상남도 함안군 칠원읍',
+  '경상남도 의령군','경상남도 하동군','경상남도 남해군',
+
+  // ════════════════════════════════════════
+  // 경상북도 (포항항·구미·경주)
+  // ════════════════════════════════════════
+  '경상북도 포항시 남구','경상북도 포항시 남구 오천읍','경상북도 포항시 남구 동해면',
+  '경상북도 포항시 남구 장기면','경상북도 포항시 남구 호미곶면',
+  '경상북도 포항시 북구','경상북도 포항시 북구 흥해읍','경상북도 포항시 북구 신광면',
+  '경상북도 경주시','경상북도 경주시 외동읍','경상북도 경주시 안강읍',
+  '경상북도 경주시 내남면','경상북도 경주시 현곡면',
+  '경상북도 구미시','경상북도 구미시 산동읍','경상북도 구미시 해평면',
+  '경상북도 구미시 도개면','경상북도 구미시 장천면',
+  '경상북도 안동시','경상북도 김천시','경상북도 영주시',
+  '경상북도 칠곡군','경상북도 칠곡군 왜관읍','경상북도 칠곡군 석적읍',
+  '경상북도 영천시','경상북도 경산시','경상북도 경산시 하양읍',
+
+  // ════════════════════════════════════════
+  // 전라남도 (광양항 핵심)
+  // ════════════════════════════════════════
+  '전라남도 광양시','전라남도 광양시 광양읍','전라남도 광양시 봉강면',
+  '전라남도 광양시 옥룡면','전라남도 광양시 옥곡면','전라남도 광양시 진상면',
+  '전라남도 광양시 진월면','전라남도 광양시 다압면','전라남도 광양시 중마동',
+  '전라남도 광양시 금호동','전라남도 광양시 태인동',
+  '전라남도 여수시','전라남도 여수시 돌산읍','전라남도 여수시 소라면',
+  '전라남도 여수시 율촌면','전라남도 여수시 화양면','전라남도 여수시 삼산면',
+  '전라남도 순천시','전라남도 순천시 해룡면','전라남도 순천시 황전면',
+  '전라남도 순천시 주암면','전라남도 순천시 승주읍','전라남도 순천시 외서면',
+  '전라남도 목포시','전라남도 나주시','전라남도 장성군','전라남도 영암군',
+  '전라남도 영암군 삼호읍','전라남도 영암군 미암면','전라남도 영암군 학산면',
+  '전라남도 무안군','전라남도 무안군 삼향읍','전라남도 무안군 일로읍',
+  '전라남도 함평군','전라남도 고흥군','전라남도 보성군','전라남도 화순군',
+
+  // ════════════════════════════════════════
+  // 전라북도
+  // ════════════════════════════════════════
+  '전라북도 전주시 완산구','전라북도 전주시 덕진구',
+  '전라북도 익산시','전라북도 익산시 함열읍','전라북도 익산시 황등면',
+  '전라북도 군산시','전라북도 군산시 옥산면','전라북도 군산시 나포면',
+  '전라북도 군산시 성산면','전라북도 군산시 개정면',
+  '전라북도 완주군','전라북도 완주군 봉동읍','전라북도 완주군 삼례읍',
+  '전라북도 완주군 이서면','전라북도 완주군 소양면',
+  '전라북도 김제시','전라북도 정읍시','전라북도 남원시','전라북도 부안군',
+
+  // ════════════════════════════════════════
+  // 충청남도 (당진·서산·아산·천안)
+  // ════════════════════════════════════════
+  '충청남도 천안시 동남구','충청남도 천안시 동남구 성거읍','충청남도 천안시 동남구 목천읍',
+  '충청남도 천안시 서북구','충청남도 천안시 서북구 성환읍','충청남도 천안시 서북구 성거읍',
+  '충청남도 아산시','충청남도 아산시 음봉면','충청남도 아산시 탕정면',
+  '충청남도 아산시 배방읍','충청남도 아산시 선장면','충청남도 아산시 둔포면',
+  '충청남도 당진시','충청남도 당진시 합덕읍','충청남도 당진시 순성면',
+  '충청남도 당진시 면천면','충청남도 당진시 신평면','충청남도 당진시 송악읍',
+  '충청남도 당진시 정미면','충청남도 당진시 대호지면','충청남도 당진시 고대면',
+  '충청남도 서산시','충청남도 서산시 대산읍','충청남도 서산시 팔봉면',
+  '충청남도 서산시 지곡면','충청남도 서산시 부석면','충청남도 서산시 성연면',
+  '충청남도 서산시 해미면','충청남도 서산시 음암면','충청남도 서산시 운산면',
+  '충청남도 홍성군','충청남도 예산군','충청남도 공주시','충청남도 보령시',
+  '충청남도 논산시','충청남도 계룡시','충청남도 금산군','충청남도 부여군',
+  '충청남도 청양군','충청남도 태안군','충청남도 서천군',
+
+  // ════════════════════════════════════════
+  // 충청북도
+  // ════════════════════════════════════════
+  '충청북도 청주시 상당구','충청북도 청주시 서원구','충청북도 청주시 흥덕구','충청북도 청주시 청원구',
+  '충청북도 청주시 흥덕구 오송읍','충청북도 청주시 흥덕구 옥산면',
+  '충청북도 충주시','충청북도 충주시 산척면','충청북도 충주시 신니면',
+  '충청북도 충주시 엄정면','충청북도 충주시 가금면',
+  '충청북도 제천시','충청북도 음성군','충청북도 음성군 금왕읍',
+  '충청북도 음성군 소이면','충청북도 음성군 생극면','충청북도 음성군 대소면',
+  '충청북도 진천군','충청북도 진천군 진천읍','충청북도 진천군 이월면',
+  '충청북도 진천군 백곡면','충청북도 진천군 문백면','충청북도 진천군 덕산읍',
+  '충청북도 증평군','충청북도 괴산군','충청북도 단양군','충청북도 보은군','충청북도 옥천군',
+
+  // ════════════════════════════════════════
+  // 대구광역시
+  // ════════════════════════════════════════
   '대구광역시 중구','대구광역시 동구','대구광역시 서구','대구광역시 남구','대구광역시 북구',
   '대구광역시 수성구','대구광역시 달서구','대구광역시 달성군',
+  '대구광역시 달성군 현풍읍','대구광역시 달성군 유가읍','대구광역시 달성군 논공읍',
+
+  // ════════════════════════════════════════
+  // 광주광역시
+  // ════════════════════════════════════════
   '광주광역시 동구','광주광역시 서구','광주광역시 남구','광주광역시 북구','광주광역시 광산구',
+  '광주광역시 광산구 하남동','광주광역시 광산구 평동',
+
+  // ════════════════════════════════════════
+  // 대전광역시
+  // ════════════════════════════════════════
   '대전광역시 동구','대전광역시 중구','대전광역시 서구','대전광역시 유성구','대전광역시 대덕구',
-  '울산광역시 중구','울산광역시 남구','울산광역시 동구','울산광역시 북구','울산광역시 울주군',
-  // 충청
-  '충청북도 청주시 상당구','충청북도 청주시 서원구','충청북도 청주시 흥덕구','충청북도 청주시 청원구',
-  '충청북도 충주시','충청북도 제천시','충청북도 음성군','충청북도 진천군',
-  '충청남도 천안시 동남구','충청남도 천안시 서북구','충청남도 아산시','충청남도 당진시',
-  '충청남도 서산시','충청남도 홍성군','충청남도 예산군',
-  // 전라
-  '전라북도 전주시 완산구','전라북도 전주시 덕진구','전라북도 익산시','전라북도 군산시',
-  '전라남도 여수시','전라남도 순천시','전라남도 광양시','전라남도 목포시',
-  // 경상
-  '경상북도 포항시 남구','경상북도 포항시 북구','경상북도 경주시','경상북도 구미시',
-  '경상북도 안동시','경상북도 김천시','경상북도 영주시',
-  '경상남도 창원시 의창구','경상남도 창원시 성산구','경상남도 창원시 마산합포구',
-  '경상남도 창원시 마산회원구','경상남도 창원시 진해구',
-  '경상남도 진주시','경상남도 김해시','경상남도 거제시','경상남도 양산시','경상남도 밀양시',
-  // 제주/세종
-  '제주특별자치도 제주시','제주특별자치도 서귀포시',
-  '세종특별자치시',
+  '대전광역시 유성구 관평동','대전광역시 대덕구 신탄진동',
+
+  // ════════════════════════════════════════
+  // 세종특별자치시
+  // ════════════════════════════════════════
+  '세종특별자치시','세종특별자치시 조치원읍','세종특별자치시 연기면',
+  '세종특별자치시 연동면','세종특별자치시 부강면','세종특별자치시 금남면',
+  '세종특별자치시 장군면','세종특별자치시 연서면','세종특별자치시 전의면',
+  '세종특별자치시 전동면','세종특별자치시 소정면','세종특별자치시 한솔동',
+
+  // ════════════════════════════════════════
+  // 강원도
+  // ════════════════════════════════════════
+  '강원도 원주시','강원도 원주시 지정면','강원도 원주시 문막읍',
+  '강원도 춘천시','강원도 강릉시','강원도 동해시','강원도 속초시',
+  '강원도 삼척시','강원도 태백시','강원도 횡성군','강원도 홍천군',
+
+  // ════════════════════════════════════════
+  // 제주특별자치도
+  // ════════════════════════════════════════
+  '제주특별자치도 제주시','제주특별자치도 제주시 한경면',
+  '제주특별자치도 서귀포시','제주특별자치도 서귀포시 대정읍',
 ];
 
 function onAddrInput(side) {
@@ -720,7 +1120,7 @@ function onAddrInput(side) {
   const dd = document.getElementById(`${side}-addr-dd`);
   if (!q || q.length < 1) { dd.classList.remove('open'); return; }
 
-  const results = KR_ADDR.filter(a => a.includes(q)).slice(0, 12);
+  const results = KR_ADDR.filter(a => a.includes(q)).slice(0, 20);
   if (!results.length) {
     dd.innerHTML = '<div class="pd-empty">검색 결과 없음 — 직접 입력하세요</div>';
     dd.classList.add('open');
@@ -738,6 +1138,118 @@ function selectAddr(side, addr) {
   document.getElementById(`${side}-addr-input`).value = addr;
   document.getElementById(`${side}-addr-dd`).classList.remove('open');
   const sel = document.getElementById(`${side}-addr-selected`);
+  if (sel) { sel.textContent = '📍 ' + addr; sel.style.display = 'block'; }
+}
+
+// ── POD 주소 자동완성 (OpenStreetMap Nominatim — 무료, 전세계) ──
+let podAddrTimer = null;
+
+function onPodAddrInput() {
+  const q = document.getElementById('pod-addr-input').value.trim();
+  const dd = document.getElementById('pod-addr-dd');
+  document.getElementById('pod-addr-selected').style.display = 'none';
+  if (!q || q.length < 2) { dd.classList.remove('open'); return; }
+  clearTimeout(podAddrTimer);
+  podAddrTimer = setTimeout(() => fetchPodPlaces(q), 400);
+}
+
+async function fetchPodPlaces(q) {
+  const spinner = document.getElementById('pod-addr-spinner');
+  const dd      = document.getElementById('pod-addr-dd');
+  if (spinner) spinner.style.display = '';
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=8&addressdetails=1`,
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    const data = await res.json();
+    if (!data.length) {
+      dd.innerHTML = '<div class="pd-empty">검색 결과 없음 — 직접 입력 가능합니다</div>';
+    } else {
+      dd.innerHTML = data.map(p => {
+        const full  = p.display_name;
+        const short = full.length > 65 ? full.slice(0,65)+'…' : full;
+        const cc    = p.address?.country_code?.toUpperCase() || '';
+        const flag  = cc.length===2 ? cc.split('').map(c=>String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65)).join('') : '🌐';
+        const type  = p.type || p.class || '';
+        return `<div class="pd-item" onclick="selectPodAddr('${full.replace(/'/g,"\\'")}')">
+          <span class="pd-flag">${flag}</span>
+          <div class="pd-info">
+            <div class="pd-city" style="font-size:11px;white-space:normal;line-height:1.4">${short}</div>
+            <div class="pd-country">${p.address?.country||''} · ${type}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    dd.classList.add('open');
+  } catch(e) {
+    dd.innerHTML = '<div class="pd-empty">네트워크 오류 — 직접 입력해주세요</div>';
+    dd.classList.add('open');
+  }
+  if (spinner) spinner.style.display = 'none';
+}
+
+function selectPodAddr(addr) {
+  document.getElementById('pod-addr-input').value = addr;
+  document.getElementById('pod-addr-dd').classList.remove('open');
+  const sel = document.getElementById('pod-addr-selected');
+  if (sel) { sel.textContent = '📍 ' + addr; sel.style.display = 'block'; }
+}
+
+// ── POL 주소 자동완성 (Nominatim — 국내+해외 모두) ──
+let polAddrTimer = null;
+
+function onPolAddrInput() {
+  const q = document.getElementById('pol-addr-input').value.trim();
+  const dd = document.getElementById('pol-addr-dd');
+  document.getElementById('pol-addr-selected').style.display = 'none';
+  if (!q || q.length < 2) { dd.classList.remove('open'); return; }
+  clearTimeout(polAddrTimer);
+  polAddrTimer = setTimeout(() => fetchPolPlaces(q), 400);
+}
+
+async function fetchPolPlaces(q) {
+  const spinner = document.getElementById('pol-addr-spinner');
+  const dd      = document.getElementById('pol-addr-dd');
+  if (spinner) spinner.style.display = '';
+  try {
+    // 한글이 포함된 경우 한국어 우선 결과, 영문이면 영어 우선
+    const lang = /[가-힣]/.test(q) ? 'ko,en' : 'en,ko';
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=8&addressdetails=1`,
+      { headers: { 'Accept-Language': lang } }
+    );
+    const data = await res.json();
+    if (!data.length) {
+      dd.innerHTML = '<div class="pd-empty">검색 결과 없음 — 직접 입력 가능합니다</div>';
+    } else {
+      dd.innerHTML = data.map(p => {
+        const full  = p.display_name;
+        const short = full.length > 65 ? full.slice(0,65)+'…' : full;
+        const cc    = p.address?.country_code?.toUpperCase() || '';
+        const flag  = cc.length===2 ? cc.split('').map(c=>String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65)).join('') : '🌐';
+        const type  = p.type || p.class || '';
+        return `<div class="pd-item" onclick="selectPolAddr('${full.replace(/'/g,"\\'")}')">
+          <span class="pd-flag">${flag}</span>
+          <div class="pd-info">
+            <div class="pd-city" style="font-size:11px;white-space:normal;line-height:1.4">${short}</div>
+            <div class="pd-country">${p.address?.country||''} · ${type}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    dd.classList.add('open');
+  } catch(e) {
+    dd.innerHTML = '<div class="pd-empty">네트워크 오류 — 직접 입력해주세요</div>';
+    dd.classList.add('open');
+  }
+  if (spinner) spinner.style.display = 'none';
+}
+
+function selectPolAddr(addr) {
+  document.getElementById('pol-addr-input').value = addr;
+  document.getElementById('pol-addr-dd').classList.remove('open');
+  const sel = document.getElementById('pol-addr-selected');
   if (sel) { sel.textContent = '📍 ' + addr; sel.style.display = 'block'; }
 }
 
@@ -797,11 +1309,64 @@ function onPortFocus(side) {
   if (q) onPortInput(side);
 }
 
+// 국가코드 → 통화 매핑
+const COUNTRY_CCY = {
+  'KR':'KRW', 'JP':'JPY', 'CN':'CNY', 'VN':'VND', 'ID':'IDR',
+  'TH':'THB', 'MY':'MYR', 'SG':'SGD', 'IN':'INR', 'AU':'AUD',
+  'GB':'GBP', 'HK':'HKD', 'US':'USD', 'EU':'EUR', 'DE':'EUR',
+  'FR':'EUR', 'NL':'EUR', 'BE':'EUR', 'IT':'EUR', 'ES':'EUR',
+};
+
+function getCountryCode(scac) {
+  return scac ? scac.slice(0, 2).toUpperCase() : '';
+}
+
+function getCurrencyForCountry(cc) {
+  return COUNTRY_CCY[cc] || 'USD';
+}
+
+function autoSetSegCurrency(side, scac) {
+  const cc  = getCountryCode(scac);
+  const ccy = getCurrencyForCountry(cc);
+  const isKR = cc === 'KR';
+
+  if (side === 'pol') {
+    // POL이 한국이면 1구간 KRW, 해외면 해당통화(or USD)
+    const seg1Ccy = isKR ? 'KRW' : ccy;
+    charges[1].forEach(c => {
+      c.cur = seg1Ccy;
+      // DOM 업데이트
+      const cusEl = document.getElementById('cus-' + c.uid);
+      if (cusEl) {
+        const opt = [...cusEl.options].find(o => o.value.startsWith(seg1Ccy));
+        if (opt) cusEl.value = opt.value;
+      }
+    });
+    if (charges[1].length) renderCharges(1);
+  }
+
+  if (side === 'pod') {
+    // POD가 한국이면 3구간 KRW, 해외면 해당통화(or USD)
+    const seg3Ccy = isKR ? 'KRW' : ccy;
+    charges[3].forEach(c => {
+      c.cur = seg3Ccy;
+      const cusEl = document.getElementById('cus-' + c.uid);
+      if (cusEl) {
+        const opt = [...cusEl.options].find(o => o.value.startsWith(seg3Ccy));
+        if (opt) cusEl.value = opt.value;
+      }
+    });
+    if (charges[3].length) renderCharges(3);
+  }
+}
+
 function selectPort(side, code, city, country, flag) {
   portState[side] = { code, city, country, flag };
   const input = document.getElementById(side + '-input');
   input.value = `${code} — ${city}, ${country}`;
   document.getElementById(side + '-dd').classList.remove('open');
+  // 구간 기본 통화 자동 설정
+  autoSetSegCurrency(side, code);
 }
 
 function setPT(side, type) {
@@ -809,20 +1374,51 @@ function setPT(side, type) {
   document.getElementById(side + '-cy-btn').classList.toggle('on', type === 'CY');
   document.getElementById(side + '-door-btn').classList.toggle('on', type === 'DOOR');
   document.getElementById(side + '-note').style.display = type === 'DOOR' ? 'block' : 'none';
-  // 주소 입력 필드 표시/숨김
   const addrField = document.getElementById(side + '-door-addr');
   if (addrField) addrField.style.display = type === 'DOOR' ? 'block' : 'none';
-}
 
-// Close dropdowns on outside click
-document.addEventListener('click', e => {
-  ['pol','pod'].forEach(side => {
-    const wrap = document.getElementById(side + '-wrap');
-    if (wrap && !wrap.contains(e.target)) {
-      document.getElementById(side + '-dd').classList.remove('open');
+  // POL DOOR → 1구간에 Trucking 자동 추가/제거
+  if (side === 'pol') {
+    const hasTruck = charges[1].some(c => c.id === 'truck');
+    if (type === 'DOOR' && !hasTruck) {
+      charges[1].unshift({
+        uid: uid(), id:'truck',
+        n:'Inland Trucking (Pickup)',
+        s:'공장→항구 트럭킹', per:'CTR', m:'실비', cur:'KRW'
+      });
+      renderCharges(1);
+      // 1구간 섹션 자동 열기
+      const sb = document.getElementById('s2b');
+      const sa = document.getElementById('s2a');
+      if (sb && !sb.classList.contains('o')) { sb.classList.add('o'); sa.classList.add('o'); }
+      toast('✓ 1구간에 Inland Trucking (Pickup) 항목이 추가됐습니다');
+    } else if (type === 'CY' && hasTruck) {
+      charges[1] = charges[1].filter(c => c.id !== 'truck');
+      renderCharges(1);
+      toast('Trucking 항목이 제거됐습니다');
     }
-  });
-});
+  }
+
+  // POD DOOR → 3구간에 Delivery Trucking 자동 추가/제거
+  if (side === 'pod') {
+    const hasDlv = charges[3].some(c => c.id === 'inl');
+    if (type === 'DOOR' && !hasDlv) {
+      charges[3].push({
+        uid: uid(), id:'inl',
+        n:'Inland Transportation',
+        s:'항구→목적지', per:'CTR', m:'마진금', cur:'USD'
+      });
+      renderCharges(3);
+      const sb = document.getElementById('s4b');
+      const sa = document.getElementById('s4a');
+      if (sb && !sb.classList.contains('o')) { sb.classList.add('o'); sa.classList.add('o'); }
+      toast('✓ 3구간에 Inland Transportation 항목이 추가됐습니다');
+    } else if (type === 'CY' && hasDlv) {
+      charges[3] = charges[3].filter(c => c.id !== 'inl');
+      renderCharges(3);
+    }
+  }
+}
 
 // ══════════════════════════════════════════
 // CONTAINER GROUPS
@@ -886,6 +1482,7 @@ function toggleCt(type, groupId) {
   }
   updateCtCount(groupId);
   renderCtSummary();
+  refreshAllCtrInputs(); // ← CTR 모드 항목 입력 칸 갱신
 }
 
 function updateCtCount(groupId) {
@@ -908,7 +1505,7 @@ function renderCtSummary() {
       <span class="ct-qty-name">${type}</span>
       <div class="qctrl">
         <button class="qbtn" onclick="adjCt('${type}',-1)">−</button>
-        <input type="number" class="qnum" id="cqn-${key}" value="${SC[type]}" min="1" onchange="SC['${type}']=parseInt(this.value)||1">
+        <input type="number" class="qnum" id="cqn-${key}" value="${SC[type]}" min="1" onchange="SC['${type}']=parseInt(this.value)||1; refreshAllCtrInputs()">
         <button class="qbtn" onclick="adjCt('${type}',1)">+</button>
       </div>
       <button class="ct-del" onclick="removeCt('${type}','${CT_GROUPS.find(g=>g.types.includes(type))?.id||''}')">✕</button>
@@ -920,6 +1517,7 @@ function adjCt(type, d) {
   SC[type] = Math.max(1, (SC[type] || 1) + d);
   const el = document.getElementById('cqn-' + type.replace(/[()]/g,'_'));
   if (el) el.value = SC[type];
+  refreshAllCtrInputs();
 }
 
 function removeCt(type, groupId) {
@@ -935,25 +1533,20 @@ function removeCt(type, groupId) {
 // CHARGE ROWS
 // ══════════════════════════════════════════
 const DEFAULT_S1 = [
-  {id:'cfs',n:'CFS 작업료',s:'컨/작업',per:'CTR',m:'실비',cur:'KRW'},
-  {id:'shor',n:'쇼링',s:'고박작업',per:'CTR',m:'실비',cur:'KRW'},
-  {id:'tarp',n:'타포린',s:'방수포',per:'CTR',m:'실비',cur:'KRW'},
-  {id:'shut',n:'컨테이너 셔틀료',s:'국내운송',per:'CTR',m:'실비',cur:'KRW'},
-  {id:'thc1',n:'THC (1구간)',s:'터미널핸들링',per:'CTR',m:'마진금',cur:'KRW'},
-  {id:'wfg',n:'WFG',s:'부두이용료',per:'CTR',m:'실비',cur:'KRW'},
-  {id:'scg',n:'SCG',s:'안전관리료',per:'CTR',m:'실비',cur:'KRW'},
-  {id:'doc1',n:'DOC FEE',s:'서류비',per:'BL',m:'실비',cur:'KRW'},
-  {id:'exp',n:'수출통관 대행료',s:'관세사',per:'BL',m:'마진금',cur:'KRW'},
+  {id:'thc1',n:'Terminal Handling Charge (THC)', s:'터미널',    per:'CTR',m:'실비',  cur:'KRW'},
+  {id:'wfg', n:'Wharfage (WFG)',                 s:'부두이용료', per:'CTR',m:'실비',  cur:'KRW'},
+  {id:'scg', n:'Seal Charge (SCG)',              s:'봉인비',     per:'CTR',m:'실비',  cur:'KRW'},
+  {id:'doc1',n:'Documentation Fee (DOC FEE)',    s:'서류비',     per:'BL', m:'실비',  cur:'KRW'},
+  {id:'exp', n:'Export Customs Clearance',       s:'수출통관',   per:'BL', m:'마진금',cur:'KRW'},
 ];
-const DEFAULT_S2 = [{id:'oft',n:'OFT',s:'해상운임',per:'CTR',m:'마진금',cur:'USD'}];
+const DEFAULT_S2 = [
+  {id:'oft', n:'Ocean Freight (OFT)', s:'해상운임', per:'CTR', m:'마진금', cur:'USD', byType:true},
+];
 const DEFAULT_S3 = [
-  {id:'thc3',n:'THC (3구간)',s:'현지터미널',per:'CTR',m:'실비',cur:'USD'},
-  {id:'doc3',n:'DOC FEE',s:'서류비',per:'BL',m:'실비',cur:'USD'},
-  {id:'adm',n:'ADMIN FEE',s:'관리비',per:'BL',m:'실비',cur:'USD'},
-  {id:'imc',n:'수입통관 대행료',s:'현지관세사',per:'CTR',m:'마진금',cur:'USD'},
-  {id:'do',n:'DO FEE',s:'화물인도지시',per:'CTR',m:'실비',cur:'USD'},
-  {id:'unl',n:'컨테이너 적출료',s:'OOG전용',per:'CTR',m:'실비',cur:'USD'},
-  {id:'inl',n:'내륙운송료',s:'최종목적지',per:'CTR',m:'마진금',cur:'USD'},
+  {id:'thc3',n:'Terminal Handling Charge (THC)',  s:'현지터미널', per:'CTR',m:'실비',  cur:'USD'},
+  {id:'doc3',n:'Documentation Fee (DOC FEE)',     s:'서류비',     per:'BL', m:'실비',  cur:'USD'},
+  {id:'imc', n:'Import Customs Clearance',        s:'수입통관',   per:'BL', m:'마진금',cur:'USD'},
+  {id:'do',  n:'Delivery Order Fee (D/O FEE)',    s:'화물인도지시',per:'BL', m:'실비', cur:'USD'},
 ];
 
 const CURRENCIES = ['USD — 미국 달러','EUR — 유로','JPY — 일본 엔','CNY — 중국 위안','VND — 베트남 동','IDR — 인도네시아 루피아','THB — 태국 바트','MYR — 말레이시아 링깃','SGD — 싱가포르 달러','INR — 인도 루피','AUD — 호주 달러','GBP — 영국 파운드','HKD — 홍콩 달러'];
@@ -977,53 +1570,460 @@ function getAvailCurs() {
   return [...new Set(list)];
 }
 
-function renderCharges(seg) {
-  const el = document.getElementById('g' + seg);
-  const curs = getAvailCurs();
-  el.innerHTML = charges[seg].map(c => chargeRowHTML(c, curs)).join('');
+// ══════════════════════════════════════════
+// VALUE STORE — 입력값을 charges 객체에 직접 저장
+// DOM 접근 없이 항상 최신값 유지
+// ══════════════════════════════════════════
+
+// charges[seg][i].vals = { v, p, r }          (단일 모드)
+// charges[seg][i].ctVals = { '20DC': {v,p,r}, '40HC': {v,p,r} }  (ctype 모드)
+
+function setVal(uid, field, value) {
+  for (let seg=1;seg<=3;seg++) {
+    const c = charges[seg].find(x=>x.uid===uid);
+    if (c) { if (!c.vals) c.vals={}; c.vals[field]=value; return; }
+  }
+}
+function setCtVal(uid, type, field, value) {
+  for (let seg=1;seg<=3;seg++) {
+    const c = charges[seg].find(x=>x.uid===uid);
+    if (c) {
+      if (!c.ctVals) c.ctVals={};
+      if (!c.ctVals[type]) c.ctVals[type]={};
+      c.ctVals[type][field]=value;
+      return;
+    }
+  }
+}
+function getVal(c, field) { return c.vals?.[field] || ''; }
+function getCtVal(c, type, field) { return c.ctVals?.[type]?.[field] || ''; }
+
+// ── 입력값 스냅샷 (하위호환용 — gen()에서만 호출) ──
+function snapshotValues(seg) {
+  charges[seg].forEach(c => {
+    const uid = c.uid;
+    if (!c.vals) c.vals = {};
+    if (!c.ctVals) c.ctVals = {};
+
+    // 기본 필드
+    const nameEl = document.getElementById('name-'+uid);
+    const perEl  = document.getElementById('per-'+uid);
+    const msEl   = document.getElementById('ms-'+uid);
+    const cusEl  = document.getElementById('cus-'+uid);
+    if (nameEl) c.n   = nameEl.value;
+    if (perEl)  c.per = perEl.value;
+    if (msEl)   c.m   = msEl.value;
+    if (cusEl)  c.cur = cusEl.value.split(' ')[0];
+
+    // 단일 입력
+    const vEl = document.getElementById('v-'+uid);
+    const pEl = document.getElementById('p-'+uid);
+    const rEl = document.getElementById('r-'+uid);
+    if (vEl && vEl.value) c.vals.v = vEl.value;
+    if (pEl && pEl.value) c.vals.p = pEl.value;
+    if (rEl && rEl.value) c.vals.r = rEl.value;
+
+    // 컨타입별
+    Object.keys(SC).forEach(t => {
+      const key = `${uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+      const dv = document.getElementById('v-'+key);
+      const dp = document.getElementById('p-'+key);
+      const dr = document.getElementById('r-'+key);
+      if (!c.ctVals[t]) c.ctVals[t] = {};
+      if (dv && dv.value) c.ctVals[t].v = dv.value;
+      if (dp && dp.value) c.ctVals[t].p = dp.value;
+      if (dr && dr.value) c.ctVals[t].r = dr.value;
+    });
+  });
 }
 
-function chargeRowHTML(c, curs) {
+// ── 렌더 후 저장된 값 복원 ──
+function restoreValues(seg) {
+  charges[seg].forEach(c => {
+    const uid = c.uid;
+    if (!c.vals && !c.ctVals) return;
+
+    // 항목명
+    const nameEl = document.getElementById('name-'+uid);
+    if (nameEl && c.n) nameEl.value = c.n;
+
+    // 단일 값
+    if (c.vals) {
+      const v = document.getElementById('v-'+uid); if (v && c.vals.v) v.value = c.vals.v;
+      const p = document.getElementById('p-'+uid); if (p && c.vals.p) p.value = c.vals.p;
+      const r = document.getElementById('r-'+uid); if (r && c.vals.r) r.value = c.vals.r;
+    }
+
+    // 컨타입별 값
+    if (c.ctVals) {
+      Object.entries(c.ctVals).forEach(([t, vals]) => {
+        const key = `${uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+        const v = document.getElementById('v-'+key); if (v && vals.v) v.value = vals.v;
+        const p = document.getElementById('p-'+key); if (p && vals.p) p.value = vals.p;
+        const r = document.getElementById('r-'+key); if (r && vals.r) r.value = vals.r;
+      });
+      const mode = document.getElementById('ms-'+uid)?.value || c.m;
+      refreshCtypeSum(uid, mode);
+    }
+  });
+}
+
+function renderCharges(seg) {
+  snapshotValues(seg); // 먼저 현재 입력값 저장
+  const el = document.getElementById('g' + seg);
+  const curs = getAvailCurs();
+  // charges 객체의 최신 상태(_mode, _per, _cur)를 반영해 렌더
+  charges[seg].forEach(c => {
+    if (c._mode !== undefined) c.m   = c._mode;
+    if (c._per  !== undefined) c.per = c._per;
+    if (c._cur  !== undefined) c.cur = c._cur;
+    if (c._name !== undefined) c.n   = c._name;
+  });
+  el.innerHTML = charges[seg].map(c => chargeRowHTML(c, curs, seg)).join('');
+  restoreValues(seg); // 렌더 후 입력값 복원
+}
+
+function chargeRowHTML(c, curs, seg) {
   const curOpts = curs.map(cu => `<option value="${cu}"${c.cur===cu?' selected':''}>${cu}</option>`).join('');
+  const perVal  = c.per || 'CTR';
   return `<div class="cr" id="cr-${c.uid}">
     <div class="cr-name">
       <input type="text" value="${c.n}" id="name-${c.uid}" style="font-size:11px;padding:3px 5px;margin-bottom:2px;width:100%" placeholder="항목명">
       <div style="display:flex;gap:4px;margin-top:2px">
-        <select style="font-size:9px;padding:2px 4px;height:20px;width:44px" id="per-${c.uid}">
-          <option value="CTR"${c.per==='CTR'?' selected':''}>컨당</option>
-          <option value="BL"${c.per==='BL'?' selected':''}>BL당</option>
+        <select style="font-size:9px;padding:2px 4px;height:20px;width:44px" id="per-${c.uid}" onchange="onPerChange('${c.uid}',${seg||0})">
+          <option value="CTR"${perVal==='CTR'?' selected':''}>컨당</option>
+          <option value="BL"${perVal==='BL'?' selected':''}>BL당</option>
         </select>
-        <select style="font-size:9px;padding:2px 4px;height:20px" id="cus-${c.uid}" onchange="onCurChange('${c.uid}')">
+        <select style="font-size:9px;padding:2px 4px;height:20px" id="cus-${c.uid}" onchange="onCurChange('${c.uid}',${seg||0})">
           ${curOpts}
         </select>
       </div>
     </div>
-    <select class="msel" id="ms-${c.uid}" onchange="onModeChange('${c.uid}')">
+    <select class="msel" id="ms-${c.uid}" onchange="onModeChange('${c.uid}',${seg||0})">
       <option value="실비"${c.m==='실비'?' selected':''}>실비</option>
       <option value="마진금"${c.m==='마진금'?' selected':''}>+금액</option>
       <option value="마진율"${c.m==='마진율'?' selected':''}>+율</option>
     </select>
-    <div id="ip-${c.uid}">${buildInp(c.uid,c.m,c.cur)}</div>
+    <div id="ip-${c.uid}">${buildInp(c.uid, c.m, c.cur, perVal, seg||0, c)}</div>
     <button class="del-btn" onclick="delCharge('${c.uid}')">✕</button>
   </div>`;
 }
 
-function buildInp(uid, mode, cur) {
-  if (mode==='실비') return `<div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="0" min="0"><span class="usf">${cur}</span></div>`;
-  if (mode==='마진금') return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="p-${uid}" placeholder="판가" min="0"><span class="usf">${cur}</span></div></div>`;
-  return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100"><span class="usf">%</span></div></div>`;
+// CTR 모드면 선택된 컨타입별로 입력 칸 생성, BL이면 단일 칸
+// seg: 1=국내, 2=해상(FAK연동), 3=현지
+function buildInp(uid, mode, cur, per, seg, cObj) {
+  const isCtr  = (per || document.getElementById('per-'+uid)?.value || 'BL') === 'CTR';
+  const types  = Object.keys(SC);
+  const isSeg2 = (seg === 2);
+
+  // BL당 or 컨타입 미선택 → 단순 입력
+  if (!isCtr || !types.length) {
+    return buildSimpleInp(uid, mode, cur);
+  }
+
+  // c 참조
+  let cRef = cObj || null;
+  if (!cRef) {
+    for (let s=1; s<=3; s++) {
+      const f = charges[s]?.find(x => x.uid === uid);
+      if (f) { cRef = f; break; }
+    }
+  }
+
+  const tc = Object.values(SC).reduce((a,b)=>a+b,0);
+
+  // byType 플래그가 명시적으로 true일 때만 컨타입별 모드
+  if (!cRef?.byType) {
+    // ── 기본: 단일값 × 수량 ──
+    const sv  = cRef?.vals || {};
+    const vV  = sv.v || '', pV = sv.p || '', rV = sv.r || '';
+    let inpHtml = '';
+    if (mode==='실비') {
+      inpHtml = `<div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="0" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>`;
+    } else if (mode==='마진금') {
+      inpHtml = `<div style="display:flex;flex-direction:column;gap:3px">
+        <div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>
+        <div class="ui"><input type="number" class="cv" id="p-${uid}" placeholder="판가" min="0" value="${pV}" oninput="setVal('${uid}','p',this.value)"><span class="usf">${cur}</span></div>
+      </div>`;
+    } else {
+      inpHtml = `<div style="display:flex;flex-direction:column;gap:3px">
+        <div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>
+        <div class="ui"><input type="number" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100" value="${rV}" oninput="setVal('${uid}','r',this.value)"><span class="usf">%</span></div>
+      </div>`;
+    }
+    return inpHtml + `<div style="font-size:9px;color:var(--t3);margin-top:3px;display:flex;align-items:center;justify-content:space-between">
+      <span>×${tc} CTR</span>
+      <span style="color:var(--ac);cursor:pointer" onclick="setByType('${uid}',true)">타입별 ▸</span>
+    </div>`;
+  }
+
+  // ── 타입별 입력 모드 ──
+  const rows = types.map(t => {
+    const qty   = SC[t] || 1;
+    const key   = `${uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+    const tEsc  = t.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const pId   = mode==='마진금' ? `p-${key}` : mode==='마진율' ? `r-${key}` : '';
+    const pFld  = mode==='마진금' ? 'p' : mode==='마진율' ? 'r' : '';
+    const pPH   = mode==='마진금' ? '판가' : mode==='마진율' ? '%' : '';
+    const sv2   = (cRef?.ctVals || {})[t] || {};
+    const vV2   = sv2.v || '';
+    const pV2   = (mode==='마진금' ? sv2.p : mode==='마진율' ? sv2.r : '') || '';
+    const arrow = mode!=='실비' ? `<span style="font-size:11px;color:var(--t3);text-align:center;line-height:30px">→</span>` : `<span></span>`;
+    const vFocus= isSeg2 ? `onfocus="setFakTarget(this,'${uid}','${tEsc}','cost')"` : '';
+    const pFocus= isSeg2 ? `onfocus="setFakTarget(this,'${uid}','${tEsc}','price')"` : '';
+    const pInp  = pId ? `<input type="number" id="${pId}" placeholder="${pPH}" min="0"${mode==='마진율'?' max="100"':''} value="${pV2}" ${pFocus} oninput="setCtVal('${uid}','${tEsc}','${pFld}',this.value);refreshCtypeSum('${uid}','${mode}')">` : `<span></span>`;
+    return `<div class="ctype-inp-row">
+      <span style="font-size:10px;font-weight:700;color:var(--ac);font-family:monospace">${t}<span style="color:var(--t3);font-weight:400">×${qty}</span></span>
+      <input type="number" id="v-${key}" placeholder="원가" min="0" value="${vV2}" ${vFocus} oninput="setCtVal('${uid}','${tEsc}','v',this.value);refreshCtypeSum('${uid}','${mode}')">
+      ${arrow}${pInp}
+    </div>`;
+  }).join('');
+
+  const fakHint = isSeg2 ? `<span style="font-size:9px;color:var(--ac);cursor:pointer;font-weight:600" onclick="clearFakTarget()">원가칸 클릭 후 FAK 조회 →</span>` : '';
+  return `<div style="background:#F8F9FC;border:1px solid var(--bd);border-radius:var(--r8);padding:8px 10px">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+      <span style="color:var(--ac);cursor:pointer" onclick="setByType('${uid}',false)">◂ 단일값</span>
+      <span style="color:var(--t3)">타입별 단가</span>
+      ${fakHint}
+    </div>
+    <div style="display:grid;grid-template-columns:104px 1fr 18px 1fr;gap:6px;margin-bottom:4px;padding-bottom:5px;border-bottom:1px solid var(--bd)">
+      <span style="font-size:9px;color:var(--t3)">타입</span>
+      <span style="font-size:9px;color:var(--t3);text-align:right">원가(${cur})</span><span></span>
+      ${mode!=='실비'?`<span style="font-size:9px;color:var(--t3);text-align:right">${mode==='마진금'?'판가':'마진%'}(${cur})</span>`:'<span></span>'}
+    </div>
+    ${rows}
+    <div id="ctype-sum-${uid}" style="margin-top:6px;padding-top:5px;border-top:1px solid var(--bd);font-size:10px;color:var(--t2);text-align:right"></div>
+  </div>`;
 }
 
-function onModeChange(uid) {
-  const m = document.getElementById('ms-'+uid).value;
-  const cur = document.getElementById('cus-'+uid)?.value||'USD';
-  document.getElementById('ip-'+uid).innerHTML = buildInp(uid,m,cur);
+// 타입별 모드 토글
+function setByType(uid, flag) {
+  for (let s=1;s<=3;s++) {
+    const c = charges[s]?.find(x=>x.uid===uid);
+    if (c) {
+      // 단일 모드로 돌아올 때 기존 ctVals → 첫 번째 타입 값을 vals로 이전
+      if (!flag && c.ctVals) {
+        const firstType = Object.keys(SC)[0];
+        if (firstType && c.ctVals[firstType]) {
+          if (!c.vals) c.vals = {};
+          if (c.ctVals[firstType].v && !c.vals.v) c.vals.v = c.ctVals[firstType].v;
+          if (c.ctVals[firstType].p && !c.vals.p) c.vals.p = c.ctVals[firstType].p;
+        }
+      }
+      c.byType = flag;
+      const m   = document.getElementById('ms-'+uid)?.value || c.m;
+      const cur = (document.getElementById('cus-'+uid)?.value || c.cur).split(' ')[0];
+      const prV = document.getElementById('per-'+uid)?.value || c.per;
+      const ipEl= document.getElementById('ip-'+uid);
+      if (ipEl) ipEl.innerHTML = buildInp(uid, m, cur, prV, s, c);
+      break;
+    }
+  }
 }
 
-function onCurChange(uid) {
-  const cur = document.getElementById('cus-'+uid).value;
-  const m = document.getElementById('ms-'+uid).value;
-  document.getElementById('ip-'+uid).innerHTML = buildInp(uid,m,cur);
+function buildSimpleInp(uid, mode, cur) {
+  // 저장된 값 복원
+  let cRef = null;
+  for (let s=1;s<=3;s++) { const f=charges[s]?.find(x=>x.uid===uid); if(f){cRef=f;break;} }
+  const saved = cRef?.vals || {};
+  const vVal = saved.v || '';
+  const pVal = saved.p || '';
+  const rVal = saved.r || '';
+
+  if (mode==='실비') return `<div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="0" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>`;
+  if (mode==='마진금') return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="p-${uid}" placeholder="판가" min="0" value="${pVal}" oninput="setVal('${uid}','p',this.value)"><span class="usf">${cur}</span></div></div>`;
+  return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100" value="${rVal}" oninput="setVal('${uid}','r',this.value)"><span class="usf">%</span></div></div>`;
+}
+
+// 컨타입별 합계 실시간 표시
+function refreshCtypeSum(uid, mode) {
+  const types = Object.keys(SC);
+  if (!types.length) return;
+  let totalCost = 0, totalPrice = 0;
+  const cur = (document.getElementById('cus-'+uid)?.value||'USD').split(' ')[0];
+  types.forEach(t => {
+    const qty = SC[t] || 1;
+    const key = `${uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+    const cost = parseFloat(document.getElementById('v-'+key)?.value) || 0;
+    let price = cost;
+    if (mode==='마진금') price = parseFloat(document.getElementById('p-'+key)?.value) || cost;
+    else if (mode==='마진율') { const r = parseFloat(document.getElementById('r-'+key)?.value)||0; price = r<100?cost/(1-r/100):cost; }
+    totalCost  += cost  * qty;
+    totalPrice += price * qty;
+  });
+  const sumEl = document.getElementById('ctype-sum-' + uid);
+  if (sumEl) {
+    const margin = totalPrice - totalCost;
+    sumEl.innerHTML = `원가 합계 <strong>${totalCost.toLocaleString()} ${cur}</strong> &nbsp;|&nbsp; 판가 합계 <strong style="color:var(--gn)">${totalPrice.toLocaleString()} ${cur}</strong>${margin>0?` &nbsp;(+${margin.toLocaleString()})` :''}`;
+  }
+}
+
+function onPerChange(uid, seg) {
+  const per = document.getElementById('per-'+uid).value;
+  const m   = document.getElementById('ms-'+uid).value;
+  const cur = (document.getElementById('cus-'+uid)?.value||'KRW').split(' ')[0];
+  let cObj=null; for(let s=1;s<=3;s++){const f=charges[s]?.find(x=>x.uid===uid);if(f){cObj=f;break;}}
+  document.getElementById('ip-'+uid).innerHTML = buildInp(uid, m, cur, per, seg||0, cObj);
+}
+
+function onModeChange(uid, seg) {
+  const m   = document.getElementById('ms-'+uid).value;
+  const cur = (document.getElementById('cus-'+uid)?.value||'USD').split(' ')[0];
+  const per = document.getElementById('per-'+uid)?.value || 'CTR';
+  let cObj=null; for(let s=1;s<=3;s++){const f=charges[s]?.find(x=>x.uid===uid);if(f){cObj=f;break;}}
+  document.getElementById('ip-'+uid).innerHTML = buildInp(uid, m, cur, per, seg||0, cObj);
+}
+
+function onCurChange(uid, seg) {
+  const cur = document.getElementById('cus-'+uid).value.split(' ')[0];
+  const m   = document.getElementById('ms-'+uid).value;
+  const per = document.getElementById('per-'+uid)?.value || 'CTR';
+  let cObj=null; for(let s=1;s<=3;s++){const f=charges[s]?.find(x=>x.uid===uid);if(f){cObj=f;break;}}
+  document.getElementById('ip-'+uid).innerHTML = buildInp(uid, m, cur, per, seg||0, cObj);
+}
+
+// 컨타입 토글 시 CTR 모드 항목 입력 칸 갱신 — 기존 입력값 보존
+function refreshAllCtrInputs() {
+  [1,2,3].forEach(seg => {
+    charges[seg].forEach(c => {
+      const perEl = document.getElementById('per-'+c.uid);
+      if (!perEl || perEl.value !== 'CTR') return;
+      const m   = document.getElementById('ms-'+c.uid)?.value || c.m;
+      const cur = (document.getElementById('cus-'+c.uid)?.value || c.cur).split(' ')[0];
+      const ipEl = document.getElementById('ip-'+c.uid);
+      if (!ipEl) return;
+
+      // byType 항목: ctVals 현재값 먼저 저장
+      if (c.byType) {
+        const savedVals = {};
+        Object.keys(SC).forEach(t => {
+          const key = `${c.uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+          savedVals[t] = {
+            v: document.getElementById('v-'+key)?.value || '',
+            p: document.getElementById('p-'+key)?.value || '',
+            r: document.getElementById('r-'+key)?.value || '',
+          };
+        });
+        if (c.ctVals) {
+          Object.entries(c.ctVals).forEach(([t,v]) => {
+            if (!savedVals[t]) savedVals[t] = v;
+            else {
+              if (!savedVals[t].v && v.v) savedVals[t].v = v.v;
+              if (!savedVals[t].p && v.p) savedVals[t].p = v.p;
+              if (!savedVals[t].r && v.r) savedVals[t].r = v.r;
+            }
+          });
+        }
+        c.ctVals = savedVals;
+      }
+
+      // 모든 CTR 항목 재렌더 (수량 × 표시 업데이트 포함)
+      ipEl.innerHTML = buildInp(c.uid, m, cur, 'CTR', seg, c);
+      if (c.byType) refreshCtypeSum(c.uid, m);
+    });
+  });
+}
+
+// ════════════════════════════════════════
+// getCD — 항목 계산 (완전 재작성 · 단순·확실)
+// 우선순위: DOM직접읽기 → vals/ctVals 저장값 → 0
+// ════════════════════════════════════════
+function getCD(c) {
+  const uid = c.uid;
+
+  // 기본 속성 읽기
+  const msEl   = document.getElementById('ms-'  + uid);
+  const perEl  = document.getElementById('per-' + uid);
+  const cusEl  = document.getElementById('cus-' + uid);
+  const nameEl = document.getElementById('name-'+ uid);
+
+  const mode = msEl?.value   || c.m   || '실비';
+  const per  = perEl?.value  || c.per || 'BL';
+  const cur  = (cusEl?.value || c.cur || 'KRW').split(' ')[0];
+  const name = nameEl?.value || c.n   || '';
+  const rate = getCurRate(cur);
+  const types = Object.keys(SC);
+  const tc   = Object.values(SC).reduce((a,b)=>a+b,0) || 1;
+
+  // ── 타입별 모드 (byType=true인 경우만) ──
+  if (per === 'CTR' && types.length > 0 && c.byType === true) {
+    let totalCostKRW = 0, totalPriceKRW = 0;
+    const ctypeRates = {};
+
+    types.forEach(t => {
+      const qty = SC[t] || 1;
+      const key = `${uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+
+      // DOM → ctVals 순서로 읽기
+      const domV = document.getElementById('v-'+key)?.value;
+      const domP = document.getElementById('p-'+key)?.value;
+      const domR = document.getElementById('r-'+key)?.value;
+      const sv   = c.ctVals?.[t] || {};
+
+      const rawV = (domV !== undefined && domV !== '') ? domV : (sv.v || '');
+      const rawP = (domP !== undefined && domP !== '') ? domP : (sv.p || '');
+      const rawR = (domR !== undefined && domR !== '') ? domR : (sv.r || '');
+
+      // ctVals 동기화
+      if (!c.ctVals) c.ctVals = {};
+      if (!c.ctVals[t]) c.ctVals[t] = {};
+      if (rawV) c.ctVals[t].v = rawV;
+      if (rawP) c.ctVals[t].p = rawP;
+      if (rawR) c.ctVals[t].r = rawR;
+
+      const cost = parseFloat(rawV) || 0;
+      let price  = cost;
+      if      (mode === '마진금') { price = parseFloat(rawP) || cost; }
+      else if (mode === '마진율') { const r=parseFloat(rawR)||0; price=r>0&&r<100?cost/(1-r/100):cost; }
+
+      totalCostKRW  += cost  * qty * rate;
+      totalPriceKRW += price * qty * rate;
+      ctypeRates[t]  = { cost, price, qty };
+    });
+
+    return {
+      uid, name, mode, per, cur, ctypeRates,
+      cost:      totalCostKRW / rate,
+      price:     totalPriceKRW / rate,
+      margin:    (totalPriceKRW - totalCostKRW) / rate,
+      costKRW:   totalCostKRW,
+      priceKRW:  totalPriceKRW,
+      marginKRW: totalPriceKRW - totalCostKRW,
+      isCtype:   true
+    };
+  }
+
+  // ── 단일값 모드 (BL당 or CTR단일) ──
+  // DOM → vals 저장값 순서로 읽기
+  const domV = document.getElementById('v-'+uid)?.value;
+  const domP = document.getElementById('p-'+uid)?.value;
+  const domR = document.getElementById('r-'+uid)?.value;
+  const sv   = c.vals || {};
+
+  const rawV = (domV !== undefined && domV !== '') ? domV : (sv.v || '');
+  const rawP = (domP !== undefined && domP !== '') ? domP : (sv.p || '');
+  const rawR = (domR !== undefined && domR !== '') ? domR : (sv.r || '');
+
+  // vals 동기화
+  if (!c.vals) c.vals = {};
+  if (rawV) c.vals.v = rawV;
+  if (rawP) c.vals.p = rawP;
+  if (rawR) c.vals.r = rawR;
+
+  const cost = parseFloat(rawV) || 0;
+  let price  = cost, margin = 0;
+  if      (mode === '실비')   { price = cost; margin = 0; }
+  else if (mode === '마진금') { price = parseFloat(rawP) || cost; margin = price - cost; }
+  else                        { const r=parseFloat(rawR)||0; price=r>0&&r<100?cost/(1-r/100):cost; margin=price-cost; }
+
+  return {
+    uid, name, mode, per, cur,
+    cost, price, margin,
+    costKRW:   cost  * rate,
+    priceKRW:  price * rate,
+    marginKRW: (price - cost) * rate,
+    isCtype:   false
+  };
 }
 
 function delCharge(uid) {
@@ -1041,7 +2041,6 @@ function addCharge(seg) {
   setTimeout(()=>{ const el=document.getElementById('name-'+c.uid); if(el){el.focus();el.select();} },50);
 }
 
-// ── Currencies ──
 function getCurRate(code) {
   if (code==='KRW') return 1;
   for (let i=0;i<curCount;i++) {
@@ -1058,7 +2057,7 @@ function addCur() {
   const opts = CURRENCIES.filter(c=>!c.startsWith('USD')).map(c=>`<option>${c}</option>`).join('');
   const row = document.createElement('div');
   row.className='cur-row'; row.id='cur-row-'+i;
-  row.innerHTML=`<div class="fd"><label>통화</label><select id="cur-${i}-code" style="height:28px;padding:3px 6px"><option>JPY — 일본 엔</option>${opts}</select></div><div class="fd"><label>기준율</label><div class="ui"><input type="number" id="cur-${i}-rate" placeholder="0" min="1"><span class="usf">KRW</span></div></div><div style="padding-top:18px"><button class="del-btn" onclick="delCur(${i})">✕</button></div>`;
+  row.innerHTML=`<div class="fd"><label>통화</label><select id="cur-${i}-code" style="height:28px;padding:3px 6px"><option>JPY — 일본 엔</option>${opts}</select></div><div class="fd"><label>기준율</label><div class="ui"><input type="number" id="cur-${i}-rate" placeholder="0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div><div style="padding-top:18px"><button class="del-btn" onclick="delCur(${i})">✕</button></div>`;
   document.getElementById('cur-list').appendChild(row);
   curCount++;
 }
@@ -1072,11 +2071,11 @@ async function fetchRates() {
     const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
     const data = await res.json();
     const krw = data.rates?.KRW||1448;
-    document.getElementById('cur-0-rate').value=Math.round(krw);
+    document.getElementById('cur-0-rate').value = krw.toFixed(1);
     for (let i=1;i<curCount;i++) {
       const sel=document.getElementById('cur-'+i+'-code');
       const rel=document.getElementById('cur-'+i+'-rate');
-      if(sel&&rel){const code=sel.value.split(' ')[0];const r=data.rates?.[code];if(r)rel.value=Math.round(krw/r);}
+      if(sel&&rel){const code=sel.value.split(' ')[0];const r=data.rates?.[code];if(r)rel.value=(krw/r).toFixed(1);}
     }
     toast('✓ 환율 업데이트 완료');
   } catch(e) { toast('⚠ 환율 조회 실패 — 수동 입력해주세요'); }
@@ -1093,29 +2092,28 @@ function tog(id){const b=document.getElementById(id+'b'),a=document.getElementBy
 
 function calcCbm(){const l=parseFloat(document.getElementById('dl').value)||0,w=parseFloat(document.getElementById('dw').value)||0,h=parseFloat(document.getElementById('dh').value)||0,pcs=parseFloat(document.getElementById('dpcs').value)||1;if(l&&w&&h){const cbm=(l*w*h*pcs)/1000000;document.getElementById('cbm').value=cbm.toFixed(3);document.getElementById('cbm-val').textContent=cbm.toFixed(3)+' CBM';document.getElementById('cbm-disp').style.display='flex';}else{document.getElementById('cbm-disp').style.display='none';}}
 
-// ── Compute charge ──
-function getCD(c) {
-  const uid=c.uid;
-  const mode=document.getElementById('ms-'+uid)?.value||c.m;
-  const name=document.getElementById('name-'+uid)?.value||c.n;
-  const per=document.getElementById('per-'+uid)?.value||c.per;
-  const cur=(document.getElementById('cus-'+uid)?.value||c.cur).split(' ')[0];
-  const cost=parseFloat(document.getElementById('v-'+uid)?.value)||0;
-  let price=cost,margin=0;
-  if(mode==='실비'){price=cost;margin=0;}
-  else if(mode==='마진금'){price=parseFloat(document.getElementById('p-'+uid)?.value)||cost;margin=price-cost;}
-  else{const r=parseFloat(document.getElementById('r-'+uid)?.value)||0;price=r<100?cost/(1-r/100):cost;margin=price-cost;}
-  const rate=getCurRate(cur);
-  return{uid,name,mode,per,cur,cost,price,margin,costKRW:cost*rate,priceKRW:price*rate,marginKRW:(price-cost)*rate};
-}
-
 // ── Generate ──
 function gen() {
   if (!Object.keys(SC).length){toast('컨테이너 타입을 하나 이상 선택해주세요');return;}
+
+  // 견적 생성 전 모든 구간 입력값 스냅샷 저장 (닫혀있는 구간도 포함)
+  [1,2,3].forEach(snapshotValues);
+
   const d1=charges[1].map(getCD),d2=charges[2].map(getCD),d3=charges[3].map(getCD);
   const tc=Object.values(SC).reduce((a,b)=>a+b,0),bl=1;
 
-  function seg(arr){let c=0,p=0;arr.forEach(x=>{if(!x.cost&&!x.price)return;const m=x.per==='BL'?bl:tc;c+=x.costKRW*m;p+=x.priceKRW*m;});return{cost:c,price:p,margin:p-c};}
+  // 구간 합산: isCtype=true면 이미 수량×단가 합산됨, false면 per에 따라 곱함
+  function seg(arr){
+    let c=0,p=0;
+    arr.forEach(x=>{
+      if (x.isCtype) { c+=x.costKRW; p+=x.priceKRW; return; }
+      if (!x.cost && !x.price) return;
+      const m = x.per==='BL' ? bl : tc;
+      c += x.costKRW * m;
+      p += x.priceKRW * m;
+    });
+    return{cost:c,price:p,margin:p-c};
+  }
 
   const t1=seg(d1),t2=seg(d2),t3=seg(d3);
   const gc=t1.cost+t2.cost+t3.cost,gp=t1.price+t2.price+t3.price,gm=gp-gc,mr=gp>0?gm/gp*100:0;
@@ -1181,17 +2179,30 @@ function rq(S){
   const podLabel=S.pod.code?`${S.pod.flag} ${S.pod.code}`:(document.getElementById('pod-input').value||'—');
   const dtb=(type)=>type==='DOOR'?'<span style="font-size:9px;background:var(--am-bg);color:var(--am);padding:1px 6px;border-radius:100px;margin-left:4px">DOOR</span>':'<span style="font-size:9px;background:#ECEEF5;color:var(--t2);padding:1px 6px;border-radius:100px;margin-left:4px">CY</span>';
 
-  // 판가만 보여주는 행 (화주용)
+  // 판가만 보여주는 행 (화주용) — isCtype이면 이미 합산된 priceKRW 사용
   function pubRows(arr, tc, bl) {
-    return arr.filter(c=>c.price>0).map(c=>{
-      const m = c.per==='BL' ? bl : tc;
-      const pk = c.priceKRW * m;
-      const pd = c.cur==='KRW' ? `${fmt(c.price*m)}원` : `${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
-      return `<tr><td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${c.per==='BL'?'B/L 기준':'컨테이너당'}</small></td><td class="tdp">${pd}</td></tr>`;
+    return arr.filter(c => c.isCtype ? c.priceKRW > 0 : c.price > 0).map(c => {
+      let pk, pd;
+      if (c.isCtype) {
+        // 컨타입별 합산: getCD에서 이미 수량×단가 계산 완료
+        pk = c.priceKRW;
+        pd = `${fmt(pk)}원`;
+        // 컨타입별 상세도 보여줌
+        const detail = Object.entries(c.ctypeRates||{}).map(([t,v]) => {
+          const rate = getCurRate(c.cur);
+          return `${t}×${v.qty}: ${c.cur==='KRW'?fmt(v.price*v.qty)+'원':'$'+(v.price*v.qty).toFixed(0)+' ('+fmt(v.price*v.qty*rate)+'원)'}`;
+        }).join(' / ');
+        return `<tr><td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${detail}</small></td><td class="tdp" style="text-align:right">${pd}</td></tr>`;
+      } else {
+        const m = c.per==='BL' ? bl : tc;
+        pk = c.priceKRW * m;
+        pd = c.cur==='KRW' ? `${fmt(c.price*m)}원` : `${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
+        return `<tr><td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${c.per==='BL'?'B/L 기준':'컨테이너당'}</small></td><td class="tdp" style="text-align:right">${pd}</td></tr>`;
+      }
     }).join('');
   }
   function pubSubrow(price, lbl) {
-    return `<tr class="trs"><td>${lbl} 소계</td><td style="font-weight:700">${fmt(price)}원</td></tr>`;
+    return `<tr class="trs"><td>${lbl} 소계</td><td style="font-weight:700;text-align:right">${fmt(price)}원</td></tr>`;
   }
 
   document.getElementById('tq').innerHTML=`
@@ -1227,15 +2238,15 @@ function rq(S){
         </div>
 
         <div class="segblk">
-          <div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간 — 국내${dtb(S.polType)}</div><div class="segsub">소계 ${fmt(S.t1.price)}원</div></div>
+          <div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간${dtb(S.polType)}</div><div class="segsub">소계 ${fmt(S.t1.price)}원</div></div>
           <table><thead><tr><th>항목</th><th style="text-align:right">금액</th></tr></thead><tbody>${pubRows(S.d1,S.tc,S.bl)}${pubSubrow(S.t1.price,'1구간')}</tbody></table>
         </div>
         <div class="segblk">
-          <div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간 — 해상 운임</div><div class="segsub">소계 ${fmt(S.t2.price)}원</div></div>
+          <div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간</div><div class="segsub">소계 ${fmt(S.t2.price)}원</div></div>
           <table><thead><tr><th>항목</th><th style="text-align:right">금액</th></tr></thead><tbody>${pubRows(S.d2,S.tc,S.bl)}${pubSubrow(S.t2.price,'2구간')}</tbody></table>
         </div>
         <div class="segblk">
-          <div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간 — 현지${dtb(S.podType)}</div><div class="segsub">소계 ${fmt(S.t3.price)}원</div></div>
+          <div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간${dtb(S.podType)}</div><div class="segsub">소계 ${fmt(S.t3.price)}원</div></div>
           <table><thead><tr><th>항목</th><th style="text-align:right">금액</th></tr></thead><tbody>${pubRows(S.d3,S.tc,S.bl)}${pubSubrow(S.t3.price,'3구간')}</tbody></table>
         </div>
 
@@ -1262,6 +2273,7 @@ function rq(S){
         <div style="display:flex;gap:5px">
           <button class="bsm" onclick="printQuote()">🖨 인쇄</button>
           <button class="bsm pri" id="pdf-btn" onclick="exportPDF()">📥 PDF 저장</button>
+          <button class="bsm" onclick="saveCurrentQuote()" style="background:#F0FAF4;color:#047857;border-color:#A7E3C8;font-weight:700">🗂 견적 저장</button>
         </div>
       </div>
     </div>`;
@@ -1270,21 +2282,36 @@ function rq(S){
 function rsim(S){
   const ctS=Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
 
-  // 내부용 상세 원가/마진 테이블
+  // 내부용 상세 원가/마진 테이블 — isCtype이면 이미 합산된 KRW 사용
   function intRows(arr, tc, bl) {
-    return arr.filter(c=>c.cost>0||c.price>0).map(c=>{
-      const m = c.per==='BL' ? bl : tc;
-      const ck=c.costKRW*m, pk=c.priceKRW*m, mk=pk-ck;
-      const pill=`<span class="pill p${c.mode}">${c.mode==='실비'?'실비':c.mode==='마진금'?'+금액':'+율'}</span>`;
-      const cd=c.cur==='KRW'?`${fmt(c.cost*m)}원`:`${c.cur} ${(c.cost*m).toFixed(0)} (${fmt(ck)}원)`;
-      const pd=c.cur==='KRW'?`${fmt(c.price*m)}원`:`${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
-      return `<tr>
-        <td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${c.per==='BL'?'BL당':'컨당'}</small></td>
-        <td>${pill}</td>
-        <td class="tdc">${cd}</td>
-        <td class="tdp">${pd}</td>
-        <td class="tdm">${mk>=0?'+':''}${fmt(mk)}원</td>
-      </tr>`;
+    return arr.filter(c => c.isCtype ? (c.costKRW>0||c.priceKRW>0) : (c.cost>0||c.price>0)).map(c => {
+      let ck, pk, mk, cd, pd;
+      const pill = `<span class="pill p${c.mode}">${c.mode==='실비'?'실비':c.mode==='마진금'?'+금액':'+율'}</span>`;
+      if (c.isCtype) {
+        ck = c.costKRW; pk = c.priceKRW; mk = pk - ck;
+        const detail = Object.entries(c.ctypeRates||{}).map(([t,v]) => `${t}×${v.qty}`).join(', ');
+        cd = `${fmt(ck)}원`;
+        pd = `${fmt(pk)}원`;
+        return `<tr>
+          <td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${detail}</small></td>
+          <td>${pill}</td>
+          <td class="tdc">${cd}</td>
+          <td class="tdp">${pd}</td>
+          <td class="tdm">${mk>=0?'+':''}${fmt(mk)}원</td>
+        </tr>`;
+      } else {
+        const m = c.per==='BL' ? bl : tc;
+        ck = c.costKRW*m; pk = c.priceKRW*m; mk = pk - ck;
+        cd = c.cur==='KRW' ? `${fmt(c.cost*m)}원` : `${c.cur} ${(c.cost*m).toFixed(0)} (${fmt(ck)}원)`;
+        pd = c.cur==='KRW' ? `${fmt(c.price*m)}원` : `${c.cur} ${(c.price*m).toFixed(0)} (${fmt(pk)}원)`;
+        return `<tr>
+          <td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${c.per==='BL'?'BL당':'컨당'}</small></td>
+          <td>${pill}</td>
+          <td class="tdc">${cd}</td>
+          <td class="tdp">${pd}</td>
+          <td class="tdm">${mk>=0?'+':''}${fmt(mk)}원</td>
+        </tr>`;
+      }
     }).join('');
   }
   function intSub(t, lbl) {
@@ -1329,15 +2356,15 @@ function rsim(S){
     <div class="sc">
       <div class="stit2">구간별 원가 / 판가 / 마진 상세 <span class="spill">내부용</span></div>
       <div class="segblk">
-        <div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간 — 국내 (KRW)${dtb(S.polType)}</div><div class="segsub">판가 소계 ${fmt(S.t1.price)}원</div></div>
+        <div class="seghd" style="background:#FFF8F0"><div class="segnum" style="background:var(--am)">1</div><div class="segtit">1구간${dtb(S.polType)}</div><div class="segsub">판가 소계 ${fmt(S.t1.price)}원</div></div>
         <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${intRows(S.d1,S.tc,S.bl)}${intSub(S.t1,'1구간')}</tbody></table>
       </div>
       <div class="segblk">
-        <div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간 — 해상 운임</div><div class="segsub">판가 소계 ${fmt(S.t2.price)}원</div></div>
+        <div class="seghd" style="background:#EEF3FD"><div class="segnum" style="background:var(--ac)">2</div><div class="segtit">2구간</div><div class="segsub">판가 소계 ${fmt(S.t2.price)}원</div></div>
         <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${intRows(S.d2,S.tc,S.bl)}${intSub(S.t2,'2구간')}</tbody></table>
       </div>
       <div class="segblk">
-        <div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간 — 현지${dtb(S.podType)}</div><div class="segsub">판가 소계 ${fmt(S.t3.price)}원</div></div>
+        <div class="seghd" style="background:#F1EDFB"><div class="segnum" style="background:var(--pu)">3</div><div class="segtit">3구간${dtb(S.podType)}</div><div class="segsub">판가 소계 ${fmt(S.t3.price)}원</div></div>
         <table><thead><tr><th>항목</th><th>방식</th><th>원가</th><th>판가</th><th>마진</th></tr></thead><tbody>${intRows(S.d3,S.tc,S.bl)}${intSub(S.t3,'3구간')}</tbody></table>
       </div>
       <table style="margin-top:8px"><tfoot><tr class="trt"><td colspan="2">합계</td><td>${fmt(S.gc)}원</td><td>${fmt(S.gp)}원</td><td>+${fmt(S.gm)}원 (${S.mr.toFixed(1)}%)</td></tr></tfoot></table>
@@ -1525,6 +2552,105 @@ const POD_TO_SCAC = {
   'USBAL':'USBAL','CAVAN':'CAVAN','CACAL':'CACAL','CAMTR':'CAMTR',
 };
 
+// ── FAK 업로드 비밀번호 보호 ──
+const FAK_PASSWORD = 'lgl2024!'; // 담당자 비밀번호 (변경 가능)
+let _fakPendingFile = null;
+
+function checkFAKPassword(input) {
+  _fakPendingFile = input;
+  document.getElementById('fak-pw-input').value = '';
+  document.getElementById('fak-pw-err').style.display = 'none';
+  document.getElementById('fak-pw-overlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('fak-pw-input').focus(), 100);
+}
+
+function confirmFAKPassword() {
+  const pw = document.getElementById('fak-pw-input').value;
+  if (pw === FAK_PASSWORD) {
+    document.getElementById('fak-pw-overlay').style.display = 'none';
+    if (_fakPendingFile) loadFAKExcel(_fakPendingFile);
+  } else {
+    document.getElementById('fak-pw-err').style.display = 'block';
+    document.getElementById('fak-pw-input').value = '';
+    document.getElementById('fak-pw-input').focus();
+  }
+}
+
+function cancelFAKPassword() {
+  document.getElementById('fak-pw-overlay').style.display = 'none';
+  _fakPendingFile = null;
+  // 파일 input 초기화
+  const label = document.getElementById('fak-upload-btn');
+  const fi = label?.querySelector('input[type=file]');
+  if (fi) fi.value = '';
+}
+let FAK_LOADED_DB = null; // 업로드된 DB (없으면 내장 DB 사용)
+
+async function loadFAKExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // SheetJS 동적 로드
+  if (!window.XLSX) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    document.head.appendChild(s);
+    await new Promise(r => s.onload = r);
+  }
+
+  const buf  = await file.arrayBuffer();
+  const wb   = XLSX.read(buf, { type:'array' });
+  const db   = {};
+  let parsed = 0;
+
+  wb.SheetNames.forEach(name => {
+    const ws   = wb.Sheets[name];
+    const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:null });
+
+    // 헤더 행 탐색 (CODE / POD / 20' / 40' 패턴)
+    let hdr = -1;
+    for (let i=0;i<Math.min(rows.length,15);i++) {
+      const r = rows[i].map(v => String(v||'').toUpperCase());
+      if (r.some(v=>v.includes("20'") || v==="20'DC" || v==="20")) { hdr=i; break; }
+    }
+    if (hdr<0) return;
+
+    const h    = rows[hdr].map(v=>String(v||'').trim());
+    const c20  = h.findIndex(v=>v.includes("20"));
+    const c40  = h.findIndex(v=>v.includes("40") && !v.includes("HC") && !v.includes("HQ") && !v.includes("H"));
+    const c40h = h.findIndex(v=>v.includes("HC") || v.includes("HQ") || v.includes("4H"));
+    const cPOD = h.findIndex(v=>v==='POD'||v==='CODE'||v==='DESTINATION'||v==='DEST');
+    if (c20<0 || cPOD<0) return;
+
+    for (let i=hdr+1;i<rows.length;i++) {
+      const row  = rows[i];
+      const pod  = String(row[cPOD]||'').trim().toUpperCase();
+      const r20  = typeof row[c20]==='number'  ? row[c20]  : parseFloat(row[c20])  || null;
+      const r40  = c40>=0  && typeof row[c40]==='number'  ? row[c40]  : parseFloat(row[c40])  || null;
+      const r40h = c40h>=0 && typeof row[c40h]==='number' ? row[c40h] : parseFloat(row[c40h]) || null;
+      if (!pod || !r20) continue;
+      // SCAC 패턴 (US/CA + 3~4글자)
+      const scacs = pod.split(/[\/,\s]+/).filter(s=>s.match(/^(US|CA)[A-Z]{2,4}$/));
+      scacs.forEach(scac => {
+        if (!db[scac]) db[scac] = {};
+        db[scac][name] = { '20':r20, '40':r40||r20, '40HC':r40h||r40||r20, via:'' };
+        parsed++;
+      });
+    }
+  });
+
+  if (parsed === 0) { toast('⚠ 운임 데이터를 찾지 못했습니다. 파일 구조를 확인해주세요.'); return; }
+
+  FAK_LOADED_DB = db;
+  const label = file.name.replace(/\.[^.]+$/,'');
+  document.getElementById('fak-db-label').textContent = `${label} (${parsed}건 로드됨)`;
+  document.getElementById('fak-db-label').style.color = 'var(--gn)';
+  toast(`✓ ${label} — ${parsed}개 운임 로드 완료`);
+  fakSearch();
+}
+
+function getActiveFAK() { return FAK_LOADED_DB || FAK_DB; }
+
 function openFAK() {
   const overlay = document.getElementById('fak-overlay');
   overlay.style.display = 'flex';
@@ -1532,9 +2658,20 @@ function openFAK() {
   const podCode = portState.pod?.code?.split(' ')[0]?.trim()?.toUpperCase();
   const scac = podCode ? (POD_TO_SCAC[podCode] || podCode) : '';
   document.getElementById('fak-search').value = scac;
-  document.getElementById('fak-scac-hint').textContent = scac
-    ? `POD ${podCode} → SCAC ${scac} 자동 입력됨`
-    : 'POD를 먼저 선택하면 SCAC 코드가 자동으로 입력됩니다.';
+
+  // 타겟 칸 안내
+  const hint = document.getElementById('fak-scac-hint');
+  if (fakTarget) {
+    hint.textContent = `✦ "${fakTarget.type}" 원가 칸이 선택됨 — 카드 클릭 시 해당 칸에 직접 입력됩니다`;
+    hint.style.color = 'var(--ac)';
+    hint.style.fontWeight = '600';
+  } else {
+    hint.textContent = scac
+      ? `POD ${podCode} → SCAC ${scac} 자동 입력됨`
+      : '원가 칸을 클릭 후 FAK 조회하면 해당 칸에 바로 입력됩니다.';
+    hint.style.color = 'var(--t3)';
+    hint.style.fontWeight = '400';
+  }
   fakSearch();
 }
 
@@ -1555,7 +2692,7 @@ function fakSearch() {
   }
 
   // 부분 일치 검색
-  const matches = Object.entries(FAK_DB).filter(([scac]) => scac.includes(q));
+  const matches = Object.entries(getActiveFAK()).filter(([scac]) => scac.includes(q));
 
   if (!matches.length) {
     res.innerHTML = `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">"${q}"에 해당하는 운임이 없습니다</div>`;
@@ -1580,14 +2717,15 @@ function fakSearch() {
       const rate = v[ctype];
       const ctLabel = ctype==='40HC'?'40HC':ctype==='40'?'40DC':'20DC';
       html += `
-        <div style="border:1px solid var(--bd);border-radius:var(--r8);padding:9px 11px;cursor:pointer;transition:all .13s;background:white"
+        <div style="border:1px solid var(--bd);border-radius:var(--r8);padding:9px 11px;cursor:pointer;transition:all .13s;background:white;user-select:none"
           onmouseover="this.style.borderColor='var(--ac)';this.style.background='var(--ac-bg)'"
           onmouseout="this.style.borderColor='var(--bd)';this.style.background='white'"
+          ondblclick="applyFAK('${scac}','${c}',${v['20']||0},${v['40']||0},${v['40HC']||0},'${v.via||''}')"
           onclick="applyFAK('${scac}','${c}',${v['20']||0},${v['40']||0},${v['40HC']||0},'${v.via||''}')">
           <div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:3px">${c}</div>
           <div style="font-size:16px;font-weight:800;color:var(--ac)">$${rate.toLocaleString()}</div>
           <div style="font-size:9px;color:var(--t3);margin-top:2px">${ctLabel}${v.via?' · via '+v.via:''}</div>
-          <div style="font-size:9px;color:var(--gn);margin-top:3px;font-weight:600">↗ 적용</div>
+          <div style="font-size:9px;color:var(--gn);margin-top:4px;font-weight:600" id="fak-apply-hint-${c}">클릭하여 적용 ↗</div>
         </div>`;
     });
 
@@ -1597,47 +2735,285 @@ function fakSearch() {
   res.innerHTML = html || `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">선택한 필터에 해당하는 운임이 없습니다</div>`;
 }
 
+// ── FAK 타겟 추적: 마지막으로 포커스된 원가 칸 ──
+let fakTarget = null; // { uid, type, field: 'cost'|'price', el }
+
+function setFakTarget(inputEl, uid, type, field) {
+  // 이전 타겟 하이라이트 해제
+  if (fakTarget?.el) fakTarget.el.classList.remove('fak-target');
+  fakTarget = { uid, type, field, el: inputEl };
+  inputEl.classList.add('fak-target');
+}
+
+function clearFakTarget() {
+  if (fakTarget?.el) fakTarget.el.classList.remove('fak-target');
+  fakTarget = null;
+}
+
 function applyFAK(scac, carrier, r20, r40, r40hc, via) {
+  const selTypes = Object.keys(SC);
+
+  // ── 컨타입별 모드: fakTarget이 있으면 해당 칸에만 주입 ──
+  if (fakTarget) {
+    const { uid, type, field, el } = fakTarget;
+    // 해당 타입에 맞는 운임 선택
+    const rate = getRateForType(type, r20, r40, r40hc);
+    el.value = rate;
+    el.dispatchEvent(new Event('input')); // 합계 갱신
+    el.classList.remove('fak-target');
+    // 항목명 업데이트
+    const nameEl = document.getElementById('name-' + uid);
+    if (nameEl && nameEl.value.startsWith('OFT')) {
+      nameEl.value = `OFT (${carrier} FAK · ${scac})`;
+    }
+    fakTarget = null;
+    closeFAK();
+    toast(`✓ ${type} · ${carrier} $${rate.toLocaleString()} → 원가 입력`);
+    return;
+  }
+
+  // ── 단일 모드 (컨타입별 입력 아닌 경우) ──
   const oftCharge = charges[2].find(c => c.n.includes('OFT') || c.id === 'oft');
   if (!oftCharge) { toast('2구간에 OFT 항목이 없습니다'); return; }
 
-  // 선택된 컨타입에 맞는 운임 결정
-  const selTypes = Object.keys(SC);
-  let rate = r40hc;
-  if (selTypes.some(t => t.includes('20') && !t.includes('40'))) rate = r20;
-  else if (selTypes.some(t => t.includes('HC') || t.includes('40HC'))) rate = r40hc;
-  else if (selTypes.some(t => t.includes('40'))) rate = r40;
-
-  // 2구간 패널 열기
   document.getElementById('s3b').classList.add('o');
   document.getElementById('s3a').classList.add('o');
 
-  // 현재 모드 확인 — +금액이면 원가(v-)에 주입, 실비면 v-에 주입
   const ms = document.getElementById('ms-' + oftCharge.uid);
-  const currentMode = ms ? ms.value : '마진금';
-
-  // +금액 모드가 아니면 +금액으로 전환
-  if (currentMode !== '마진금') {
-    if (ms) { ms.value = '마진금'; onModeChange(oftCharge.uid); }
-  }
+  if (ms && ms.value !== '마진금') { ms.value = '마진금'; onModeChange(oftCharge.uid); }
 
   setTimeout(() => {
-    // 원가 필드(v-)에 FAK 운임 입력
-    const vEl = document.getElementById('v-' + oftCharge.uid);
-    if (vEl) vEl.value = rate;
+    // 컨타입별 입력 모드인지 확인
+    const perEl = document.getElementById('per-' + oftCharge.uid);
+    const isCtrMode = perEl?.value === 'CTR' && selTypes.length > 0;
 
-    // 항목명 업데이트
-    const nameEl = document.getElementById('name-' + oftCharge.uid);
-    if (nameEl) nameEl.value = `OFT (${carrier} FAK · ${scac})`;
+    if (isCtrMode) {
+      // 타입별로 각각 주입
+      selTypes.forEach(t => {
+        const key = `${oftCharge.uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
+        const vEl = document.getElementById('v-' + key);
+        if (vEl) {
+          vEl.value = getRateForType(t, r20, r40, r40hc);
+          vEl.dispatchEvent(new Event('input'));
+        }
+      });
+      const nameEl = document.getElementById('name-' + oftCharge.uid);
+      if (nameEl) nameEl.value = `OFT (${carrier} FAK · ${scac})`;
+      toast(`✓ ${carrier} FAK → 전체 컨타입 원가 일괄 적용`);
+    } else {
+      // 단일 값 주입
+      const rate = selTypes.length ? getRateForType(selTypes[0], r20, r40, r40hc) : r40hc;
+      const vEl = document.getElementById('v-' + oftCharge.uid);
+      if (vEl) vEl.value = rate;
+      const nameEl = document.getElementById('name-' + oftCharge.uid);
+      if (nameEl) nameEl.value = `OFT (${carrier} FAK · ${scac})`;
+      toast(`✓ ${carrier} FAK $${rate.toLocaleString()} → OFT 원가 적용`);
+    }
+    refreshCtypeSum(oftCharge.uid, document.getElementById('ms-' + oftCharge.uid)?.value || '마진금');
   }, 60);
 
   closeFAK();
-  toast(`✓ ${carrier} FAK → OFT 원가 적용 $${rate.toLocaleString()}/CTR`);
+}
+
+function getRateForType(type, r20, r40, r40hc) {
+  const t = type.toUpperCase();
+  if (t.includes('20')) return r20 || r40hc;
+  if (t.includes('HC') || t.includes('HQ') || t.includes('RF')) return r40hc || r40;
+  if (t.includes('40')) return r40 || r40hc;
+  return r40hc || r40 || r20;
 }
 
 // Close modal on overlay click
 document.getElementById('fak-overlay')?.addEventListener('click', function(e) {
   if (e.target === this) closeFAK();
+});
+
+// ── Mode tab switching ──
+function switchMode(mode) {
+  ['ocean','air','bulk','history'].forEach(m => {
+    document.getElementById('mt-'  + m).classList.toggle('on', m === mode);
+    document.getElementById('panel-' + m).style.display = m === mode ? '' : 'none';
+  });
+  if (mode === 'history') renderHistory();
+}
+
+// ══════════════════════════════════════════
+// QUOTE HISTORY  (session memory)
+// ══════════════════════════════════════════
+let quoteHistory = []; // [ { id, savedAt, author, shipper, pol, pod, inco, item, ctStr, gp, gc, mr, type, snapshot } ]
+
+const HIST_AUTHORS = ['이석영','김민준','박지수','최현우','정다은']; // 팀원 목록 (필요 시 수정)
+
+function saveCurrentQuote() {
+  // 현재 생성된 견적 데이터(S)가 없으면 경고
+  const cont = document.getElementById('cont');
+  if (!cont || cont.style.display === 'none') {
+    toast('⚠ 먼저 견적서를 생성해주세요');
+    return;
+  }
+
+  // 작성자 선택 프롬프트
+  const authorList = HIST_AUTHORS.map((a,i) => `${i+1}. ${a}`).join('  ');
+  const input = prompt(`저장할 작성자를 선택하세요:\n${authorList}\n\n번호 또는 이름 직접 입력:`);
+  if (input === null) return;
+  const author = HIST_AUTHORS[parseInt(input)-1] || input.trim() || '미지정';
+
+  // KPI 카드에서 데이터 파싱
+  const shipper = document.getElementById('shipper')?.value || '—';
+  const polEl   = document.getElementById('pol-input')?.value || '—';
+  const podEl   = document.getElementById('pod-input')?.value || '—';
+  const inco    = document.getElementById('inco')?.value || '—';
+  const item    = document.getElementById('item')?.value || '—';
+  const ctStr   = Object.entries(SC).map(([k,v])=>`${k}×${v}`).join(', ') || '—';
+
+  // 수익 데이터 — krow에서 파싱
+  const kvEls = document.querySelectorAll('.kpi-int .kv');
+  const gc  = kvEls[0]?.textContent?.replace(/,/g,'').replace('원','') || '0';
+  const gp  = kvEls[1]?.textContent?.replace(/,/g,'').replace('원','') || '0';
+  const mr  = kvEls[3]?.textContent?.replace('%','') || '0';
+
+  // 견적서 HTML 스냅샷
+  const snapshot = document.getElementById('tq')?.innerHTML || '';
+
+  const record = {
+    id:       Date.now(),
+    savedAt:  new Date().toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    author,
+    shipper,
+    pol: polEl.split('—')[0].trim(),
+    pod: podEl.split('—')[0].trim(),
+    inco, item, ctStr,
+    gc: parseInt(gc.replace(/\D/g,''))||0,
+    gp: parseInt(gp.replace(/\D/g,''))||0,
+    mr: parseFloat(mr)||0,
+    type: '해상',
+    snapshot,
+  };
+
+  quoteHistory.unshift(record);
+  updateAuthorFilter();
+  toast(`✓ 견적 저장 완료 — ${shipper} · ${author}`);
+  switchMode('history');
+}
+
+function clearHistory() {
+  if (!quoteHistory.length) { toast('저장된 견적이 없습니다'); return; }
+  if (!confirm(`저장된 견적 ${quoteHistory.length}건을 모두 삭제할까요?`)) return;
+  quoteHistory = [];
+  renderHistory();
+  toast('전체 삭제 완료');
+}
+
+function updateAuthorFilter() {
+  const sel = document.getElementById('hist-filter-author');
+  const cur = sel.value;
+  const authors = [...new Set(quoteHistory.map(q=>q.author))];
+  sel.innerHTML = `<option value="">전체 작성자</option>` +
+    authors.map(a=>`<option${a===cur?' selected':''}>${a}</option>`).join('');
+}
+
+function renderHistory() {
+  const q   = (document.getElementById('hist-search')?.value||'').toLowerCase();
+  const ft  = document.getElementById('hist-filter-type')?.value || '';
+  const fa  = document.getElementById('hist-filter-author')?.value || '';
+
+  const filtered = quoteHistory.filter(r =>
+    (!q || r.shipper.toLowerCase().includes(q) || r.pol.toLowerCase().includes(q) ||
+           r.pod.toLowerCase().includes(q) || r.item.toLowerCase().includes(q)) &&
+    (!ft || r.type === ft) &&
+    (!fa || r.author === fa)
+  );
+
+  // 통계 카드
+  const stats = document.getElementById('hist-stats');
+  const totalGP = filtered.reduce((a,r)=>a+r.gp,0);
+  const avgMR   = filtered.length ? (filtered.reduce((a,r)=>a+r.mr,0)/filtered.length).toFixed(1) : '—';
+  stats.innerHTML = `
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:var(--r12);padding:13px 16px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">저장된 견적</div>
+      <div style="font-size:22px;font-weight:800;color:var(--t1)">${filtered.length}건</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:var(--r12);padding:13px 16px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">총 견적 판가</div>
+      <div style="font-size:18px;font-weight:800;color:var(--gn)">${fmt(totalGP)}원</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:var(--r12);padding:13px 16px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">평균 마진율</div>
+      <div style="font-size:22px;font-weight:800;color:var(--am)">${avgMR}%</div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--bd);border-radius:var(--r12);padding:13px 16px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);margin-bottom:4px">작성자 수</div>
+      <div style="font-size:22px;font-weight:800;color:var(--ac)">${new Set(filtered.map(r=>r.author)).size}명</div>
+    </div>`;
+
+  // 목록
+  const tbody = document.getElementById('hist-tbody');
+  const empty = document.getElementById('hist-empty');
+
+  if (!filtered.length) {
+    tbody.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const typeBadge = t => t==='해상'?'🚢':t==='항공'?'✈️':'📦';
+  const mrColor = mr => mr >= 20 ? 'var(--gn)' : mr >= 10 ? 'var(--am)' : 'var(--rd)';
+
+  tbody.innerHTML = filtered.map((r,i) => `
+    <tr style="cursor:pointer;transition:background .12s" onmouseover="this.style.background='#FAFBFD'" onmouseout="this.style.background=''" onclick="openHistDetail(${r.id})">
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;color:var(--t3);font-size:11px">${filtered.length-i}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
+        <div style="font-weight:700;font-size:12px;color:var(--t1)">${r.shipper}</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:1px">${typeBadge(r.type)} ${r.type} · ${r.inco}</div>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
+        <div style="font-size:11px;font-weight:600;color:var(--t1)">${r.pol} → ${r.pod}</div>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
+        <div style="font-size:11px;color:var(--t1)">${r.item}</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:1px;font-family:monospace">${r.ctStr}</div>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;text-align:right">
+        <div style="font-size:13px;font-weight:800;color:var(--gn)">${fmt(r.gp)}원</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:1px">원가 ${fmt(r.gc)}원</div>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;text-align:right">
+        <span style="font-size:13px;font-weight:700;color:${mrColor(r.mr)}">${r.mr.toFixed(1)}%</span>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
+        <span style="background:#EEF3FD;color:var(--ac);font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px">${r.author}</span>
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;font-size:11px;color:var(--t3);white-space:nowrap">${r.savedAt}</td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
+        <button onclick="event.stopPropagation();deleteHist(${r.id})" style="padding:3px 8px;border:1px solid var(--rd);background:#fff;color:var(--rd);border-radius:4px;font-size:10px;cursor:pointer">삭제</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openHistDetail(id) {
+  const r = quoteHistory.find(q=>q.id===id);
+  if (!r) return;
+  document.getElementById('hm-title').textContent = `${r.shipper} — ${r.pol} → ${r.pod} · ${r.savedAt}`;
+  document.getElementById('hm-body').innerHTML = r.snapshot ||
+    '<div style="padding:20px;text-align:center;color:var(--t3)">저장된 견적서 미리보기가 없습니다.</div>';
+  document.getElementById('hm-del-btn').onclick  = () => { deleteHist(id); closeHistModal(); };
+  document.getElementById('hm-load-btn').onclick = () => { toast('견적 불러오기는 다음 버전에서 지원 예정입니다.'); };
+  document.getElementById('hist-modal').style.display = 'flex';
+}
+
+function closeHistModal() {
+  document.getElementById('hist-modal').style.display = 'none';
+}
+
+function deleteHist(id) {
+  quoteHistory = quoteHistory.filter(q=>q.id!==id);
+  renderHistory();
+  toast('견적 삭제 완료');
+}
+
+document.getElementById('hist-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeHistModal();
 });
 
 // ── Init ──
