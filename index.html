@@ -351,8 +351,10 @@ tr:hover td{background:#FAFBFD}
     padding: 14px 16px;
   }
   .li { padding: 14px 16px; }
-  /* 우측 결과 패널 위로 끌어올리기 — 모바일에서는 결과 먼저 */
-  .right { order: -1; }
+  /* 모바일 — 결과 패널이 비어있을 때는 입력 패널 먼저 표시 */
+  .right { order: 0; }
+  .right:not(:has(.qs)):not(:has(#air-tq .qs)) { display: none; }
+  .left { order: 0; }
   /* KPI 카드 2열 */
   .krow { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
   /* 견적서 qig 1열 */
@@ -573,7 +575,10 @@ tr:hover td{background:#FAFBFD}
   <div class="shd" onclick="tog('s0')"><span class="sdot" style="background:var(--ac)"></span><span class="stit">화주 / 화물 기본 정보</span><span class="sarr o" id="s0a">▼</span></div>
   <div class="sbody o" id="s0b">
 
-    <div class="fr c1"><div class="fd"><label>화주명</label><input type="text" id="shipper" placeholder="예: (주)하이브"></div></div>
+    <div class="fr c2">
+      <div class="fd"><label>화주명 <span style="font-size:9px;color:var(--t3)">(국문)</span></label><input type="text" id="shipper" placeholder="예: (주)하이브"></div>
+      <div class="fd"><label>Shipper <span style="font-size:9px;color:var(--t3)">(영문 — 견적서 표기용)</span></label><input type="text" id="shipper-en" placeholder="예: HYBE Co., Ltd."></div>
+    </div>
 
     <!-- POL -->
     <div class="port-wrap" id="pol-wrap">
@@ -1210,8 +1215,8 @@ tr:hover td{background:#FAFBFD}
     </div>
 
     <!-- 검색/필터 바 -->
-    <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center">
-      <input type="text" id="hist-search" placeholder="화주명, POL/POD, 품목으로 검색..." oninput="renderHistory()" style="flex:1;height:34px;font-size:12px;padding:0 12px;border:1px solid var(--bd);border-radius:var(--r8)">
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+      <input type="text" id="hist-search" placeholder="화주명, POL/POD, 품목으로 검색..." oninput="renderHistory()" style="flex:1;min-width:160px;height:34px;font-size:12px;padding:0 12px;border:1px solid var(--bd);border-radius:var(--r8)">
       <select id="hist-filter-type" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 10px;border:1px solid var(--bd);border-radius:var(--r8)">
         <option value="">전체 견적유형</option>
         <option value="해상">🚢 해상</option>
@@ -1221,6 +1226,14 @@ tr:hover td{background:#FAFBFD}
       <select id="hist-filter-author" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 10px;border:1px solid var(--bd);border-radius:var(--r8)">
         <option value="">전체 작성자</option>
       </select>
+    </div>
+    <!-- 날짜 범위 필터 -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--t3);white-space:nowrap">저장일:</span>
+      <input type="date" id="hist-date-from" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 8px;border:1px solid var(--bd);border-radius:var(--r8)">
+      <span style="font-size:11px;color:var(--t3)">~</span>
+      <input type="date" id="hist-date-to" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 8px;border:1px solid var(--bd);border-radius:var(--r8)">
+      <button onclick="document.getElementById('hist-date-from').value='';document.getElementById('hist-date-to').value='';renderHistory()" style="padding:0 12px;height:34px;border:1px solid var(--bd);background:#fff;border-radius:var(--r8);font-size:11px;cursor:pointer;color:var(--t3)">날짜 초기화</button>
     </div>
 
     <!-- 통계 카드 -->
@@ -3030,6 +3043,7 @@ function gen() {
 
   const S={
     shipper: document.getElementById('shipper').value||'(미입력)',
+    shipperEn: document.getElementById('shipper-en')?.value.trim()||'',
     pol:polPort,pod:podPort,
     polType:portState.polType,podType:portState.podType,
     polAddr: portState.polType==='DOOR' ? (document.getElementById('pol-addr-input')?.value||'') : '',
@@ -3134,7 +3148,7 @@ function rq(S){
       </div>
       <div class="qsbody">
         <div class="qig">
-          <div class="qib"><div class="ql2">Shipper</div><div class="qv2">${S.shipper}</div></div>
+          <div class="qib"><div class="ql2">Shipper</div><div class="qv2">${S.shipper}${S.shipperEn?`<div style="font-size:10px;color:var(--t3);font-weight:400;margin-top:1px">${S.shipperEn}</div>`:''}</div></div>
           <div class="qib"><div class="ql2">Route</div><div class="qv2">${polLabel} → ${podLabel}</div><div class="qsub2">${S.polType} → ${S.podType}${S.podAddr?' · '+S.podAddr:''}</div></div>
           <div class="qib"><div class="ql2">Cargo</div><div class="qv2">${S.item}${S.dg?` <span style="background:#FEF2F1;color:var(--rd);font-size:9px;padding:1px 6px;border-radius:100px;font-weight:700;vertical-align:middle">⚠ DG</span>`:''}</div><div class="qsub2">${S.inco} · ${ctS}${S.cbm!=='—'?' · '+S.cbm+' CBM':''}${S.gw!=='—'?' · '+S.gw+' KG':''}</div></div>
         </div>
@@ -5041,6 +5055,7 @@ function saveAirQuote() {
   quoteHistory.unshift(record);
   updateAuthorFilter();
   toast(`✓ 항공 견적 저장 완료 — ${S.shipper} (${author})`);
+  saveHistoryToLocal();
   switchMode('history');
 }
 
@@ -5149,6 +5164,21 @@ function switchMode(mode) {
 // ══════════════════════════════════════════
 let quoteHistory = []; // [ { id, savedAt, author, shipper, pol, pod, inco, item, ctStr, gp, gc, mr, type, snapshot } ]
 
+// localStorage에서 불러오기
+try {
+  const saved = localStorage.getItem('lgl_quote_history');
+  if (saved) quoteHistory = JSON.parse(saved);
+} catch(e) {}
+
+// localStorage에 저장
+function saveHistoryToLocal() {
+  try {
+    // snapshot은 용량이 크므로 최대 30건만 저장
+    const toSave = quoteHistory.slice(0, 30).map(r => ({...r, snapshot: ''}));
+    localStorage.setItem('lgl_quote_history', JSON.stringify(toSave));
+  } catch(e) { console.warn('localStorage 저장 실패:', e); }
+}
+
 const HIST_AUTHORS = ['이석영','김민준','박지수','최현우','정다은']; // 팀원 목록 (필요 시 수정)
 
 function saveCurrentQuote() {
@@ -5219,6 +5249,7 @@ function saveCurrentQuote() {
   quoteHistory.unshift(record);
   updateAuthorFilter();
   toast(`✓ 해상 견적 저장 완료 — ${shipper} (${author})`);
+  saveHistoryToLocal();
   switchMode('history');
 }
 
@@ -5226,6 +5257,7 @@ function clearHistory() {
   if (!quoteHistory.length) { toast('저장된 견적이 없습니다'); return; }
   if (!confirm(`저장된 견적 ${quoteHistory.length}건을 모두 삭제할까요?`)) return;
   quoteHistory = [];
+  try { localStorage.removeItem('lgl_quote_history'); } catch(e) {}
   renderHistory();
   toast('전체 삭제 완료');
 }
@@ -5239,16 +5271,28 @@ function updateAuthorFilter() {
 }
 
 function renderHistory() {
-  const q   = (document.getElementById('hist-search')?.value||'').toLowerCase();
-  const ft  = document.getElementById('hist-filter-type')?.value || '';
-  const fa  = document.getElementById('hist-filter-author')?.value || '';
+  const q       = (document.getElementById('hist-search')?.value||'').toLowerCase();
+  const ft      = document.getElementById('hist-filter-type')?.value || '';
+  const fa      = document.getElementById('hist-filter-author')?.value || '';
+  const dateFrom = document.getElementById('hist-date-from')?.value || '';
+  const dateTo   = document.getElementById('hist-date-to')?.value || '';
 
-  const filtered = quoteHistory.filter(r =>
-    (!q || r.shipper.toLowerCase().includes(q) || r.pol.toLowerCase().includes(q) ||
-           r.pod.toLowerCase().includes(q) || r.item.toLowerCase().includes(q)) &&
-    (!ft || r.type === ft) &&
-    (!fa || r.author === fa)
-  );
+  const filtered = quoteHistory.filter(r => {
+    if (q && !r.shipper.toLowerCase().includes(q) && !r.pol.toLowerCase().includes(q) &&
+            !r.pod.toLowerCase().includes(q) && !r.item.toLowerCase().includes(q)) return false;
+    if (ft && r.type !== ft) return false;
+    if (fa && r.author !== fa) return false;
+    // 날짜 필터: savedAt "2026. 06. 23. 오후 02:30" → Date 파싱
+    if (dateFrom || dateTo) {
+      const raw    = (r.savedAt||'').replace(/오전|오후/g,'').replace(/\.\s*/g,'-').trim();
+      const saved  = new Date(raw);
+      if (!isNaN(saved)) {
+        if (dateFrom && saved < new Date(dateFrom)) return false;
+        if (dateTo   && saved > new Date(dateTo + 'T23:59:59')) return false;
+      }
+    }
+    return true;
+  });
 
   // 통계 카드
   const stats = document.getElementById('hist-stats');
