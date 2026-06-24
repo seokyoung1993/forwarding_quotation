@@ -198,7 +198,7 @@ tr:hover td{background:#FAFBFD}
 .tdc{color:var(--t2)}.tdp{font-weight:700}.tdm{color:var(--gn);font-weight:600}
 .trt{background:#0F1729}.trt td{color:#fff;font-weight:700;font-size:12px;border-color:#1E2D4A}
 .trs{background:#F4F5F8}.trs td{font-weight:600;font-size:10px}
-.qft{padding:11px 22px;background:#F9FAFB;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.qft{padding:11px 22px;background:#F9FAFB;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .vbadge{font-size:10px;background:var(--am-bg);color:var(--am);padding:3px 9px;border-radius:100px;font-weight:600}
 .bsm{padding:5px 11px;border-radius:var(--r4);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bd);background:#fff;color:var(--t1);transition:all .13s}
 .bsm:hover{background:var(--bg)}.bsm.pri{background:var(--ac);color:#fff;border-color:var(--ac)}.bsm.pri:hover{background:var(--ac-h)}
@@ -361,7 +361,7 @@ tr:hover td{background:#FAFBFD}
   .tab { font-size: 11px; padding: 9px 10px; }
   .mt-tab { font-size: 11px; padding: 8px 10px; }
   /* floating 버튼 위치 조정 */
-  #float-gen { bottom: 16px; right: 16px; }
+  #float-gen { bottom: 16px; left: 16px; right: auto; }
   /* 모달 전체 너비 */
   #hist-modal > div { width: 95vw !important; max-width: 95vw !important; }
   #fak-overlay > div { width: 95vw !important; }
@@ -372,8 +372,8 @@ tr:hover td{background:#FAFBFD}
 </head>
 <body>
 
-<!-- ② Floating 견적 생성 버튼 (좌측 입력 중 언제든 클릭 가능) -->
-<div id="float-gen" style="position:fixed;bottom:28px;right:28px;z-index:500;display:none;flex-direction:column;gap:8px;align-items:flex-end">
+<!-- ② Floating 견적 생성 버튼 (좌측 하단 고정 — 저장 버튼과 겹치지 않음) -->
+<div id="float-gen" style="position:fixed;bottom:28px;left:28px;z-index:500;display:none;flex-direction:column;gap:8px;align-items:flex-start">
   <button onclick="gen()" id="float-ocean-btn"
     style="display:none;padding:12px 22px;background:var(--ac);color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(26,86,219,.45);transition:transform .15s,box-shadow .15s;white-space:nowrap"
     onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 24px rgba(26,86,219,.55)'"
@@ -388,6 +388,85 @@ tr:hover td{background:#FAFBFD}
   </button>
 </div>
 ════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════
+     온보딩 투어 오버레이
+════════════════════════════════════════ -->
+<div id="tour-overlay" style="display:none;position:fixed;inset:0;z-index:8000;pointer-events:none">
+  <div id="tour-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div id="tour-bubble" style="position:fixed;background:#fff;border-radius:14px;padding:20px 24px;width:min(520px,92vw);box-sizing:border-box;box-shadow:0 8px 32px rgba(0,0,0,.22);pointer-events:all;z-index:8003">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="display:flex;gap:5px" id="tour-dots"></div>
+      <button onclick="endTour()" style="font-size:11px;color:var(--t3);background:none;border:none;cursor:pointer;padding:2px 6px;white-space:nowrap">건너뛰기</button>
+    </div>
+    <div id="tour-step-icon" style="font-size:28px;margin-bottom:8px"></div>
+    <div id="tour-step-title" style="font-size:14px;font-weight:800;color:var(--t1);margin-bottom:8px;line-height:1.4"></div>
+    <div id="tour-step-body" style="font-size:12px;color:var(--t2);line-height:1.9;word-break:keep-all;overflow-wrap:break-word"></div>
+    <style>#tour-step-body p{margin:0 0 8px}#tour-step-body p:last-child{margin-bottom:0}</style>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+      <button id="tour-prev" onclick="tourStep(-1)" style="padding:7px 16px;border:1px solid var(--bd);background:#fff;border-radius:var(--r8);font-size:12px;font-weight:600;cursor:pointer;color:var(--t2)">← 이전</button>
+      <span id="tour-counter" style="font-size:11px;color:var(--t3)"></span>
+      <button id="tour-next" onclick="tourStep(1)" style="padding:7px 18px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer">다음 →</button>
+    </div>
+  </div>
+  <div id="tour-ring" style="position:fixed;border:3px solid #FBBF24;border-radius:10px;box-shadow:0 0 0 4px rgba(251,191,36,.25);opacity:0;pointer-events:none;z-index:8002"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     도움말 모달 (헤더 ? 버튼)
+════════════════════════════════════════ -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:7000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;width:560px;max-height:82vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,.2)">
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:var(--t1)">📖 도움말 &amp; 가이드</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">포워딩 견적 시스템 사용 안내</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('help-modal').style.display='none';startTour()" style="padding:7px 14px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer">▶ 투어 다시 보기</button>
+        <button onclick="document.getElementById('help-modal').style.display='none'" style="width:30px;height:30px;border:none;background:#F0F2F7;border-radius:8px;cursor:pointer;font-size:14px">✕</button>
+      </div>
+    </div>
+    <div style="overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px">
+
+      <div>
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:10px">🚀 견적 생성 기본 흐름</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</span><span style="font-size:12px;color:var(--t1);line-height:1.6">POL / POD 검색 — 항구명 또는 코드로 검색, CY/DOOR 선택</span></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</span><span style="font-size:12px;color:var(--t1);line-height:1.6">컨테이너 선택 — 타입 선택 후 수량 입력</span></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span><span style="font-size:12px;color:var(--t1);line-height:1.6">구간별 원가·판가 입력 — 1구간(내륙) → 2구간(해상) → 3구간(도착)</span></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</span><span style="font-size:12px;color:var(--t1);line-height:1.6">FAK 조회 — 2구간 FAK 버튼 → 선사·SCAC 검색 → 카드 클릭으로 자동 입력</span></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">5</span><span style="font-size:12px;color:var(--t1);line-height:1.6">✨ 견적서 생성 — 좌측 하단 플로팅 버튼 또는 입력 패널 하단 버튼</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:10px">⚡ 주요 기능 요약</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">📥 FAK 조회</div><div style="font-size:10px;color:var(--t3);line-height:1.6">2구간 OFT 항목 옆 버튼. 선사·SCAC 검색 후 카드 클릭 → 원가 자동 입력</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">↻ 환율 조회</div><div style="font-size:10px;color:var(--t3);line-height:1.6">환율 섹션 버튼 클릭 → 실시간 USD/KRW 자동 입력</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">🖨 인쇄 / PDF</div><div style="font-size:10px;color:var(--t3);line-height:1.6">견적서 생성 후 하단 인쇄 버튼 → 대상: PDF로 저장 선택</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">🗂 견적 저장</div><div style="font-size:10px;color:var(--t3);line-height:1.6">견적서 하단 저장 버튼 → History 탭에 누적 보관</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">↩ 불러오기</div><div style="font-size:10px;color:var(--t3);line-height:1.6">History 탭 또는 입력 패널 상단 버튼 → 과거 견적 복원 후 수정</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">✦ AI 인사이트</div><div style="font-size:10px;color:var(--t3);line-height:1.6">Claude API Key 입력 시 화주 브리핑·수익 분석 자동 생성</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">📊 수익 시뮬레이션</div><div style="font-size:10px;color:var(--t3);line-height:1.6">견적서 탭 → 수익 시뮬레이션 탭으로 이동 (내부용)</div></div>
+          <div style="padding:10px 12px;border:1px solid var(--bd);border-radius:var(--r8)"><div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:3px">📦 FAK 업로드</div><div style="font-size:10px;color:var(--t3);line-height:1.6">FAK 모달 우상단 엑셀 업로드 (비번: 8312)</div></div>
+        </div>
+      </div>
+
+      <div style="background:#FFF7ED;border:1px solid #FDE68A;border-radius:var(--r8);padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px">✈️ 항공 C.W. 계산 공식</div>
+        <div style="font-size:11px;color:#78350F;line-height:1.9">부피중량 (VW) = L × W × H × PCS ÷ 6,000 <span style="color:#B45309">(cm 기준)</span><br>총 C.W. = max (Total VW, Total GW) — IATA 기준 / 화물 합산 후 비교</div>
+      </div>
+
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--r8);padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:#991B1B;margin-bottom:6px">⚠ 주의사항</div>
+        <div style="font-size:11px;color:#7F1D1D;line-height:1.9">수익 시뮬레이션 탭은 <strong>내부용</strong> — 화주에게 공유 금지<br>견적 History는 브라우저 세션 내 보관 (새로고침 시 초기화)<br>AI 인사이트 API Key는 메모리에만 저장 (서버 전송 없음)</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div id="site-lock" style="position:fixed;inset:0;background:linear-gradient(135deg,#0F1729 0%,#1A2744 60%,#0F1729 100%);z-index:9999;display:flex;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:20px;width:420px;padding:40px 36px;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center">
 
@@ -419,18 +498,16 @@ tr:hover td{background:#FAFBFD}
       onfocus="this.style.borderColor='#1A56DB'" onblur="this.style.borderColor='#E5E7EB'"
       onkeydown="if(event.key==='Enter')document.getElementById('site-apikey-input').focus()">
 
-    <!-- 6) API Key 문구 수정 -->
+    <!-- 6) API Key -->
     <div style="text-align:left;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
       <span>Claude API Key <span style="font-weight:400;color:#9CA3AF">(AI 인사이트용 — 없어도 접속 가능)</span></span>
       <a href="https://console.anthropic.com" target="_blank" style="font-size:10px;color:#1A56DB;text-decoration:none;font-weight:400;white-space:nowrap">발급받기 →</a>
     </div>
     <input type="password" id="site-apikey-input" placeholder="sk-ant-api03-xxxxxx"
-      style="width:100%;padding:12px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:11px;font-family:monospace;box-sizing:border-box;outline:none;transition:border-color .15s;margin-bottom:4px"
+      style="width:100%;padding:12px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:11px;font-family:monospace;box-sizing:border-box;outline:none;transition:border-color .15s;margin-bottom:12px"
       onfocus="this.style.borderColor='#1A56DB'" onblur="this.style.borderColor='#E5E7EB'"
       onkeydown="if(event.key==='Enter')unlockSite()">
-    <div style="text-align:left;font-size:10px;color:#9CA3AF;margin-bottom:14px">
-      ※ 브라우저 메모리에만 저장 · 서버/외부 전송 없음 · 새로고침 시 초기화
-    </div>
+
 
     <div id="site-pw-err" style="font-size:11px;color:#DC2626;font-weight:600;margin-bottom:8px;min-height:18px"></div>
 
@@ -451,6 +528,7 @@ tr:hover td{background:#FAFBFD}
     <span class="hb">v0.4</span>
     <span id="api-badge" style="font-size:9px;color:#F59E0B;padding:2px 8px;background:rgba(255,255,255,.07);border-radius:100px;cursor:pointer" onclick="promptApiKey()" title="클릭하여 API Key 입력">● AI 미연결</span>
     <span style="font-size:10px;color:rgba(255,255,255,.35)">포워딩3팀 EPC파트</span>
+    <button onclick="openHelp()" title="도움말" style="width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">?</button>
   </div>
 </header>
 
@@ -466,15 +544,10 @@ tr:hover td{background:#FAFBFD}
     항공 견적
     <span class="mt-num">2</span>
   </div>
-  <div class="mode-tab" id="mt-bulk" onclick="switchMode('bulk')">
-    <span class="mt-ico">📦</span>
-    벌크 견적
-    <span class="mt-num">3</span>
-  </div>
   <div class="mode-tab" id="mt-history" onclick="switchMode('history')">
     <span class="mt-ico">🗂</span>
     견적 History
-    <span class="mt-num">4</span>
+    <span class="mt-num">3</span>
   </div>
 </div>
 
@@ -483,11 +556,16 @@ tr:hover td{background:#FAFBFD}
 <div class="wrap">
 <!-- ════════ LEFT ════════ -->
 <div class="left"><div class="li">
-<div class="phd" style="display:flex;align-items:center;justify-content:space-between">
+<div class="phd" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
   <span>견적 정보 입력</span>
-  <button onclick="loadSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.background='#FFF3CC'" onmouseout="this.style.background='#FFFBEE'">
-    ✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span>
-  </button>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <button onclick="showLoadQuoteModal('해상')" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px solid var(--ac);border-radius:20px;background:var(--ac-bg);color:var(--ac);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.background='#DCE9FF'" onmouseout="this.style.background='var(--ac-bg)'">
+      ↩ 견적 불러오기
+    </button>
+    <button onclick="loadSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.background='#FFF3CC'" onmouseout="this.style.background='#FFFBEE'">
+      ✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span>
+    </button>
+  </div>
 </div>
 
 <!-- S0: 기본 정보 -->
@@ -729,13 +807,14 @@ tr:hover td{background:#FAFBFD}
     <!-- Search + Filter -->
     <div style="padding:12px 20px;border-bottom:1px solid var(--bd);flex-shrink:0">
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <input type="text" id="fak-search" placeholder="SCAC 코드 입력 (예: USLGB, USNYC...)" oninput="fakSearch()" style="flex:1;height:32px;font-size:12px">
+        <input type="text" id="fak-search" placeholder="POD SCAC 코드 (예: USLGB, USNYC) — 비워두면 전체 조회" oninput="fakSearch()" style="flex:1;height:32px;font-size:12px">
         <select id="fak-carrier" onchange="fakSearch()" style="height:32px;font-size:11px;padding:4px 8px;min-width:90px">
           <option value="">전체 선사</option>
           <option>SM</option><option>HMM</option><option>YML</option><option>ONE</option>
           <option>HAPAG</option><option>COSCO</option><option>MSC</option><option>ZIM</option>
         </select>
         <select id="fak-ctype" onchange="fakSearch()" style="height:32px;font-size:11px;padding:4px 8px;min-width:72px">
+          <option value="">전체</option>
           <option value="40HC">40HC</option>
           <option value="40">40DC</option>
           <option value="20">20DC</option>
@@ -753,6 +832,20 @@ tr:hover td{background:#FAFBFD}
   <div class="shd" onclick="tog('s4')"><span class="sdot" style="background:var(--pu)"></span><span class="stit">3구간</span><span class="sarr" id="s4a">▼</span></div>
   <div class="sbody" id="s4b"><div class="charge-list" id="g3"></div><div class="add-charge" onclick="addCharge(3)">＋ 항목 추가</div></div>
 </div>
+<!-- 추가 REMARK -->
+<div class="sec" id="s_remark">
+  <div class="shd" onclick="tog('s_remark')">
+    <span class="sdot" style="background:#6B7280"></span>
+    <span class="stit">추가 REMARK <span style="font-size:10px;font-weight:400;color:var(--t3)">(견적서 하단에 표시)</span></span>
+    <span class="sarr" id="s_remarka">▼</span>
+  </div>
+  <div class="sbody" id="s_remarkb">
+    <textarea id="ocean-remark" rows="3"
+      placeholder="예: 일부 OOG 화물, CILEGON 높이 제한, 현지 통관 지연 우려 등"
+      style="width:100%;resize:vertical;font-size:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--r8);box-sizing:border-box;line-height:1.6"></textarea>
+  </div>
+</div>
+
 <button class="btn-gen" onclick="gen()">✨ 견적서 생성 + 수익 분석</button>
 </div></div>
 
@@ -790,9 +883,14 @@ tr:hover td{background:#FAFBFD}
 
 <!-- ════ LEFT ════ -->
 <div class="left"><div class="li">
-<div class="phd" style="display:flex;align-items:center;justify-content:space-between">
+<div class="phd" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
   <span>항공 견적 정보 입력</span>
-  <button onclick="loadAirSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer">✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span></button>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+    <button onclick="showLoadQuoteModal('항공')" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px solid var(--ac);border-radius:20px;background:var(--ac-bg);color:var(--ac);cursor:pointer;display:flex;align-items:center;gap:4px" onmouseover="this.style.background='#DCE9FF'" onmouseout="this.style.background='var(--ac-bg)'">
+      ↩ 견적 불러오기
+    </button>
+    <button onclick="loadAirSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer">✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span></button>
+  </div>
 </div>
 
 <!-- 화주/화물 기본 정보 -->
@@ -917,7 +1015,7 @@ tr:hover td{background:#FAFBFD}
   </div>
 </div>
 
-<!-- 화물 중량/치수 -->
+<!-- 화물 중량/치수 — 다중 화물 지원 -->
 <div class="sec" id="as1">
   <div class="shd" onclick="tog('as1')">
     <span class="sdot" style="background:var(--gn)"></span>
@@ -925,47 +1023,45 @@ tr:hover td{background:#FAFBFD}
     <span class="sarr" id="as1a">▼</span>
   </div>
   <div class="sbody" id="as1b">
-    <div class="dims-row">
-      <div class="fd"><label>L (cm)</label><input type="number" id="air-dl" placeholder="0" min="0" oninput="calcAirCW()"></div>
-      <div class="fd"><label>W (cm)</label><input type="number" id="air-dw" placeholder="0" min="0" oninput="calcAirCW()"></div>
-      <div class="fd"><label>H (cm)</label><input type="number" id="air-dh" placeholder="0" min="0" oninput="calcAirCW()"></div>
-      <div class="fd"><label>수량 (PCS)</label><input type="number" id="air-dpcs" placeholder="1" value="1" min="1" oninput="calcAirCW()"></div>
+
+    <!-- 화물 목록 -->
+    <div id="air-cargo-list"></div>
+
+    <!-- + 화물 추가 -->
+    <button onclick="addAirCargo()" style="width:100%;margin-top:6px;padding:7px;border:1.5px dashed var(--gn);border-radius:var(--r8);background:#F0FDF4;color:#047857;font-size:11px;font-weight:700;cursor:pointer;transition:all .13s" onmouseover="this.style.background='#D1FAE5'" onmouseout="this.style.background='#F0FDF4'">
+      + 화물 추가
+    </button>
+
+    <!-- Total C.W. 요약 -->
+    <div id="air-cw-total" style="margin-top:10px;padding:10px 14px;background:linear-gradient(90deg,#EEF3FD,#FFF7ED);border-radius:var(--r8);border:1.5px solid #F59E0B;display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:8px;text-align:center;align-items:center">
+        <div>
+          <div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:2px">Total VW</div>
+          <div style="font-size:13px;font-weight:800;color:var(--ac)" id="air-total-vw">— KG</div>
+          <div style="font-size:9px;color:var(--t3)">L×W×H×PCS ÷ 6,000</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:2px">Total GW</div>
+          <div style="font-size:13px;font-weight:800;color:var(--t2)" id="air-total-gw">— KG</div>
+          <div style="font-size:9px;color:var(--t3)">실중량 합계</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:2px">Total CBM</div>
+          <div style="font-size:13px;font-weight:800;color:var(--t2)" id="air-total-cbm">— CBM</div>
+          <div style="font-size:9px;color:var(--t3)">부피 합계</div>
+        </div>
+        <div style="background:#FFF7ED;border-radius:var(--r8);padding:6px 4px;border:1.5px solid #F59E0B">
+          <div style="font-size:9px;color:#92400E;font-weight:800;text-transform:uppercase;margin-bottom:2px">Total C.W.</div>
+          <div style="font-size:18px;font-weight:900;color:#D97706" id="air-total-cw">— KG</div>
+          <div style="font-size:9px;color:#92400E;font-weight:700">max(VW, GW)</div>
+        </div>
+      </div>
     </div>
 
-    <!-- CBM / GW / CW 계산 결과 -->
-    <div id="air-cw-disp" style="margin-top:8px;padding:10px 12px;background:linear-gradient(90deg,#EEF3FD,#F0FDF4);border-radius:var(--r8);border:1px solid #C7D9F8">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
-        <div>
-          <div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:2px">Volume Weight</div>
-          <div style="font-size:14px;font-weight:800;color:var(--ac)" id="air-vw-val">— KG</div>
-          <div style="font-size:9px;color:var(--t3)">CBM × 167</div>
-        </div>
-        <div>
-          <div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;margin-bottom:2px">Gross Weight</div>
-          <div style="font-size:14px;font-weight:800;color:var(--t2)" id="air-gw-disp-val">— KG</div>
-          <div style="font-size:9px;color:var(--t3)">실제 중량</div>
-        </div>
-        <div style="background:#FFF7ED;border-radius:var(--r8);padding:4px;border:1.5px solid #F59E0B">
-          <div style="font-size:9px;color:#92400E;font-weight:800;text-transform:uppercase;margin-bottom:2px">C.W. (적용)</div>
-          <div style="font-size:16px;font-weight:900;color:#D97706" id="air-cw-val">— KG</div>
-          <div style="font-size:9px;color:#92400E;font-weight:700">VW vs GW 중 큰 값</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fr c2" style="margin-top:8px">
+    <!-- C.W. 직접 입력 override -->
+    <div class="fr c1" style="margin-top:8px">
       <div class="fd">
-        <label>CBM <span style="font-size:9px;color:var(--t3)">(직접 입력 가능)</span></label>
-        <input type="number" id="air-cbm" placeholder="0.000" step="0.001" min="0" oninput="calcAirCWFromCBM()">
-      </div>
-      <div class="fd">
-        <label>Gross Weight (KG)</label>
-        <input type="number" id="air-gw" placeholder="0" min="0" oninput="calcAirCW()">
-      </div>
-    </div>
-    <div class="fr c1">
-      <div class="fd">
-        <label>C.W. <span style="font-size:9px;color:var(--t3)">(Chargeable Weight — 직접 입력 가능)</span></label>
+        <label>C.W. 직접 입력 <span style="font-size:9px;color:var(--t3)">(위 계산값 override — 비워두면 자동)</span></label>
         <div style="position:relative">
           <input type="number" id="air-cw" placeholder="자동 계산" min="0" step="0.5"
             style="padding-right:36px;font-weight:700;border-color:var(--am)"
@@ -1045,6 +1141,20 @@ tr:hover td{background:#FAFBFD}
   </div>
 </div>
 
+<!-- 추가 REMARK -->
+<div class="sec" id="as_remark">
+  <div class="shd" onclick="tog('as_remark')">
+    <span class="sdot" style="background:#6B7280"></span>
+    <span class="stit">추가 REMARK <span style="font-size:10px;font-weight:400;color:var(--t3)">(견적서 하단에 표시)</span></span>
+    <span class="sarr" id="as_remarka">▼</span>
+  </div>
+  <div class="sbody" id="as_remarkb">
+    <textarea id="air-remark" rows="3"
+      placeholder="예: FSC 다음달 인상 예정, 화물 반입 마감 주의 등"
+      style="width:100%;resize:vertical;font-size:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--r8);box-sizing:border-box;line-height:1.6"></textarea>
+  </div>
+</div>
+
 <button class="btn-gen" onclick="genAir()" style="margin-top:14px">✈️ 항공 견적서 생성 + 수익 분석</button>
 </div></div>
 
@@ -1071,33 +1181,18 @@ tr:hover td{background:#FAFBFD}
 </div><!-- /panel-air -->
 
 <!-- ══ 벌크 견적 패널 ══ -->
-<div id="panel-bulk" style="display:none">
-  <div class="coming-soon">
-    <div class="cs-icon">📦</div>
-    <div class="cs-title">벌크 견적</div>
-    <div class="cs-desc">
-      해상 컨테이너 견적의 구조를 기반으로<br>
-      <strong>벌크 견적 (Break Bulk / Project Cargo)</strong> 화면을 설계 중입니다.<br><br>
-      주요 항목: 화물 치수·중량 기반 운임 / 선박 Charter /<br>
-      Lashing·Seafastening / 중장비 특수 운송
-    </div>
-    <div style="margin-top:8px;padding:10px 20px;background:#F8F9FC;border:1px solid var(--bd);border-radius:var(--r8);font-size:12px;color:var(--t2);text-align:center">
-      🔧 다음 작업 시 구현 예정
-    </div>
-  </div>
-</div>
 
 <!-- ══ 견적 History 패널 ══ -->
 <div id="panel-history" style="display:none">
   <div style="padding:24px 32px;max-width:1100px;margin:0 auto">
 
-    <!-- 상단: 타이틀 + 저장 버튼 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <!-- 상단: 타이틀 + 버튼 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.01em">견적 History</div>
-        <div style="font-size:12px;color:var(--t3);margin-top:2px">팀원들이 작성한 견적서를 저장·조회합니다. 브라우저 세션 내 보관됩니다.</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">팀원들이 작성한 견적서를 저장·조회합니다.</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button onclick="saveCurrentQuote()" style="padding:8px 16px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .14s" onmouseover="this.style.background='var(--ac-h)'" onmouseout="this.style.background='var(--ac)'">
           💾 현재 견적 저장
         </button>
@@ -2521,8 +2616,75 @@ async function fetchRates() {
 
 // ── Utils ──
 function fmt(n){return Math.round(n).toLocaleString('ko-KR')}
+// ── 공통 인쇄/PDF 창 열기 (Blob URL — script 태그 충돌 없음) ──
+function openPrintWindow(bodyHTML, title) {
+  const css = QUOTE_PRINT_CSS;
+  const fullHTML = [
+    '<!DOCTYPE html><html lang="ko"><head>',
+    '<meta charset="UTF-8">',
+    '<title>' + title + '</title>',
+    '<style>',
+    css,
+    '@page{size:A4 portrait;margin:12mm 14mm}',
+    '.qft{display:none!important}',
+    'body{font-family:-apple-system,BlinkMacSystemFont,\'Noto Sans KR\',\'Segoe UI\',sans-serif;background:#fff;padding:20px;margin:0}',
+    '</style>',
+    '</head><body>',
+    bodyHTML,
+    '<scr' + 'ipt>window.onload=function(){window.focus();window.print();setTimeout(function(){window.close();},1500);}<\/scr' + 'ipt>',
+    '</body></html>'
+  ].join('\n');
+
+  const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url, '_blank', 'width=900,height=1200');
+  if (!w) {
+    toast('팝업이 차단됐습니다. 브라우저 팝업 허용 후 다시 시도하세요');
+    URL.revokeObjectURL(url);
+    return;
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
 function today(){const d=new Date();return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`}
 function addD(n){const d=new Date();d.setDate(d.getDate()+n);return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`}
+
+// ── 공통 인쇄/PDF CSS ──
+const QUOTE_PRINT_CSS = `
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+.qs{border:1px solid #E2E5EE;border-radius:12px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif}
+.qshd{background:#0F1729!important;color:#fff!important;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
+.qshd *{color:#fff!important}
+.qsbody{padding:18px 22px}
+.qig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.ql2{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#A0A6BE;margin-bottom:3px}
+.qv2{font-size:11pt;font-weight:600;color:#1A1D2B;word-break:break-word}
+.qsub2{font-size:9pt;color:#636880;margin-top:2px}
+.route{display:flex;align-items:center;background:#F4F5F8!important;border-radius:8px;padding:9px 14px;margin-bottom:16px}
+.rn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.ri{width:28px;height:28px;background:#fff;border:1px solid #E2E5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12pt}
+.rnm{font-size:10pt;font-weight:600;color:#1A1D2B}
+.rc{font-size:8pt;color:#A0A6BE}
+.ra{color:#A0A6BE;font-size:12pt;padding:0 5px;flex-shrink:0}
+.segblk{margin-bottom:14px;page-break-inside:avoid}
+.seghd{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:4px 4px 0 0;border:1px solid #E2E5EE;border-bottom:none}
+.segnum{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#fff;flex-shrink:0}
+.segtit{font-size:10pt;font-weight:700;color:#1A1D2B}
+.segsub{font-size:9pt;color:#636880;margin-left:auto}
+table{width:100%;border-collapse:collapse;font-size:10pt;page-break-inside:avoid}
+th{background:#F4F5F8!important;padding:6px 9px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#636880;border:1px solid #E2E5EE}
+th:last-child,td:last-child{text-align:right}
+td{padding:7px 9px;border:1px solid #ECEEF5;color:#1A1D2B;font-size:10pt}
+tr:nth-child(even) td{background:#FAFBFD!important}
+.trt{background:#0F1729!important}.trt td{color:#fff!important;font-weight:700;font-size:11pt;border-color:#1E2D4A!important}
+.trs{background:#F4F5F8!important}.trs td{font-weight:600;font-size:9pt}
+.tdp{font-weight:700}
+.qft{margin-top:16px;padding-top:12px;border-top:1px solid #E2E5EE;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#A0A6BE}
+.vbadge{font-size:9pt;background:#FEF7EC!important;color:#A85D08;padding:3px 9px;border-radius:100px;font-weight:600}
+span[style*="background:var(--am-bg)"]{background:#FEF7EC!important;color:#A85D08!important;padding:1px 6px;border-radius:100px;font-size:8pt}
+span[style*="background:#ECEEF5"]{background:#ECEEF5!important;color:#636880!important;padding:1px 6px;border-radius:100px;font-size:8pt}
+small{display:block;color:#A0A6BE;font-size:8pt;margin-top:1px}
+`;
 // ⑨ 견적 번호 — LGL-SEA-YYMMDD-NNN / LGL-AIR-YYMMDD-NNN
 let _seaSeq = 1, _airSeq = 1;
 function gno(type='SEA'){
@@ -2579,6 +2741,7 @@ function gen() {
     gw:document.getElementById('gw').value||'—',
     val:parseInt(document.getElementById('validity').value)||15,
     exRate: parseFloat(document.getElementById('cur-0-rate')?.value) || null,
+    remark: document.getElementById('ocean-remark')?.value.trim() || '',
     notes: '',
     dg: dgOn,
     dgUn:  dgOn ? (document.getElementById('dg-un')?.value||'') : '',
@@ -2712,14 +2875,14 @@ function rq(S){
           <div>· 관/부가세 발생 시 화주 납부 조건</div>
           <div>· 적하보험 화주 가입 조건, 필요 시 운송사 측 가입 후 실비 정산</div>
           <div>· 기타 견적서 상 명시되지 않은 비용은 발생 시 사전 협의 후 진행</div>
+          ${S.remark?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd);color:var(--t1);font-weight:600;white-space:pre-wrap">· ${S.remark}</div>`:''}
           ${S.notes?`<div style="margin-top:4px;padding-top:6px;border-top:1px solid var(--bd)">· ${S.notes}</div>`:''}
         </div>
       </div>
       <div class="qft">
         <span class="vbadge">유효기간 ${S.val}일 · ${addD(S.val)}까지</span>
-        <div style="display:flex;gap:5px">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
           <button class="bsm" onclick="printQuote()">🖨 인쇄</button>
-          <button class="bsm pri" id="pdf-btn" onclick="exportPDF()">📥 PDF 저장</button>
           <button class="bsm" onclick="saveCurrentQuote()" style="background:#F0FAF4;color:#047857;border-color:#A7E3C8;font-weight:700">🗂 견적 저장</button>
         </div>
       </div>
@@ -3068,160 +3231,8 @@ ${S.notes?`【특이사항】\n${S.notes}`:''}
 function printQuote() {
   const qs = document.querySelector('#tq .qs');
   if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
-
-  const html = `<!DOCTYPE html>
-<html lang="ko"><head>
-<meta charset="UTF-8">
-<title>Quotation Sheet — LGL</title>
-<style>
-@page { size:A4 portrait; margin:12mm 14mm; }
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif;font-size:11pt;color:#1A1D2B;background:#fff;width:100%}
-/* 견적서 헤더 */
-.qshd{background:#0F1729!important;color:#fff!important;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
-.qshd *{color:#fff!important}
-/* 본문 */
-.qsbody{padding:18px 22px}
-.qig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
-.ql2{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#A0A6BE;margin-bottom:3px}
-.qv2{font-size:12pt;font-weight:600}.qsub2{font-size:10pt;color:#636880;margin-top:1px}
-/* 루트 */
-.route{display:flex;align-items:center;background:#F4F5F8!important;border-radius:8px;padding:9px 14px;margin-bottom:16px}
-.rn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
-.ri{width:28px;height:28px;background:#fff;border:1px solid #E2E5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12pt}
-.rnm{font-size:10pt;font-weight:600}.rc{font-size:8pt;color:#A0A6BE}
-.ra{color:#A0A6BE;font-size:12pt;padding:0 5px;flex-shrink:0}
-/* 세그먼트 */
-.segblk{margin-bottom:14px;page-break-inside:avoid}
-.seghd{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:4px 4px 0 0;border:1px solid #E2E5EE;border-bottom:none}
-.segnum{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#fff;flex-shrink:0}
-.segtit{font-size:10pt;font-weight:700}.segsub{font-size:9pt;color:#636880;margin-left:auto}
-/* 테이블 */
-table{width:100%;border-collapse:collapse;font-size:10pt;page-break-inside:avoid}
-th{background:#F4F5F8!important;padding:6px 9px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#636880;border:1px solid #E2E5EE}
-th:last-child,td:last-child{text-align:right}
-td{padding:7px 9px;border:1px solid #ECEEF5;color:#1A1D2B}
-tr:nth-child(even) td{background:#FAFBFD}
-.trt{background:#0F1729!important}.trt td{color:#fff!important;font-weight:700;font-size:11pt;border-color:#1E2D4A!important}
-.trs{background:#F4F5F8!important}.trs td{font-weight:600;font-size:9pt}
-.tdp{font-weight:700}
-/* REMARK */
-.remark-box{margin-top:14px;padding:10px 12px;background:#F9FAFB;border:1px solid #E2E5EE;border-radius:8px;font-size:9pt;color:#636880;line-height:1.8}
-.remark-title{font-weight:700;font-size:10pt;color:#1A1D2B;margin-bottom:5px}
-/* 하단 */
-.qft{margin-top:16px;padding-top:12px;border-top:1px solid #E2E5EE;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#A0A6BE}
-.vbadge{font-size:9pt;background:#FEF7EC;color:#A85D08;padding:3px 9px;border-radius:100px;font-weight:600}
-.sign-area{text-align:right;color:#636880}
-span[style*="background:var(--am-bg)"]{background:#FEF7EC!important;color:#A85D08!important;padding:1px 6px;border-radius:100px;font-size:8pt}
-span[style*="background:#ECEEF5"]{background:#ECEEF5!important;color:#636880!important;padding:1px 6px;border-radius:100px;font-size:8pt}
-</style>
-</head><body>${qs.outerHTML}</body></html>`;
-
-  const w = window.open('', '_blank', 'width=794,height=1123');
-  if (!w) { toast('팝업이 차단됐습니다. 팝업 허용 후 다시 시도하세요'); return; }
-  w.document.write(html);
-  w.document.close();
-  w.onload = () => { w.focus(); w.print(); };
+  openPrintWindow(qs.outerHTML, 'Quotation Sheet — LGL');
 }
-
-// ── PDF Export ──
-async function exportPDF() {
-  const qs = document.querySelector('#tq .qs');
-  if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
-
-  const btn = document.getElementById('pdf-btn');
-  btn.textContent = '⏳ 생성 중...';
-  btn.style.pointerEvents = 'none';
-
-  const shipper = (document.getElementById('shipper')?.value || 'QUOTATION').replace(/[^a-zA-Z0-9가-힣]/g,'_');
-  const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
-  const filename = `LGL_QT_${dateStr}_${shipper}.pdf`;
-
-  // 독립 컨테이너 생성 (화면 밖)
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR","Segoe UI",sans-serif';
-  wrapper.innerHTML = qs.outerHTML;
-  document.body.appendChild(wrapper);
-
-  // qft(버튼 영역) 숨김
-  const qft = wrapper.querySelector('.qft');
-  if (qft) qft.style.display = 'none';
-
-  const opt = {
-    margin:      [10, 12, 10, 12],
-    filename:    filename,
-    image:       { type:'jpeg', quality:0.98 },
-    html2canvas: { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false, width:794 },
-    jsPDF:       { unit:'mm', format:'a4', orientation:'portrait', compress:true },
-    pagebreak:   { mode:['avoid-all','css','legacy'] },
-  };
-
-  try {
-    await html2pdf().set(opt).from(wrapper).save();
-    toast(`✓ PDF 저장 완료: ${filename}`);
-  } catch(e) {
-    console.error(e);
-    toast('⚠ PDF 생성 실패 — 인쇄(🖨) 기능을 이용해주세요');
-  }
-
-  document.body.removeChild(wrapper);
-  btn.textContent = '📥 PDF 저장';
-  btn.style.pointerEvents = '';
-}
-
-// ══════════════════════════════════════════
-// FAK RATE DATABASE  (6월下 부산발 북미, USD)
-// ══════════════════════════════════════════
-const FAK_DB = {
-  "USLAX":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""},"ONE":{"20":3880,"40":4850,"40HC":4850,"via":"USLAXUSLGB"}},
-  "USLGB":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""},"ONE":{"20":3880,"40":4850,"40HC":4850,"via":"USLAXUSLGB"}},
-  "USOAK":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""}},
-  "USSEA":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""}},
-  "USTIW":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""}},
-  "USPDX":{"SM":{"20":5280,"40":6600,"40HC":6500,"via":"USWC"}},
-  "USNYC":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""},"HMM":{"20":6750,"40":7500,"40HC":7500,"via":"EC"}},
-  "USSAV":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""},"HMM":{"20":6750,"40":7500,"40HC":7500,"via":"EC"}},
-  "USORF":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""},"HMM":{"20":6750,"40":7500,"40HC":7500,"via":"EC"}},
-  "USCHS":{"SM":{"20":6300,"40":8800,"40HC":8800,"via":"USEC"},"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5960,"40":7450,"40HC":7450,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""}},
-  "USJAX":{"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""}},
-  "USHOU":{"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6120,"40":7650,"40HC":7650,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"MSC":{"20":5360,"40":6700,"40HC":6700,"via":""},"ZIM":{"20":6080,"40":7600,"40HC":7600,"via":""},"HMM":{"20":6840,"40":7600,"40HC":7600,"via":"GC"}},
-  "USMOB":{"YML":{"20":6795,"40":7550,"40HC":7550,"via":""},"HAPAG":{"20":6120,"40":7650,"40HC":7650,"via":""},"COSCO":{"20":5185,"40":6100,"40HC":6100,"via":""},"MSC":{"20":5360,"40":6700,"40HC":6700,"via":""},"ZIM":{"20":6160,"40":7700,"40HC":7700,"via":""}},
-  "USMIA":{"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"ZIM":{"20":6160,"40":7700,"40HC":7700,"via":""}},
-  "USTPA":{"HAPAG":{"20":6120,"40":7650,"40HC":7650,"via":""},"COSCO":{"20":5100,"40":6000,"40HC":6000,"via":""},"ZIM":{"20":6080,"40":7600,"40HC":7600,"via":""}},
-  "USBAL":{"HAPAG":{"20":6040,"40":7550,"40HC":7550,"via":""},"ZIM":{"20":6000,"40":7500,"40HC":7500,"via":""}},
-  "USCHI":{"HMM":{"20":7140,"40":8400,"40HC":8400,"via":"LA/LGB"}},
-  "USATL":{"HMM":{"20":8245,"40":9700,"40HC":9700,"via":"LA/LGB"}},
-  "USCLT":{"HMM":{"20":7515,"40":8350,"40HC":8350,"via":"SAV/CST"}},
-  "USDET":{"HMM":{"20":8245,"40":9700,"40HC":9700,"via":"LA/LGB"}},
-  "USKCK":{"HMM":{"20":7395,"40":8700,"40HC":8700,"via":"LA/LGB"}},
-  "USMEM":{"HMM":{"20":7225,"40":8500,"40HC":8500,"via":"LA/LGB"}},
-  "USMSP":{"HMM":{"20":7225,"40":8500,"40HC":8500,"via":"TIW"}},
-  "USDEN":{"HMM":{"20":8415,"40":9900,"40HC":9900,"via":"OAK"}},
-  "USSLC":{"HMM":{"20":8245,"40":9700,"40HC":9700,"via":"OAK"}},
-  "USSTL":{"HMM":{"20":8415,"40":9900,"40HC":9900,"via":"LA/LGB"}},
-  "USBNA":{"HMM":{"20":8190,"40":9100,"40HC":9100,"via":"SAV/CST"}},
-  "CAVAN":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":""},"YML":{"20":5040,"40":6300,"40HC":6300,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""},"HMM":{"20":5040,"40":6300,"40HC":6300,"via":"WC"}},
-  "CACAL":{"HMM":{"20":6375,"40":7500,"40HC":7500,"via":"VAN"}},
-  "CAYEA":{"HMM":{"20":6375,"40":7500,"40HC":7500,"via":"VAN"}},
-  "CATOR":{"HMM":{"20":7055,"40":8300,"40HC":8300,"via":"VAN"}},
-  "CAMTR":{"HMM":{"20":7055,"40":8300,"40HC":8300,"via":"VAN"},"HAPAG":{"20":7440,"40":9550,"40HC":9550,"via":""}},
-  "CAWNP":{"HMM":{"20":7225,"40":8500,"40HC":8500,"via":"VAN"}},
-};
-
-const FAK_VALIDITY = '2026.06.15 ~ 06.30';
-
-// ── POD SCAC → FAK 자동 매칭 테이블 (port DB 연동)
-const POD_TO_SCAC = {
-  'USLAX':'USLAX','USLGB':'USLGB','USOAK':'USOAK','USSEA':'USSEA','USTIW':'USTIW',
-  'USPDX':'USPDX','USNYC':'USNYC','USSAV':'USSAV','USORF':'USORF','USCHS':'USCHS',
-  'USJAX':'USJAX','USHOU':'USHOU','USMOB':'USMOB','USMIA':'USMIA','USTPA':'USTPA',
-  'USBAL':'USBAL','CAVAN':'CAVAN','CACAL':'CACAL','CAMTR':'CAMTR',
-};
-
-// ── FAK 업로드 비밀번호 보호 ──
-const FAK_PASSWORD = '0000'; // 초기 비밀번호 (담당자가 변경 가능)
-
 function checkFAKPassword() {
   // 버튼 클릭 시 먼저 비밀번호 모달 표시
   document.getElementById('fak-pw-input').value = '';
@@ -3256,6 +3267,55 @@ function cancelFAKPassword() {
   document.getElementById('fak-pw-err').style.display = 'none';
 }
 let FAK_LOADED_DB = null; // 업로드된 DB (없으면 내장 DB 사용)
+const FAK_PASSWORD = '8312'; // FAK 업로드 비밀번호
+const FAK_VALIDITY = '2025년 6월下 기준';
+
+// ── 내장 FAK DB (부산발 북미/구주/동남아) ──
+const FAK_DB = {
+  // ── 북미서안 ──
+  "USLAX":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"HMM":{"20":5000,"40":6200,"40HC":6200,"via":""},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""},"ONE":{"20":3880,"40":4850,"40HC":4850,"via":""},"ZIM":{"20":4200,"40":5200,"40HC":5200,"via":""}},
+  "USLGB":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"HMM":{"20":5000,"40":6200,"40HC":6200,"via":""},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""},"ONE":{"20":3880,"40":4850,"40HC":4850,"via":""}},
+  "USOAK":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"HAPAG":{"20":5080,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""}},
+  "USSEA":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"HMM":{"20":5000,"40":6200,"40HC":6200,"via":""},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3880,"40":4850,"40HC":4850,"via":""}},
+  "USTIW":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":"USWC"},"YML":{"20":5715,"40":6350,"40HC":6350,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""}},
+  // ── 북미동안 ──
+  "USNYC":{"SM":{"20":5640,"40":7050,"40HC":7050,"via":"USEC"},"HMM":{"20":5600,"40":7000,"40HC":7000,"via":""},"YML":{"20":6115,"40":7150,"40HC":7150,"via":""},"HAPAG":{"20":5680,"40":7100,"40HC":7100,"via":""},"COSCO":{"20":4440,"40":5550,"40HC":5550,"via":""},"MSC":{"20":4320,"40":5400,"40HC":5400,"via":""},"ONE":{"20":4480,"40":5600,"40HC":5600,"via":""},"ZIM":{"20":4800,"40":6000,"40HC":6000,"via":""}},
+  "USSAV":{"SM":{"20":5640,"40":7050,"40HC":7050,"via":"USEC"},"YML":{"20":6115,"40":7150,"40HC":7150,"via":""},"HAPAG":{"20":5680,"40":7100,"40HC":7100,"via":""},"COSCO":{"20":4440,"40":5550,"40HC":5550,"via":""},"MSC":{"20":4320,"40":5400,"40HC":5400,"via":""}},
+  "USBAL":{"SM":{"20":5640,"40":7050,"40HC":7050,"via":"USEC"},"ONE":{"20":4480,"40":5600,"40HC":5600,"via":""},"COSCO":{"20":4440,"40":5550,"40HC":5550,"via":""}},
+  "USHOU":{"SM":{"20":5340,"40":6675,"40HC":6675,"via":"USGC"},"YML":{"20":5815,"40":6850,"40HC":6850,"via":""},"COSCO":{"20":4140,"40":5175,"40HC":5175,"via":""},"MSC":{"20":4020,"40":5025,"40HC":5025,"via":""}},
+  "USORF":{"HMM":{"20":5600,"40":7000,"40HC":7000,"via":""},"ONE":{"20":4480,"40":5600,"40HC":5600,"via":""},"ZIM":{"20":4800,"40":6000,"40HC":6000,"via":""}},
+  // ── 캐나다 ──
+  "CAYVR":{"SM":{"20":5040,"40":6300,"40HC":6300,"via":""},"COSCO":{"20":3840,"40":4800,"40HC":4800,"via":""},"MSC":{"20":3720,"40":4650,"40HC":4650,"via":""}},
+  "CAYTO":{"SM":{"20":5640,"40":7050,"40HC":7050,"via":""},"HAPAG":{"20":5680,"40":7100,"40HC":7100,"via":""}},
+  // ── 구주 ──
+  "DEHAM":{"HMM":{"20":3200,"40":4000,"40HC":4000,"via":""},"HAPAG":{"20":3100,"40":3900,"40HC":3900,"via":""},"MSC":{"20":2900,"40":3600,"40HC":3600,"via":""},"ONE":{"20":3050,"40":3800,"40HC":3800,"via":""},"COSCO":{"20":2850,"40":3550,"40HC":3550,"via":""}},
+  "NLRTM":{"HMM":{"20":3200,"40":4000,"40HC":4000,"via":""},"HAPAG":{"20":3100,"40":3900,"40HC":3900,"via":""},"MSC":{"20":2900,"40":3600,"40HC":3600,"via":""},"ONE":{"20":3050,"40":3800,"40HC":3800,"via":""}},
+  "GBFEL":{"HMM":{"20":3350,"40":4150,"40HC":4150,"via":""},"HAPAG":{"20":3200,"40":4050,"40HC":4050,"via":""},"MSC":{"20":3050,"40":3800,"40HC":3800,"via":""}},
+  "BEANR":{"HAPAG":{"20":3100,"40":3900,"40HC":3900,"via":""},"MSC":{"20":2900,"40":3600,"40HC":3600,"via":""},"ONE":{"20":3050,"40":3800,"40HC":3800,"via":""}},
+  // ── 동남아 ──
+  "SGSIN":{"SM":{"20":550,"40":700,"40HC":700,"via":""},"HMM":{"20":520,"40":660,"40HC":660,"via":""},"COSCO":{"20":480,"40":600,"40HC":600,"via":""},"MSC":{"20":450,"40":570,"40HC":570,"via":""}},
+  "VNSGN":{"SM":{"20":680,"40":860,"40HC":860,"via":""},"HMM":{"20":650,"40":820,"40HC":820,"via":""},"COSCO":{"20":600,"40":750,"40HC":750,"via":""}},
+  "IDCGK":{"SM":{"20":750,"40":950,"40HC":950,"via":""},"HMM":{"20":720,"40":900,"40HC":900,"via":""},"COSCO":{"20":680,"40":850,"40HC":850,"via":""}},
+  "THBKK":{"SM":{"20":650,"40":820,"40HC":820,"via":""},"HMM":{"20":620,"40":780,"40HC":780,"via":""},"COSCO":{"20":580,"40":720,"40HC":720,"via":""}},
+  "MYKLG":{"SM":{"20":600,"40":760,"40HC":760,"via":""},"COSCO":{"20":550,"40":690,"40HC":690,"via":""}},
+  "PHMNL":{"SM":{"20":700,"40":880,"40HC":880,"via":""},"HMM":{"20":670,"40":840,"40HC":840,"via":""}},
+  // ── 일본 ──
+  "JPTYO":{"SM":{"20":300,"40":380,"40HC":380,"via":""},"HMM":{"20":280,"40":350,"40HC":350,"via":""},"ONE":{"20":260,"40":330,"40HC":330,"via":""},"YML":{"20":290,"40":365,"40HC":365,"via":""}},
+  "JPOSK":{"SM":{"20":300,"40":380,"40HC":380,"via":""},"HMM":{"20":280,"40":350,"40HC":350,"via":""},"ONE":{"20":260,"40":330,"40HC":330,"via":""}},
+  // ── 중국 ──
+  "CNSHA":{"SM":{"20":200,"40":250,"40HC":250,"via":""},"COSCO":{"20":180,"40":230,"40HC":230,"via":""},"MSC":{"20":170,"40":215,"40HC":215,"via":""}},
+  "CNTAO":{"SM":{"20":200,"40":250,"40HC":250,"via":""},"HMM":{"20":190,"40":240,"40HC":240,"via":""}},
+  "CNXGG":{"COSCO":{"20":210,"40":265,"40HC":265,"via":""},"MSC":{"20":200,"40":250,"40HC":250,"via":""}},
+  // ── 인도 ──
+  "INNSA":{"HMM":{"20":1200,"40":1500,"40HC":1500,"via":""},"ONE":{"20":1150,"40":1440,"40HC":1440,"via":""},"HAPAG":{"20":1180,"40":1480,"40HC":1480,"via":""}},
+  "INBOM":{"HMM":{"20":1200,"40":1500,"40HC":1500,"via":""},"MSC":{"20":1100,"40":1380,"40HC":1380,"via":""}},
+  // ── 중동 ──
+  "AEJEA":{"HMM":{"20":1500,"40":1870,"40HC":1870,"via":""},"HAPAG":{"20":1450,"40":1815,"40HC":1815,"via":""},"MSC":{"20":1350,"40":1690,"40HC":1690,"via":""}},
+  "SAJED":{"HAPAG":{"20":1600,"40":2000,"40HC":2000,"via":""},"MSC":{"20":1500,"40":1875,"40HC":1875,"via":""}},
+  // ── 호주 ──
+  "AUSYD":{"ONE":{"20":1800,"40":2250,"40HC":2250,"via":""},"HAPAG":{"20":1750,"40":2190,"40HC":2190,"via":""},"COSCO":{"20":1650,"40":2060,"40HC":2060,"via":""}},
+  "AUMEL":{"ONE":{"20":1800,"40":2250,"40HC":2250,"via":""},"HAPAG":{"20":1750,"40":2190,"40HC":2190,"via":""}},
+};
 
 async function loadFAKExcel(input) {
   const file = input.files[0];
@@ -3325,31 +3385,44 @@ function getActiveFAK() { return FAK_LOADED_DB || FAK_DB; }
 function openFAK() {
   const overlay = document.getElementById('fak-overlay');
   overlay.style.display = 'flex';
-  const podCode = portState.pod?.code?.split(' ')[0]?.trim()?.toUpperCase();
-  const scac = podCode ? (POD_TO_SCAC[podCode] || podCode) : '';
-  document.getElementById('fak-search').value = scac;
 
-  // 포커스된 입력칸의 컨타입으로 필터 자동 설정
+  // SCAC 자동 입력 (POD_TO_SCAC 없어도 안전하게)
+  try {
+    const podCode = portState.pod?.code?.split(' ')[0]?.trim()?.toUpperCase() || '';
+    const POD_TO_SCAC_MAP = typeof POD_TO_SCAC !== 'undefined' ? POD_TO_SCAC : {};
+    const scac = podCode ? (POD_TO_SCAC_MAP[podCode] || podCode) : '';
+    document.getElementById('fak-search').value = scac;
+  } catch(e) {
+    document.getElementById('fak-search').value = '';
+  }
+
+  // ctype 전체로 초기화
+  const ctypeEl = document.getElementById('fak-ctype');
+  if (ctypeEl) ctypeEl.value = '';
+
+  // fakTarget 있으면 해당 컨타입으로 자동 설정
   if (fakTarget?.type) {
     const t = fakTarget.type.toUpperCase();
-    const ctypeEl = document.getElementById('fak-ctype');
     if (ctypeEl) {
       if (t.includes('20') && !t.includes('40')) ctypeEl.value = '20';
       else if (t.includes('HC') || t.includes('HQ')) ctypeEl.value = '40HC';
       else if (t.includes('40')) ctypeEl.value = '40';
     }
+    const hint = document.getElementById('fak-scac-hint');
+    if (hint) {
+      hint.textContent = `✦ "${fakTarget.type}" 원가 칸 선택됨 — 카드 클릭 시 해당 칸에 바로 입력`;
+      hint.style.color = 'var(--ac)'; hint.style.fontWeight = '600';
+    }
+  } else {
+    const hint = document.getElementById('fak-scac-hint');
+    const searchVal = document.getElementById('fak-search').value;
+    if (hint) {
+      hint.textContent = searchVal ? `POD → SCAC "${searchVal}" 자동 입력됨` : '선사·컨타입 필터를 선택하거나 SCAC 코드를 입력하세요.';
+      hint.style.color = 'var(--t3)'; hint.style.fontWeight = '400';
+    }
   }
 
-  const hint = document.getElementById('fak-scac-hint');
-  if (fakTarget) {
-    hint.textContent = `✦ "${fakTarget.type}" 원가 칸 선택됨 — 카드 클릭 시 해당 칸에 직접 입력`;
-    hint.style.color = 'var(--ac)';
-    hint.style.fontWeight = '600';
-  } else {
-    hint.textContent = scac ? `POD ${podCode} → SCAC ${scac} 자동 입력됨` : '원가 칸을 클릭 후 FAK 조회하면 해당 칸에 바로 입력됩니다.';
-    hint.style.color = 'var(--t3)';
-    hint.style.fontWeight = '400';
-  }
+  // 항상 바로 결과 표시
   fakSearch();
 }
 
@@ -3358,30 +3431,41 @@ function closeFAK() {
 }
 
 function fakSearch() {
-  const q = document.getElementById('fak-search').value.trim().toUpperCase();
-  const carrier = document.getElementById('fak-carrier').value;
-  const ctype = document.getElementById('fak-ctype').value; // '20','40','40HC'
+  const q       = (document.getElementById('fak-search')?.value || '').trim().toUpperCase();
+  const carrier = document.getElementById('fak-carrier')?.value || '';
+  const ctype   = document.getElementById('fak-ctype')?.value || '';
+  const res     = document.getElementById('fak-results');
+  if (!res) return;
 
-  const res = document.getElementById('fak-results');
-
-  if (!q) {
-    res.innerHTML = '<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">SCAC 코드를 입력하세요 (예: USLGB, USNYC)</div>';
+  const db = getActiveFAK();
+  if (!db || Object.keys(db).length === 0) {
+    res.innerHTML = '<div style="padding:20px;text-align:center;color:var(--rd)">⚠ FAK DB를 불러올 수 없습니다</div>';
     return;
   }
 
-  // 부분 일치 검색
-  const matches = Object.entries(getActiveFAK()).filter(([scac]) => scac.includes(q));
+  let allEntries = Object.entries(db);
 
-  if (!matches.length) {
+  // SCAC 필터
+  if (q) allEntries = allEntries.filter(([scac]) => scac.includes(q));
+
+  if (!allEntries.length) {
     res.innerHTML = `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">"${q}"에 해당하는 운임이 없습니다</div>`;
     return;
   }
 
-  let html = '';
-  matches.forEach(([scac, carriers]) => {
-    const filteredCarriers = carrier ? {[carrier]: carriers[carrier]} : carriers;
-    const validCarriers = Object.entries(filteredCarriers).filter(([c,v]) => v && v[ctype]);
+  // 필터 없고 결과 많으면 최대 15개만
+  if (!q && !carrier && !ctype && allEntries.length > 15) allEntries = allEntries.slice(0, 15);
 
+  let html = '';
+  allEntries.forEach(([scac, carriers]) => {
+    if (!carriers) return;
+    // 선사 필터
+    const filteredCarriers = carrier ? { [carrier]: carriers[carrier] } : carriers;
+    // 컨타입 필터
+    const validCarriers = Object.entries(filteredCarriers).filter(([c, v]) => {
+      if (!v) return false;
+      return ctype ? v[ctype] : (v['20'] || v['40'] || v['40HC']);
+    });
     if (!validCarriers.length) return;
 
     html += `<div style="margin-bottom:14px">
@@ -3389,28 +3473,33 @@ function fakSearch() {
         <span style="font-family:monospace;background:#F0F2F7;padding:2px 7px;border-radius:4px;color:var(--ac)">${scac}</span>
         <span style="font-size:9px;color:var(--t3)">${FAK_VALIDITY}</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:6px">`;
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">`;
 
     validCarriers.forEach(([c, v]) => {
-      const rate = v[ctype];
-      const ctLabel = ctype==='40HC'?'40HC':ctype==='40'?'40DC':'20DC';
-      html += `
-        <div style="border:1px solid var(--bd);border-radius:var(--r8);padding:9px 11px;cursor:pointer;transition:all .13s;background:white;user-select:none"
+      const showTypes = ctype ? [ctype] : ['20','40','40HC'].filter(t => v[t]);
+      showTypes.forEach(t => {
+        const rate = v[t]; if (!rate) return;
+        const ctLabel = t==='40HC'?'40HC':t==='40'?'40DC':'20DC';
+        const via = v.via || '';
+        html += `<div style="border:1.5px solid var(--bd);border-radius:var(--r8);padding:9px 11px;cursor:pointer;transition:all .13s;background:#fff;user-select:none"
           onmouseover="this.style.borderColor='var(--ac)';this.style.background='var(--ac-bg)'"
-          onmouseout="this.style.borderColor='var(--bd)';this.style.background='white'"
-          ondblclick="applyFAK('${scac}','${c}',${v['20']||0},${v['40']||0},${v['40HC']||0},'${v.via||''}')"
-          onclick="applyFAK('${scac}','${c}',${v['20']||0},${v['40']||0},${v['40HC']||0},'${v.via||''}')">
-          <div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:3px">${c}</div>
-          <div style="font-size:16px;font-weight:800;color:var(--ac)">$${rate.toLocaleString()}</div>
-          <div style="font-size:9px;color:var(--t3);margin-top:2px">${ctLabel}${v.via?' · via '+v.via:''}</div>
-          <div style="font-size:9px;color:var(--gn);margin-top:4px;font-weight:600" id="fak-apply-hint-${c}">클릭하여 적용 ↗</div>
+          onmouseout="this.style.borderColor='var(--bd)';this.style.background='#fff'"
+          onclick="applyFAK('${scac}','${c}',${v['20']||0},${v['40']||0},${v['40HC']||0},'${via}','${t}')">
+          <div style="font-size:10px;font-weight:700;color:var(--t2);margin-bottom:2px">${c}</div>
+          <div style="font-size:15px;font-weight:800;color:var(--ac)">$${rate.toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--t3);margin-top:2px">${ctLabel}${via?' · '+via:''}</div>
+          <div style="font-size:9px;color:var(--gn);margin-top:3px;font-weight:600">클릭 → 적용</div>
         </div>`;
+      });
     });
-
     html += '</div></div>';
   });
 
-  res.innerHTML = html || `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">선택한 필터에 해당하는 운임이 없습니다</div>`;
+  if (!html) html = `<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--t3)">선택한 필터에 해당하는 운임이 없습니다</div>`;
+  if (!q && !carrier && !ctype && Object.keys(db).length > 15)
+    html += `<div style="padding:6px 0;text-align:center;font-size:10px;color:var(--t3)">상위 15개 표시 중 · SCAC 코드 입력 시 더 정확하게 검색</div>`;
+
+  res.innerHTML = html;
 }
 
 // ── FAK 타겟 추적: 마지막으로 포커스된 원가 칸 ──
@@ -3428,29 +3517,29 @@ function clearFakTarget() {
   fakTarget = null;
 }
 
-function applyFAK(scac, carrier, r20, r40, r40hc, via) {
+function applyFAK(scac, carrier, r20, r40, r40hc, via, selectedType) {
   const selTypes = Object.keys(SC);
 
-  // ── 컨타입별 모드: fakTarget이 있으면 해당 칸에만 주입 ──
+  // ── fakTarget이 있으면 해당 칸에 직접 주입 ──
   if (fakTarget) {
     const { uid, type, field, el } = fakTarget;
-    // 해당 타입에 맞는 운임 선택
-    const rate = getRateForType(type, r20, r40, r40hc);
+    // selectedType 우선, 없으면 타겟 타입으로 결정
+    const applyType = selectedType || type;
+    const rate = getRateForType(applyType, r20, r40, r40hc);
     el.value = rate;
-    el.dispatchEvent(new Event('input')); // 합계 갱신
+    el.dispatchEvent(new Event('input'));
     el.classList.remove('fak-target');
-    // 항목명 업데이트
     const nameEl = document.getElementById('name-' + uid);
-    if (nameEl && nameEl.value.startsWith('OFT')) {
+    if (nameEl && nameEl.value.includes('OFT')) {
       nameEl.value = `OFT (${carrier} FAK · ${scac})`;
     }
     fakTarget = null;
     closeFAK();
-    toast(`✓ ${type} · ${carrier} $${rate.toLocaleString()} → 원가 입력`);
+    toast(`✓ ${applyType.toUpperCase()} · ${carrier} $${rate.toLocaleString()} → 원가 입력`);
     return;
   }
 
-  // ── 단일 모드 (컨타입별 입력 아닌 경우) ──
+  // ── OFT 항목 자동 탐색 및 주입 ──
   const oftCharge = charges[2].find(c => c.n.includes('OFT') || c.id === 'oft');
   if (!oftCharge) { toast('2구간에 OFT 항목이 없습니다'); return; }
 
@@ -3461,12 +3550,10 @@ function applyFAK(scac, carrier, r20, r40, r40hc, via) {
   if (ms && ms.value !== '마진금') { ms.value = '마진금'; onModeChange(oftCharge.uid); }
 
   setTimeout(() => {
-    // 컨타입별 입력 모드인지 확인
     const perEl = document.getElementById('per-' + oftCharge.uid);
     const isCtrMode = perEl?.value === 'CTR' && selTypes.length > 0;
 
     if (isCtrMode) {
-      // 타입별로 각각 주입
       selTypes.forEach(t => {
         const key = `${oftCharge.uid}_${t.replace(/[^a-zA-Z0-9]/g,'_')}`;
         const vEl = document.getElementById('v-' + key);
@@ -3479,8 +3566,8 @@ function applyFAK(scac, carrier, r20, r40, r40hc, via) {
       if (nameEl) nameEl.value = `OFT (${carrier} FAK · ${scac})`;
       toast(`✓ ${carrier} FAK → 전체 컨타입 원가 일괄 적용`);
     } else {
-      // 단일 값 주입
-      const rate = selTypes.length ? getRateForType(selTypes[0], r20, r40, r40hc) : r40hc;
+      const applyType = selectedType || (selTypes.length ? selTypes[0] : '40HC');
+      const rate = getRateForType(applyType, r20, r40, r40hc);
       const vEl = document.getElementById('v-' + oftCharge.uid);
       if (vEl) vEl.value = rate;
       const nameEl = document.getElementById('name-' + oftCharge.uid);
@@ -3759,37 +3846,165 @@ function selectAirPort(side, code, city, country, flag) {
   document.getElementById(`air-${side}-dd`).classList.remove('open');
 }
 
-// ── C.W. 자동 계산 ──
-// 항공 부피중량 = CBM × 167 (IATA 기준 1CBM = 167KG)
-function calcAirCW() {
-  const l   = parseFloat(document.getElementById('air-dl')?.value) || 0;
-  const w   = parseFloat(document.getElementById('air-dw')?.value) || 0;
-  const h   = parseFloat(document.getElementById('air-dh')?.value) || 0;
-  const pcs = parseFloat(document.getElementById('air-dpcs')?.value) || 1;
-  const gw  = parseFloat(document.getElementById('air-gw')?.value) || 0;
+// ══════════════════════════════════════════
+// 항공 다중 화물 C.W. 계산
+// IATA 기준: 부피중량 = L×W×H×PCS / 6000 (cm→kg)
+// Total C.W. = max(합산 VW, 합산 GW)
+// ══════════════════════════════════════════
+let airCargoList = []; // [{ id, l, w, h, pcs, gw }]
+let airCargoSeq = 0;
 
-  const cbm = l && w && h ? Math.round((l*w*h*pcs/1000000)*1000)/1000 : 0;
-  if (cbm) document.getElementById('air-cbm').value = cbm.toFixed(3);
-
-  calcAirCWFromCBM();
+function addAirCargo(preset = {}) {
+  const id = ++airCargoSeq;
+  airCargoList.push({ id, l: preset.l||0, w: preset.w||0, h: preset.h||0, pcs: preset.pcs||1, gw: preset.gw||0 });
+  renderAirCargoList();
+  recalcAirTotalCW();
 }
 
-function calcAirCWFromCBM() {
-  const cbm = parseFloat(document.getElementById('air-cbm')?.value) || 0;
-  const gw  = parseFloat(document.getElementById('air-gw')?.value) || 0;
-  const vw  = Math.round(cbm * 167 * 10) / 10; // 부피중량
-  const cw  = Math.max(vw, gw);
+function removeAirCargo(id) {
+  airCargoList = airCargoList.filter(c => c.id !== id);
+  if (airCargoList.length === 0) addAirCargo(); // 최소 1개 유지
+  else { renderAirCargoList(); recalcAirTotalCW(); }
+}
 
-  airState.cbm = cbm; airState.gw = gw; airState.cw = cw;
+function updateAirCargo(id, field, val) {
+  const c = airCargoList.find(c => c.id === id);
+  if (c) {
+    c[field] = parseFloat(val) || 0;
+    recalcAirTotalCW(false); // DOM 재렌더 없이 합계만 갱신
+  }
+}
 
-  document.getElementById('air-vw-val').textContent  = vw  ? `${vw.toFixed(1)} KG`  : '— KG';
-  document.getElementById('air-gw-disp-val').textContent = gw ? `${gw.toFixed(1)} KG` : '— KG';
-  document.getElementById('air-cw-val').textContent  = cw  ? `${cw.toFixed(1)} KG`  : '— KG';
+function renderAirCargoList() {
+  const container = document.getElementById('air-cargo-list');
+  if (!container) return;
 
-  // C.W. input에도 자동 입력 (수동 입력 중이 아닐 때)
+  container.innerHTML = airCargoList.map((c, idx) => {
+    const cbm   = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
+    const vw    = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 6000 * 10) / 10 : 0;
+    const rowCw = Math.max(vw, c.gw);
+    const badgeTxt = (vw >= c.gw && rowCw > 0) ? 'VW 적용' : (rowCw > 0 ? 'GW 적용' : '');
+    const badgeColor = (vw >= c.gw && rowCw > 0) ? 'background:#EEF3FD;color:var(--ac)' : 'background:#F0FDF4;color:#047857';
+
+    return `<div style="background:#F9FAFB;border:1px solid var(--bd);border-radius:var(--r8);padding:10px 12px;margin-bottom:6px">
+      <!-- 헤더 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--t2)">화물 ${idx+1}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="cargo-cw-${c.id}" style="font-size:11px;font-weight:800;color:#D97706">${rowCw ? rowCw.toFixed(1)+' KG' : ''}</span>
+          <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;${badgeColor}">${badgeTxt}</span>
+          ${airCargoList.length > 1 ? `<button onclick="removeAirCargo(${c.id})" style="width:20px;height:20px;border:1px solid var(--rd);background:#fff;color:var(--rd);border-radius:4px;font-size:11px;cursor:pointer;line-height:1;padding:0">×</button>` : ''}
+        </div>
+      </div>
+      <!-- L / W / H / PCS 한 행 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:7px">
+        <div>
+          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">L (cm)</div>
+          <input type="number" value="${c.l||''}" placeholder="0" min="0"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
+            oninput="updateAirCargo(${c.id},'l',this.value)">
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">W (cm)</div>
+          <input type="number" value="${c.w||''}" placeholder="0" min="0"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
+            oninput="updateAirCargo(${c.id},'w',this.value)">
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">H (cm)</div>
+          <input type="number" value="${c.h||''}" placeholder="0" min="0"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
+            oninput="updateAirCargo(${c.id},'h',this.value)">
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">PCS</div>
+          <input type="number" value="${c.pcs||1}" placeholder="1" min="1"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
+            oninput="updateAirCargo(${c.id},'pcs',this.value)">
+        </div>
+      </div>
+      <!-- G.W. + 결과 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center">
+        <div>
+          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">G.W. (KG)</div>
+          <input type="number" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
+            style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
+            oninput="updateAirCargo(${c.id},'gw',this.value)">
+        </div>
+        <div style="font-size:10px;color:var(--t3);text-align:center;line-height:1.7">
+          CBM: <strong><span id="cargo-cbm-${c.id}">${cbm.toFixed(3)}</span></strong>
+          &nbsp;·&nbsp; VW: <strong><span id="cargo-vw-${c.id}">${vw ? vw.toFixed(1)+' KG' : '—'}</span></strong>
+          <br><span id="cargo-pcs-${c.id}">${c.pcs > 1 ? `${c.pcs}PCS × ${c.gw ? (c.gw/c.pcs).toFixed(1)+'KG' : '—'}` : ''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function recalcAirTotalCW(rerender = true) {
+  let totalVW = 0, totalGW = 0, totalCBM = 0;
+
+  airCargoList.forEach(c => {
+    const cbm = (c.l && c.w && c.h) ? c.l * c.w * c.h * c.pcs / 1000000 : 0;
+    const vw  = (c.l && c.w && c.h) ? c.l * c.w * c.h * c.pcs / 6000    : 0;
+    totalCBM += cbm;
+    totalVW  += vw;
+    totalGW  += c.gw || 0;
+  });
+
+  totalCBM = Math.round(totalCBM * 1000) / 1000;
+  totalVW  = Math.round(totalVW  * 10)   / 10;
+  totalGW  = Math.round(totalGW  * 10)   / 10;
+  const totalCW = Math.max(totalVW, totalGW);
+
+  // 요약 블록 업데이트 (DOM 재생성 없이 텍스트만 변경)
+  const totalDiv = document.getElementById('air-cw-total');
+  if (totalDiv) {
+    totalDiv.style.display = (totalCBM || totalGW) ? '' : 'none';
+    const tvw  = document.getElementById('air-total-vw');
+    const tgw  = document.getElementById('air-total-gw');
+    const tcbm = document.getElementById('air-total-cbm');
+    const tcw  = document.getElementById('air-total-cw');
+    if (tvw)  tvw.textContent  = totalVW  ? `${totalVW.toFixed(1)} KG`   : '— KG';
+    if (tgw)  tgw.textContent  = totalGW  ? `${totalGW.toFixed(1)} KG`   : '— KG';
+    if (tcbm) tcbm.textContent = totalCBM ? `${totalCBM.toFixed(3)} CBM` : '— CBM';
+    if (tcw)  tcw.textContent  = totalCW  ? `${totalCW.toFixed(1)} KG`   : '— KG';
+  }
+
+  // 각 화물 행의 CBM/VW 표시 업데이트 (innerHTML 재생성 없이 개별 span만 변경)
+  airCargoList.forEach(c => {
+    const cbm = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
+    const vw  = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 6000 * 10) / 10 : 0;
+    const rowCw = Math.max(vw, c.gw);
+    const cbmEl = document.getElementById(`cargo-cbm-${c.id}`);
+    const vwEl  = document.getElementById(`cargo-vw-${c.id}`);
+    const cwEl  = document.getElementById(`cargo-cw-${c.id}`);
+    const pcsEl = document.getElementById(`cargo-pcs-${c.id}`);
+    if (cbmEl) cbmEl.textContent = cbm.toFixed(3);
+    if (vwEl)  vwEl.textContent  = vw ? vw.toFixed(1) + ' KG' : '—';
+    if (cwEl) {
+      cwEl.textContent = rowCw ? `${rowCw.toFixed(1)} KG` : '';
+      const badge = cwEl.nextElementSibling;
+      if (badge) badge.textContent = (vw >= c.gw && rowCw > 0) ? 'VW 적용' : (rowCw > 0 ? 'GW 적용' : '');
+    }
+    if (pcsEl) pcsEl.textContent = c.pcs > 1 ? `${c.pcs}PCS × ${c.gw ? (c.gw/c.pcs).toFixed(1)+'KG' : '—'}` : '';
+  });
+
+  // airState 업데이트
+  airState.cbm = totalCBM; airState.gw = totalGW;
   const cwInp = document.getElementById('air-cw');
-  if (cwInp && !cwInp.dataset.manual) cwInp.value = cw ? cw.toFixed(1) : '';
+  if (cwInp && !cwInp.dataset.manual) {
+    cwInp.value = totalCW ? totalCW.toFixed(1) : '';
+    airState.cw = totalCW;
+  }
+
+  // 전체 재렌더 요청 시 (화물 추가/삭제 시에만)
+  if (rerender) renderAirCargoList();
 }
+
+// 기존 단일화물 함수 — 하위 호환용 (샘플 로드 등에서 사용)
+function calcAirCW() { recalcAirTotalCW(); }
+function calcAirCWFromCBM() { recalcAirTotalCW(); }
 
 function onAirCWManual() {
   const cwInp = document.getElementById('air-cw');
@@ -4076,6 +4291,7 @@ function genAir() {
     dg:airDgOn,
     dgUn:document.getElementById('air-dg-un')?.value||'',
     dgClass:document.getElementById('air-dg-class')?.value||'',
+    remark: document.getElementById('air-remark')?.value.trim() || '',
   };
 
   document.getElementById('air-emp').style.display  = 'none';
@@ -4208,18 +4424,18 @@ function raqAir(S) {
           ${polAddr?`<div>· 출발지 주소: ${polAddr}</div>`:''}
           ${podAddr?`<div>· 도착지 주소: ${podAddr}</div>`:''}
           ${S.dg?`<div style="color:var(--rd);font-weight:600">· 위험물(DG) — ${S.dgUn?'UN No.'+S.dgUn+' / ':''}${S.dgClass||''}</div>`:''}
-          <div>· C.W. 기준: 부피중량(CBM×167)과 실중량(G.W.) 중 큰 값 적용</div>
+          <div>· C.W. 기준: 부피중량(L×W×H×PCS÷6,000, cm 기준)과 실중량(G.W.) 중 큰 값 적용</div>
           <div>· 항공 운임은 출항일 기준 환율 적용이며, 견적서는 발행일 기준 임의 환율 적용</div>
           <div>· 관/부가세 발생 시 화주 납부 조건</div>
           <div>· 적하보험 화주 가입 조건, 필요 시 운송사 측 가입 후 실비 정산</div>
           <div>· 기타 견적서 상 명시되지 않은 비용은 발생 시 사전 협의 후 진행</div>
+          ${S.remark?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd);color:var(--t1);font-weight:600;white-space:pre-wrap">· ${S.remark}</div>`:''}
         </div>
       </div>
       <div class="qft">
         <span class="vbadge">유효기간 ${S.validity}일 · ${addD(S.validity)}까지</span>
-        <div style="display:flex;gap:5px">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
           <button class="bsm" onclick="printAirQuote()">🖨 인쇄</button>
-          <button class="bsm pri" id="air-pdf-btn" onclick="exportAirPDF()">📥 PDF 저장</button>
           <button class="bsm" onclick="saveAirQuote()" style="background:#F0FAF4;color:#047857;border-color:#A7E3C8;font-weight:700">🗂 견적 저장</button>
         </div>
       </div>
@@ -4473,93 +4689,9 @@ async function genAirInternalAnalysis() {
 function printAirQuote() {
   const qs = document.querySelector('#air-tq .qs');
   if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
-
-  const html = `<!DOCTYPE html>
-<html lang="ko"><head>
-<meta charset="UTF-8">
-<title>Quotation Sheet (AIR) — LGL</title>
-<style>
-@page { size:A4 portrait; margin:12mm 14mm; }
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif;font-size:11pt;color:#1A1D2B;background:#fff;width:100%}
-.qshd{background:#0F1729!important;color:#fff!important;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start}
-.qshd *{color:#fff!important}
-.qsbody{padding:18px 22px}
-.qig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
-.ql2{font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#A0A6BE;margin-bottom:3px}
-.qv2{font-size:12pt;font-weight:600}.qsub2{font-size:10pt;color:#636880;margin-top:1px}
-.route{display:flex;align-items:center;background:#F4F5F8!important;border-radius:8px;padding:9px 14px;margin-bottom:16px}
-.rn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
-.ri{width:28px;height:28px;background:#fff;border:1px solid #E2E5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12pt}
-.rnm{font-size:10pt;font-weight:600}.rc{font-size:8pt;color:#A0A6BE}
-.ra{color:#A0A6BE;font-size:12pt;padding:0 5px;flex-shrink:0}
-.segblk{margin-bottom:14px;page-break-inside:avoid}
-.seghd{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:4px 4px 0 0;border:1px solid #E2E5EE;border-bottom:none}
-.segnum{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;color:#fff;flex-shrink:0}
-.segtit{font-size:10pt;font-weight:700}.segsub{font-size:9pt;color:#636880;margin-left:auto}
-table{width:100%;border-collapse:collapse;font-size:10pt;page-break-inside:avoid}
-th{background:#F4F5F8!important;padding:6px 9px;text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#636880;border:1px solid #E2E5EE}
-th:last-child,td:last-child{text-align:right}
-td{padding:7px 9px;border:1px solid #ECEEF5;color:#1A1D2B}
-tr:nth-child(even) td{background:#FAFBFD}
-.trt{background:#0F1729!important}.trt td{color:#fff!important;font-weight:700;font-size:11pt;border-color:#1E2D4A!important}
-.trs{background:#F4F5F8!important}.trs td{font-weight:600;font-size:9pt}
-.tdp{font-weight:700}
-.qft{margin-top:16px;padding-top:12px;border-top:1px solid #E2E5EE;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#A0A6BE}
-.vbadge{font-size:9pt;background:#FEF7EC;color:#A85D08;padding:3px 9px;border-radius:100px;font-weight:600}
-span[style*="background:var(--am-bg)"]{background:#FEF7EC!important;color:#A85D08!important;padding:1px 6px;border-radius:100px;font-size:8pt}
-span[style*="background:#ECEEF5"]{background:#ECEEF5!important;color:#636880!important;padding:1px 6px;border-radius:100px;font-size:8pt}
-</style>
-</head><body>${qs.outerHTML}</body></html>`;
-
-  const w = window.open('', '_blank', 'width=794,height=1123');
-  if (!w) { toast('팝업이 차단됐습니다. 팝업 허용 후 다시 시도하세요'); return; }
-  w.document.write(html);
-  w.document.close();
-  w.onload = () => { w.focus(); w.print(); };
+  openPrintWindow(qs.outerHTML, 'Quotation Sheet (AIR) — LGL');
 }
 
-// ── 항공 PDF 저장 ──
-async function exportAirPDF() {
-  const qs = document.querySelector('#air-tq .qs');
-  if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
-
-  const btn = document.getElementById('air-pdf-btn');
-  if (btn) { btn.textContent = '⏳ 생성 중...'; btn.style.pointerEvents = 'none'; }
-
-  const shipper = (document.getElementById('air-shipper')?.value || 'QUOTATION').replace(/[^a-zA-Z0-9가-힣]/g,'_');
-  const dateStr  = new Date().toISOString().slice(0,10).replace(/-/g,'');
-  const filename = `LGL_AIR_${dateStr}_${shipper}.pdf`;
-
-  const wrapper = document.createElement('div');
-  wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR","Segoe UI",sans-serif';
-  wrapper.innerHTML = qs.outerHTML;
-  document.body.appendChild(wrapper);
-
-  const qft = wrapper.querySelector('.qft');
-  if (qft) qft.style.display = 'none';
-
-  const opt = {
-    margin:      [10, 12, 10, 12],
-    filename:    filename,
-    image:       { type:'jpeg', quality:0.98 },
-    html2canvas: { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false, width:794 },
-    jsPDF:       { unit:'mm', format:'a4', orientation:'portrait', compress:true },
-    pagebreak:   { mode:['avoid-all','css','legacy'] },
-  };
-
-  try {
-    await html2pdf().set(opt).from(wrapper).save();
-    toast(`✓ PDF 저장 완료: ${filename}`);
-  } catch(e) {
-    console.error(e);
-    toast('⚠ PDF 생성 실패 — 인쇄(🖨) 기능을 이용해주세요');
-  }
-
-  document.body.removeChild(wrapper);
-  if (btn) { btn.textContent = '📥 PDF 저장'; btn.style.pointerEvents = ''; }
-}
 function saveAirQuote() {
   const airTqEl = document.getElementById('air-tq');
   if (!airTqEl || !airTqEl.innerHTML.trim()) {
@@ -4574,6 +4706,23 @@ function saveAirQuote() {
   if (input === null) return;
   const author = HIST_AUTHORS[parseInt(input)-1] || input.trim() || '미지정';
 
+  const airStateSnap = {
+    type: '항공',
+    shipper:  S.shipper,
+    item:     S.item,
+    inco:     S.inco,
+    validity: S.validity,
+    exRate:   document.getElementById('air-cur-0-rate')?.value || '',
+    pol:      document.getElementById('air-pol-input')?.value || '',
+    pod:      document.getElementById('air-pod-input')?.value || '',
+    polType:  airPortState.polType || 'CY',
+    podType:  airPortState.podType || 'CY',
+    cw: S.cw, gw: S.gw, cbm: S.cbm,
+    airCharges: JSON.parse(JSON.stringify(airCharges)),
+    remark: document.getElementById('air-remark')?.value || '',
+    dg: S.dg,
+  };
+
   const record = {
     id:      Date.now(),
     savedAt: new Date().toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
@@ -4585,7 +4734,9 @@ function saveAirQuote() {
     gp:      Math.round(S.gp),
     mr:      S.mr,
     type:    '항공',
+    val:     S.validity || 7,
     snapshot: airTqEl.innerHTML,
+    stateSnapshot: airStateSnap,
   };
 
   quoteHistory.unshift(record);
@@ -4597,6 +4748,9 @@ function saveAirQuote() {
 // ── 항공 switchMode 시 초기화 ──
 function initAirPanel() {
   if (airCharges[1].length === 0) initAirCharges();
+  // 화물 목록 초기화 (첫 진입 시 1개 추가)
+  if (airCargoList.length === 0) addAirCargo();
+  else { renderAirCargoList(); recalcAirTotalCW(); }
 }
 
 // ── 샘플 데이터 ──
@@ -4614,13 +4768,11 @@ function loadAirSample() {
   selectAirPort('pol','ICN','Incheon','South Korea','🇰🇷');
   selectAirPort('pod','LAX','Los Angeles','USA','🇺🇸');
 
-  // 치수/중량 (110×110×130, 10PCS, G.W. 5000)
-  document.getElementById('air-dl').value   = '110';
-  document.getElementById('air-dw').value   = '110';
-  document.getElementById('air-dh').value   = '130';
-  document.getElementById('air-dpcs').value = '10';
-  document.getElementById('air-gw').value   = '5000';
-  calcAirCW(); // → VW=2626.9KG, GW=5000KG → C.W.=5000KG
+  // 치수/중량 → 다중화물 형식으로 (110×110×130, 10PCS, G.W. 5000)
+  airCargoList = [];
+  airCargoSeq = 0;
+  addAirCargo({ l:110, w:110, h:130, pcs:10, gw:5000 });
+  // → VW = 110×110×130×10/6000 = 2626.7KG, GW = 5000KG → C.W. = 5000KG
 
   // 모든 섹션 열기
   ['as1b','as_curb','as2b','as3b','as4b'].forEach(id => {
@@ -4674,7 +4826,7 @@ function loadAirSample() {
 
 // ── switchMode에서 항공 패널 초기화 ──
 function switchMode(mode) {
-  ['ocean','air','bulk','history'].forEach(m => {
+  ['ocean','air','history'].forEach(m => {
     document.getElementById('mt-'  + m).classList.toggle('on', m === mode);
     document.getElementById('panel-' + m).style.display = m === mode ? '' : 'none';
   });
@@ -4727,6 +4879,28 @@ function saveCurrentQuote() {
 
   const snapshot = document.getElementById('tq')?.innerHTML || '';
 
+  // 불러오기용 stateSnapshot 수집
+  const stateSnapshot = {
+    type: '해상',
+    shipper: document.getElementById('shipper')?.value || '',
+    item:    document.getElementById('item')?.value || '',
+    inco:    document.getElementById('inco')?.value || '',
+    validity: document.getElementById('validity')?.value || '15',
+    exRate:  document.getElementById('cur-0-rate')?.value || '',
+    pol:     document.getElementById('pol-input')?.value || '',
+    pod:     document.getElementById('pod-input')?.value || '',
+    polType: portState.polType || 'CY',
+    podType: portState.podType || 'CY',
+    polAddr: document.getElementById('pol-addr-input')?.value || '',
+    podAddr: document.getElementById('pod-addr-input')?.value || '',
+    SC:      JSON.parse(JSON.stringify(SC)),
+    charges: JSON.parse(JSON.stringify(charges)),
+    remark:  document.getElementById('ocean-remark')?.value || '',
+    dg:      document.getElementById('dg-on')?.checked || false,
+    dgUn:    document.getElementById('dg-un')?.value || '',
+    dgClass: document.getElementById('dg-class')?.value || '',
+  };
+
   const record = {
     id:      Date.now(),
     savedAt: new Date().toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
@@ -4738,7 +4912,9 @@ function saveCurrentQuote() {
     gp: parseInt(gp.replace(/\D/g,''))||0,
     mr: parseFloat(mr)||0,
     type: '해상',
+    val: parseInt(document.getElementById('validity')?.value)||15,
     snapshot,
+    stateSnapshot,
   };
 
   quoteHistory.unshift(record);
@@ -4811,6 +4987,23 @@ function renderHistory() {
   const typeBadge = t => t==='해상'?'🚢':t==='항공'?'✈️':'📦';
   const mrColor = mr => mr >= 20 ? 'var(--gn)' : mr >= 10 ? 'var(--am)' : 'var(--rd)';
 
+  // ⑤ D-day 계산 함수
+  function getDdayBadge(r) {
+    if (!r.val || !r.savedAt) return '';
+    // savedAt 파싱 ("2026. 06. 23. 오후 02:30" 형식)
+    const raw = r.savedAt.replace(/오전|오후/g, '').replace(/\.\s*/g, '-').trim();
+    const saved = new Date(raw);
+    if (isNaN(saved)) return '';
+    const expire = new Date(saved.getTime() + r.val * 86400000);
+    const now    = new Date();
+    const diff   = Math.ceil((expire - now) / 86400000);
+
+    if (diff < 0)  return `<span style="background:#FEE2E2;color:#DC2626;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:4px">만료</span>`;
+    if (diff === 0) return `<span style="background:#FEF3C7;color:#D97706;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:4px">D-day</span>`;
+    if (diff <= 3)  return `<span style="background:#FEF3C7;color:#D97706;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:4px">D-${diff}</span>`;
+    return `<span style="background:#F0F2F7;color:var(--t3);font-size:9px;padding:1px 6px;border-radius:100px;margin-left:4px">D-${diff}</span>`;
+  }
+
   tbody.innerHTML = filtered.map((r,i) => `
     <tr style="cursor:pointer;transition:background .12s" onmouseover="this.style.background='#FAFBFD'" onmouseout="this.style.background=''" onclick="openHistDetail(${r.id})">
       <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;color:var(--t3);font-size:11px">${filtered.length-i}</td>
@@ -4835,8 +5028,11 @@ function renderHistory() {
       <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
         <span style="background:#EEF3FD;color:var(--ac);font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px">${r.author}</span>
       </td>
-      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;font-size:11px;color:var(--t3);white-space:nowrap">${r.savedAt}</td>
-      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6">
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;font-size:11px;color:var(--t3);white-space:nowrap">
+        ${r.savedAt}${getDdayBadge(r)}
+      </td>
+      <td style="padding:10px 14px;border-bottom:1px solid #F0F1F6;white-space:nowrap">
+        <button onclick="event.stopPropagation();loadQuoteFromHistory(${r.id})" style="padding:3px 8px;border:1px solid var(--ac);background:var(--ac-bg);color:var(--ac);border-radius:4px;font-size:10px;cursor:pointer;font-weight:700;margin-right:4px" title="이 견적 불러와서 수정">↩ 불러오기</button>
         <button onclick="event.stopPropagation();deleteHist(${r.id})" style="padding:3px 8px;border:1px solid var(--rd);background:#fff;color:var(--rd);border-radius:4px;font-size:10px;cursor:pointer">삭제</button>
       </td>
     </tr>`).join('');
@@ -4849,8 +5045,143 @@ function openHistDetail(id) {
   document.getElementById('hm-body').innerHTML = r.snapshot ||
     '<div style="padding:20px;text-align:center;color:var(--t3)">저장된 견적서 미리보기가 없습니다.</div>';
   document.getElementById('hm-del-btn').onclick  = () => { deleteHist(id); closeHistModal(); };
-  document.getElementById('hm-load-btn').onclick = () => { toast('견적 불러오기는 다음 버전에서 지원 예정입니다.'); };
+  document.getElementById('hm-load-btn').onclick = () => { closeHistModal(); loadQuoteFromHistory(id); };
   document.getElementById('hist-modal').style.display = 'flex';
+}
+
+// ① 견적 불러오기 모달 — 입력 패널 내 팝업
+function showLoadQuoteModal(filterType) {
+  // 해당 타입 견적만 필터
+  const list = filterType
+    ? quoteHistory.filter(r => r.type === filterType)
+    : quoteHistory;
+
+  if (!list.length) {
+    toast(`저장된 ${filterType ? filterType + ' ' : ''}견적이 없습니다. 먼저 견적을 생성·저장해주세요.`);
+    return;
+  }
+
+  const typeBadge = t => t==='해상'?'🚢':t==='항공'?'✈️':'📦';
+
+  const rows = list.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #F0F1F6;cursor:pointer;transition:background .12s"
+      onmouseover="this.style.background='#F4F7FF'" onmouseout="this.style.background=''"
+      onclick="document.getElementById('load-quote-overlay').style.display='none';loadQuoteFromHistory(${r.id})">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--t1)">${typeBadge(r.type)} ${r.shipper}</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:1px">${r.pol} → ${r.pod} · ${r.inco} · ${r.ctStr}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:12px">
+        <div style="font-size:12px;font-weight:800;color:var(--gn)">${fmt(r.gp)}원</div>
+        <div style="font-size:9px;color:var(--t3)">${r.author} · ${r.savedAt.slice(0,13)}</div>
+      </div>
+      <div style="margin-left:10px;color:var(--ac);font-size:16px;flex-shrink:0">›</div>
+    </div>`).join('');
+
+  // 기존 overlay 제거 후 새로 만들기
+  document.getElementById('load-quote-overlay')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'load-quote-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:var(--r16);width:520px;max-height:70vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--t1)">↩ 견적 불러오기</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">클릭하면 해당 견적의 입력값이 복원됩니다</div>
+        </div>
+        <button onclick="document.getElementById('load-quote-overlay').style.display='none'"
+          style="width:28px;height:28px;border:none;background:#F0F2F7;border-radius:6px;cursor:pointer;font-size:14px">✕</button>
+      </div>
+      <div style="overflow-y:auto;flex:1">${rows}</div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.style.display = 'none'; });
+  document.body.appendChild(overlay);
+}
+
+// ── 견적 불러오기 함수 ──
+function loadQuoteFromHistory(id) {
+  const r = quoteHistory.find(q => q.id === id);
+  if (!r?.stateSnapshot) {
+    toast('⚠ 이 견적은 불러오기 데이터가 없습니다 (구버전 저장)');
+    return;
+  }
+  const s = r.stateSnapshot;
+
+  if (s.type === '해상') {
+    switchMode('ocean');
+    setTimeout(() => {
+      // 기본 정보
+      if (s.shipper)  document.getElementById('shipper').value  = s.shipper;
+      if (s.item)     document.getElementById('item').value     = s.item;
+      if (s.inco)     document.getElementById('inco').value     = s.inco;
+      if (s.validity) document.getElementById('validity').value = s.validity;
+      if (s.exRate)   document.getElementById('cur-0-rate').value = s.exRate;
+      if (s.remark)   { const el = document.getElementById('ocean-remark'); if(el) el.value = s.remark; }
+
+      // POL/POD 텍스트
+      if (s.pol) { const el = document.getElementById('pol-input'); if(el) el.value = s.pol; }
+      if (s.pod) { const el = document.getElementById('pod-input'); if(el) el.value = s.pod; }
+
+      // portState 복원
+      portState.polType = s.polType || 'CY';
+      portState.podType = s.podType || 'CY';
+      const polTypeEl = document.getElementById('pol-type');
+      const podTypeEl = document.getElementById('pod-type');
+      if (polTypeEl) polTypeEl.value = s.polType || 'CY';
+      if (podTypeEl) podTypeEl.value = s.podType || 'CY';
+
+      // 주소
+      if (s.polAddr) { const el = document.getElementById('pol-addr-input'); if(el) el.value = s.polAddr; }
+      if (s.podAddr) { const el = document.getElementById('pod-addr-input'); if(el) el.value = s.podAddr; }
+
+      // 컨테이너 복원
+      if (s.SC && Object.keys(s.SC).length) {
+        Object.assign(SC, s.SC);
+        renderContainers?.();
+      }
+
+      // 구간별 요금 복원
+      if (s.charges) {
+        [1,2,3].forEach(seg => {
+          if (s.charges[seg]) {
+            charges[seg] = s.charges[seg];
+            renderCharges(seg);
+          }
+        });
+      }
+
+      toast(`✓ "${r.shipper}" 견적 불러오기 완료 — 내용 확인 후 수정하세요`, 4000);
+    }, 300);
+
+  } else if (s.type === '항공') {
+    switchMode('air');
+    setTimeout(() => {
+      if (s.shipper)  { const el = document.getElementById('air-shipper'); if(el) el.value = s.shipper; }
+      if (s.item)     { const el = document.getElementById('air-item');    if(el) el.value = s.item; }
+      if (s.inco)     { const el = document.getElementById('air-inco');    if(el) el.value = s.inco; }
+      if (s.validity) { const el = document.getElementById('air-validity'); if(el) el.value = s.validity; }
+      if (s.exRate)   { const el = document.getElementById('air-cur-0-rate'); if(el) el.value = s.exRate; }
+      if (s.remark)   { const el = document.getElementById('air-remark'); if(el) el.value = s.remark; }
+      if (s.pol)      { const el = document.getElementById('air-pol-input'); if(el) el.value = s.pol; }
+      if (s.pod)      { const el = document.getElementById('air-pod-input'); if(el) el.value = s.pod; }
+
+      // 무게/부피
+      if (s.gw)  { const el = document.getElementById('air-gw');  if(el) el.value = s.gw; }
+      if (s.cbm) { const el = document.getElementById('air-cbm'); if(el) el.value = s.cbm; }
+
+      // 항공 요금 복원
+      if (s.airCharges) {
+        [1,2,3].forEach(seg => {
+          if (s.airCharges[seg]) {
+            airCharges[seg] = s.airCharges[seg];
+            renderAirCharges?.(seg);
+          }
+        });
+      }
+      toast(`✓ "${r.shipper}" 항공 견적 불러오기 완료 — 내용 확인 후 수정하세요`, 4000);
+    }, 300);
+  }
 }
 
 function closeHistModal() {
@@ -5072,6 +5403,262 @@ async function loadSample() {
 
   toast('✨ 샘플 데이터가 입력됐습니다 — 견적서 생성 버튼을 눌러 확인해보세요!');
 }
+
+// ── 투어용 샘플 로드 (confirm 없이) ──
+async function loadSampleSilent() {
+  // loadSample의 confirm 부분만 건너뛰고 동일하게 실행
+  document.getElementById('shipper').value  = '(주)하이브';
+  document.getElementById('item').value     = 'Merchandise';
+  document.getElementById('validity').value = '15';
+  document.getElementById('inco').value     = 'EXW';
+  document.getElementById('dl').value   = '110';
+  document.getElementById('dw').value   = '110';
+  document.getElementById('dh').value   = '130';
+  document.getElementById('dpcs').value = '10';
+  calcCbm();
+  document.getElementById('gw').value        = '5000';
+  document.getElementById('cur-0-rate').value = '1531.0';
+  selectPort('pol', 'KRPUS', 'Busan', 'South Korea', '🇰🇷');
+  document.getElementById('pol-input').value = 'KRPUS — Busan, South Korea';
+  setPT('pol', 'CY');
+  selectPort('pod', 'USLAX', 'Los Angeles', 'USA', '🇺🇸');
+  document.getElementById('pod-input').value = 'USLAX — Los Angeles, USA';
+  setPT('pod', 'CY');
+  SC = {};
+  ['20DC','40HC'].forEach(t => {
+    if (!SC[t]) SC[t] = 0;
+    SC[t] = t === '20DC' ? 1 : 2;
+  });
+  refreshAllCtrInputs();
+  await new Promise(r => setTimeout(r, 200));
+}
+
+// ── 투어용 견적서 미리보기 모달 ──
+function showTourQuotePreview() {
+  const qs = document.querySelector('#tq .qs');
+  if (!qs) return;
+
+  document.getElementById('tour-preview-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'tour-preview-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:min(720px,95vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.3);overflow:hidden">
+      <!-- 헤더 -->
+      <div style="padding:14px 20px;background:#0F1729;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div style="color:#fff;font-size:13px;font-weight:700">📄 샘플 견적서 미리보기</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-size:10px;color:rgba(255,255,255,.5)">스크롤하면 인쇄/저장 버튼도 확인할 수 있어요</span>
+          <button onclick="document.getElementById('tour-preview-modal').remove()" style="width:26px;height:26px;border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:6px;cursor:pointer;font-size:13px">✕</button>
+        </div>
+      </div>
+      <!-- 견적서 스크롤 영역 -->
+      <div style="overflow-y:auto;padding:20px;flex:1">
+        ${qs.outerHTML}
+      </div>
+    </div>`;
+
+  // 배경 클릭 닫기
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// ══════════════════════════════════════════
+// 온보딩 투어
+// ══════════════════════════════════════════
+const TOUR_STEPS = [
+  {
+    icon: '👋',
+    title: '포워딩 견적 시스템에 오신 걸 환영합니다!',
+    body: '<p>롯데글로벌로지스 포워딩3팀 EPC파트 전용 견적 시스템이에요.</p><p>처음 사용하시는 분들을 위해 핵심 기능을 간단히 안내해 드릴게요.</p>',
+    target: null,
+  },
+  {
+    icon: '🗂',
+    title: '탭 소개 — 해상 · 항공 · History',
+    body: '<p>상단 탭에서 <b>🚢 해상 컨테이너</b>와 <b>✈️ 항공 견적</b>을 바로 작성할 수 있어요.</p><p><b>🗂 견적 History</b> 탭에서는 내가 작성한 견적과</p><p>팀원들의 견적 내역을 한눈에 조회하고 불러올 수 있습니다.</p>',
+    target: '.mode-bar',
+  },
+  {
+    icon: '🚢',
+    title: '화주 정보 & POL / POD 검색',
+    body: '<p>화주명, 품목, 인코텀즈를 입력한 뒤 POL(출발항)과 POD(도착항)을 검색하세요.</p><p>항구명 또는 <b>SCAC 코드</b>(KRPUS, USLAX 등)로 검색할 수 있어요.</p><p><b>DOOR</b> 선택 시 출발지·최종 도착지 주소도 직접 입력할 수 있습니다.</p>',
+    target: ['#pol-wrap', '#pod-wrap'],
+  },
+  {
+    icon: '💰',
+    title: '구간별 비용 — 기본 항목 자동 제공',
+    body: '<p>1구간(내륙) · 2구간(해상운임) · 3구간(도착지)에</p><p>THC, WFG, OFT, DOC FEE 등 <b>실무 기본 항목이 자동으로 채워져 있어요.</b></p><p><b>+ 항목 추가</b>로 늘리거나, <b>×</b>으로 불필요한 항목을 삭제할 수 있습니다.</p>',
+    target: ['#s2', '#s3', '#s4'],
+  },
+  {
+    icon: '🔍',
+    title: 'FAK 조회 — 운임 자동 입력',
+    body: '<p>2구간 상단의 <b>FAK 조회</b> 버튼을 누르면</p><p>현재 선사별 FAK 운임을 바로 확인할 수 있어요.</p><p>원하는 선사·컨타입 카드를 <b>클릭</b>하면</p><p>OFT 원가 칸에 즉시 자동 입력됩니다.</p>',
+    target: '#fak-btn',
+  },
+  {
+    icon: '📄',
+    title: '견적서 생성 · 인쇄 · 저장',
+    body: '<p>입력 완료 후 <b>✨ 견적서 생성</b> 버튼을 누르면</p><p>견적서와 수익 분석이 우측에 바로 생성돼요.</p><p><b>🖨 인쇄</b>를 눌러 PDF로도 저장할 수 있고,</p><p><b>🗂 견적 저장</b>을 누르면 History에 누적되어</p><p>팀원들과 함께 추후에도 지속 참고할 수 있습니다.</p><p style="margin-top:10px;padding:8px 12px;background:#F4F7FF;border-radius:8px;font-size:11px;color:var(--ac);font-weight:600">👇 아래에서 샘플 견적서를 미리 확인해보세요!</p>',
+    target: null,
+    onEnter: async function() {
+      // 샘플 데이터 로드 + 견적서 자동 생성
+      await loadSampleSilent();
+      await new Promise(r => setTimeout(r, 300));
+      gen();
+      await new Promise(r => setTimeout(r, 400));
+      showTourQuotePreview();
+    }
+  },
+];
+
+let tourIdx = 0;
+
+function startTour() {
+  tourIdx = 0;
+  document.getElementById('tour-overlay').style.display = 'block';
+  renderTourStep();
+}
+
+function endTour() {
+  document.getElementById('tour-overlay').style.display = 'none';
+  document.getElementById('tour-ring').style.opacity = '0';
+  document.getElementById('tour-preview-modal')?.remove();
+  if (_tourScrollHandler) {
+    window.removeEventListener('scroll', _tourScrollHandler, true);
+    window.removeEventListener('resize', _tourResizeHandler);
+    _tourScrollHandler = null;
+    _tourResizeHandler = null;
+  }
+}
+
+function tourStep(dir) {
+  tourIdx = Math.max(0, Math.min(TOUR_STEPS.length - 1, tourIdx + dir));
+  renderTourStep();
+}
+
+let _tourScrollHandler = null;
+let _tourResizeHandler = null;
+
+function renderTourStep() {
+  const step = TOUR_STEPS[tourIdx];
+  const total = TOUR_STEPS.length;
+
+  // 콘텐츠
+  document.getElementById('tour-step-icon').textContent  = step.icon;
+  document.getElementById('tour-step-title').textContent = step.title;
+  document.getElementById('tour-step-body').innerHTML    = step.body;
+  document.getElementById('tour-counter').textContent    = `${tourIdx + 1} / ${total}`;
+
+  // 진행 도트
+  document.getElementById('tour-dots').innerHTML = Array.from({length: total}, (_, i) =>
+    `<div style="width:${i===tourIdx?18:6}px;height:6px;border-radius:3px;background:${i===tourIdx?'var(--ac)':'#D1D5DB'};transition:all .25s"></div>`
+  ).join('');
+
+  // 버튼 상태
+  document.getElementById('tour-prev').style.opacity = tourIdx === 0 ? '0.3' : '1';
+  document.getElementById('tour-prev').style.pointerEvents = tourIdx === 0 ? 'none' : 'auto';
+  const nextBtn = document.getElementById('tour-next');
+  if (tourIdx === total - 1) {
+    nextBtn.textContent = '완료 ✓';
+    nextBtn.onclick = endTour;
+  } else {
+    nextBtn.textContent = '다음 →';
+    nextBtn.onclick = () => tourStep(1);
+  }
+
+  // 기존 스크롤/리사이즈 핸들러 제거
+  if (_tourScrollHandler) {
+    window.removeEventListener('scroll', _tourScrollHandler, true);
+    window.removeEventListener('resize', _tourResizeHandler);
+    _tourScrollHandler = null;
+    _tourResizeHandler = null;
+  }
+
+  // onEnter 콜백 실행 (있을 경우)
+  if (typeof step.onEnter === 'function') step.onEnter();
+
+  if (step.target) {
+    function positionTourElements() {
+      const targets = Array.isArray(step.target) ? step.target : [step.target];
+      const els = targets.map(t => document.querySelector(t)).filter(Boolean);
+      if (!els.length) return;
+
+      let minLeft = Infinity, minTop = Infinity, maxRight = -Infinity, maxBottom = -Infinity;
+      els.forEach(el => {
+        // 접힌 섹션은 .shd(헤더)만 보임 → .shd 기준으로 rect 계산
+        const target = el.querySelector('.shd') || el;
+        const r = target.getBoundingClientRect();
+        minLeft   = Math.min(minLeft,   r.left);
+        minTop    = Math.min(minTop,    r.top);
+        maxRight  = Math.max(maxRight,  r.right);
+        maxBottom = Math.max(maxBottom, r.bottom);
+      });
+
+      const vw = window.innerWidth, vh = window.innerHeight;
+      minLeft   = Math.max(2, minLeft);
+      minTop    = Math.max(2, minTop);
+      maxRight  = Math.min(vw - 2, maxRight);
+      maxBottom = Math.min(vh - 2, maxBottom);
+
+      const pad  = 5;
+      const ring = document.getElementById('tour-ring');
+      const bubble = document.getElementById('tour-bubble');
+
+      ring.style.cssText = `position:fixed;left:${minLeft-pad}px;top:${minTop-pad}px;width:${Math.max(0,maxRight-minLeft+pad*2)}px;height:${Math.max(0,maxBottom-minTop+pad*2)}px;border:3px solid #FBBF24;border-radius:10px;box-shadow:0 0 0 4px rgba(251,191,36,.25);pointer-events:none;transition:none;opacity:1;z-index:8002;`;
+
+      const bubbleW = 520;
+      const bubbleH = bubble.offsetHeight || 260;
+      const spaceBelow = vh - maxBottom;
+      const spaceAbove = minTop;
+      let top = spaceBelow >= bubbleH + 16
+        ? maxBottom + 12
+        : spaceAbove >= bubbleH + 16
+          ? minTop - bubbleH - 12
+          : 8;
+      const left = Math.min(Math.max(minLeft, 8), vw - bubbleW - 8);
+      bubble.style.left      = left + 'px';
+      bubble.style.top       = Math.max(8, top) + 'px';
+      bubble.style.transform = '';
+    }
+
+    const targets = Array.isArray(step.target) ? step.target : [step.target];
+    const firstEl = document.querySelector(targets[0]);
+    if (firstEl) firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(positionTourElements, 400);
+
+    positionTourElements();
+
+    // 스크롤·리사이즈 시 실시간 업데이트
+    _tourScrollHandler = positionTourElements;
+    _tourResizeHandler = positionTourElements;
+    window.addEventListener('scroll', _tourScrollHandler, true); // capture: 모든 스크롤 감지
+    window.addEventListener('resize', _tourResizeHandler);
+
+  } else {
+    // 타겟 없으면 링 숨기고 버블 중앙
+    const ring   = document.getElementById('tour-ring');
+    const bubble = document.getElementById('tour-bubble');
+    ring.style.opacity = '0';
+    bubble.style.position  = 'fixed';
+    bubble.style.left      = '50%';
+    bubble.style.top       = '50%';
+    bubble.style.transform = 'translate(-50%, -50%)';
+  }
+}
+
+function openHelp() {
+  document.getElementById('help-modal').style.display = 'flex';
+}
+
+// 닫기 (배경 클릭)
+document.getElementById('help-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
 // ── 사이트 접근 잠금 해제 ──
 const SITE_PASSWORD = '8312';
 let ANTHROPIC_API_KEY = '';
@@ -5082,7 +5669,6 @@ function unlockSite() {
   const inp = document.getElementById('site-pw-input');
 
   if (pw === SITE_PASSWORD) {
-    // API 키 저장
     const key = document.getElementById('site-apikey-input')?.value.trim() || '';
     if (key) ANTHROPIC_API_KEY = key;
 
@@ -5091,7 +5677,6 @@ function unlockSite() {
     lock.style.opacity = '0';
     setTimeout(() => {
       lock.style.display = 'none';
-      // 헤더 API 상태 업데이트
       const badge = document.getElementById('api-badge');
       if (badge) {
         if (ANTHROPIC_API_KEY) {
@@ -5105,7 +5690,9 @@ function unlockSite() {
           badge.onclick = promptApiKey;
         }
       }
-      document.getElementById('shipper')?.focus();
+        document.getElementById('shipper')?.focus();
+      // 입장할 때마다 온보딩 투어 자동 시작
+      setTimeout(startTour, 600);
     }, 400);
   } else {
     err.textContent = '⚠ 비밀번호가 올바르지 않습니다.';
