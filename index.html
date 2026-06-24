@@ -683,23 +683,30 @@ tr:hover td{background:#FAFBFD}
       </div>
     </div>
 
-    <!-- Cargo dims -->
+    <!-- 해상 다중 화물 입력 -->
     <div style="margin-top:7px">
-      <div class="flbl" style="margin-bottom:5px">화물 치수 &amp; 중량</div>
-      <div class="dims-row">
-        <div class="fd"><label>L (cm)</label><input type="number" id="dl" placeholder="0" min="0" oninput="calcCbm()"></div>
-        <div class="fd"><label>W (cm)</label><input type="number" id="dw" placeholder="0" min="0" oninput="calcCbm()"></div>
-        <div class="fd"><label>H (cm)</label><input type="number" id="dh" placeholder="0" min="0" oninput="calcCbm()"></div>
-        <div class="fd"><label>수량 (PCS)</label><input type="number" id="dpcs" placeholder="1" value="1" min="1" oninput="calcCbm()"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="flbl">화물 치수 &amp; 중량</div>
+        <button onclick="calcCLP()" style="padding:3px 10px;font-size:10px;font-weight:700;border:1px solid var(--ac);border-radius:100px;background:var(--ac-bg);color:var(--ac);cursor:pointer">📦 컨테이너 자동 산출</button>
       </div>
-      <div class="cbm-display" id="cbm-disp" style="display:none">
-        <span class="cbm-lbl">자동 계산 CBM</span>
-        <span class="cbm-val" id="cbm-val">—</span>
+
+      <!-- 화물 목록 -->
+      <div id="ocean-cargo-list"></div>
+
+      <button onclick="addOceanCargo()" style="width:100%;margin-top:6px;padding:7px;border:1.5px dashed var(--ac);border-radius:var(--r8);background:var(--ac-bg);color:var(--ac);font-size:11px;font-weight:700;cursor:pointer;transition:all .13s" onmouseover="this.style.background='#DCE9FF'" onmouseout="this.style.background='var(--ac-bg)'">
+        + 화물 추가
+      </button>
+
+      <!-- CLP 결과 블록 -->
+      <div id="clp-result" style="display:none;margin-top:10px;background:#F4F7FF;border:1.5px solid var(--ac);border-radius:var(--r8);padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--ac);margin-bottom:8px">📦 예상 컨테이너 구성 <span style="font-weight:400;color:var(--t3);font-size:10px">(경험칙 기반 추정 — 수기 수정 가능)</span></div>
+        <div id="clp-detail" style="font-size:11px;color:var(--t2);line-height:2;margin-bottom:8px"></div>
+        <button onclick="applyCLP()" style="width:100%;padding:8px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer">→ 컨테이너 구성에 자동 적용</button>
       </div>
-      <div class="fr c2" style="margin-top:6px">
-        <div class="fd"><label>CBM (직접 입력 가능)</label><input type="number" id="cbm" placeholder="0.000" min="0" step="0.001"></div>
-        <div class="fd"><label>Gross Weight (KG)</label><input type="number" id="gw" placeholder="0" min="0"></div>
-      </div>
+
+      <!-- 합계 (기존 CBM/GW 유지용 hidden inputs) -->
+      <input type="hidden" id="cbm" value="0">
+      <input type="hidden" id="gw" value="0">
     </div>
 
     <!-- Exchange rates -->
@@ -2698,7 +2705,299 @@ function gno(type='SEA'){
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200)}
 function tog(id){const b=document.getElementById(id+'b'),a=document.getElementById(id+'a');const o=b.classList.contains('o');b.classList.toggle('o',!o);a.classList.toggle('o',!o)}
 
-function calcCbm(){const l=parseFloat(document.getElementById('dl').value)||0,w=parseFloat(document.getElementById('dw').value)||0,h=parseFloat(document.getElementById('dh').value)||0,pcs=parseFloat(document.getElementById('dpcs').value)||1;if(l&&w&&h){const cbm=(l*w*h*pcs)/1000000;document.getElementById('cbm').value=cbm.toFixed(3);document.getElementById('cbm-val').textContent=cbm.toFixed(3)+' CBM';document.getElementById('cbm-disp').style.display='flex';}else{document.getElementById('cbm-disp').style.display='none';}}
+// ══════════════════════════════════════════
+// 해상 다중 화물 입력 & Container Loading Plan
+// ══════════════════════════════════════════
+
+// 컨테이너 내부 치수 기준 (cm / ton)
+const CTR_SPEC = {
+  '20DC': { maxL:589, maxW:235, maxH:239, maxCBM:33.0, maxGW:28000 },
+  '40DC': { maxL:1203, maxW:235, maxH:239, maxCBM:67.0, maxGW:26500 },
+  '40HC': { maxL:1203, maxW:235, maxH:269, maxCBM:76.0, maxGW:26500 },
+};
+const OOG_THRESHOLD = { L:590, W:236, H:270 }; // 이 이상이면 OOG
+
+let oceanCargoList = [];
+let oceanCargoSeq  = 0;
+let _clpPlan       = null; // 마지막 CLP 결과 저장
+
+function addOceanCargo(preset = {}) {
+  const id = ++oceanCargoSeq;
+  oceanCargoList.push({ id, name: preset.name||'', l: preset.l||0, w: preset.w||0, h: preset.h||0, pcs: preset.pcs||1, gw: preset.gw||0 });
+  renderOceanCargoList();
+}
+
+function removeOceanCargo(id) {
+  oceanCargoList = oceanCargoList.filter(c => c.id !== id);
+  if (oceanCargoList.length === 0) addOceanCargo();
+  else renderOceanCargoList();
+  document.getElementById('clp-result').style.display = 'none';
+}
+
+function updateOceanCargo(id, field, val) {
+  const c = oceanCargoList.find(c => c.id === id);
+  if (c) {
+    c[field] = (field === 'name') ? val : (parseFloat(val) || 0);
+    updateOceanCargoCalc(id);
+  }
+}
+
+function updateOceanCargoCalc(id) {
+  const c = oceanCargoList.find(c => c.id === id);
+  if (!c) return;
+  const cbm = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
+  const cbmEl = document.getElementById(`ocargo-cbm-${c.id}`);
+  const oogEl = document.getElementById(`ocargo-oog-${c.id}`);
+  if (cbmEl) cbmEl.textContent = cbm ? cbm.toFixed(3) + ' CBM' : '—';
+  const isOOG = c.l > OOG_THRESHOLD.L || c.w > OOG_THRESHOLD.W || c.h > OOG_THRESHOLD.H;
+  if (oogEl) {
+    oogEl.textContent  = isOOG ? '⚠ OOG' : '';
+    oogEl.style.color  = '#DC2626';
+    oogEl.style.fontWeight = '700';
+  }
+  // 전체 CBM/GW 합산 → hidden inputs 업데이트
+  const totCBM = oceanCargoList.reduce((a, x) => a + (x.l && x.w && x.h ? x.l*x.w*x.h*x.pcs/1000000 : 0), 0);
+  const totGW  = oceanCargoList.reduce((a, x) => a + (x.gw * x.pcs || 0), 0);
+  const cbmInp = document.getElementById('cbm'); if (cbmInp) cbmInp.value = totCBM.toFixed(3);
+  const gwInp  = document.getElementById('gw');  if (gwInp)  gwInp.value  = Math.round(totGW);
+}
+
+function renderOceanCargoList() {
+  const container = document.getElementById('ocean-cargo-list');
+  if (!container) return;
+
+  container.innerHTML = oceanCargoList.map((c, idx) => {
+    const cbm   = (c.l && c.w && c.h) ? Math.round(c.l*c.w*c.h*c.pcs/1000000*1000)/1000 : 0;
+    const isOOG = c.l > OOG_THRESHOLD.L || c.w > OOG_THRESHOLD.W || c.h > OOG_THRESHOLD.H;
+    return `<div style="background:#F9FAFB;border:1px solid var(--bd);border-radius:var(--r8);padding:10px 12px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+          <span style="font-size:11px;font-weight:700;color:var(--t2);flex-shrink:0">화물 ${idx+1}</span>
+          <input type="text" value="${c.name||''}" placeholder="품명 (선택)"
+            style="flex:1;padding:3px 7px;font-size:11px;border:1px solid var(--bd);border-radius:var(--r4);min-width:0;max-width:160px"
+            oninput="updateOceanCargo(${c.id},'name',this.value)">
+          <span id="ocargo-oog-${c.id}" style="font-size:9px;color:#DC2626;font-weight:700">${isOOG?'⚠ OOG':''}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span id="ocargo-cbm-${c.id}" style="font-size:10px;color:var(--t3)">${cbm?cbm.toFixed(3)+' CBM':'—'}</span>
+          ${oceanCargoList.length > 1 ? `<button onclick="removeOceanCargo(${c.id})" style="width:20px;height:20px;border:1px solid var(--rd);background:#fff;color:var(--rd);border-radius:4px;font-size:11px;cursor:pointer;line-height:1;padding:0">×</button>` : ''}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+        <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">L (cm)</div>
+          <input type="number" value="${c.l||''}" placeholder="0" min="0"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
+            oninput="updateOceanCargo(${c.id},'l',this.value)"></div>
+        <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">W (cm)</div>
+          <input type="number" value="${c.w||''}" placeholder="0" min="0"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
+            oninput="updateOceanCargo(${c.id},'w',this.value)"></div>
+        <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">H (cm)</div>
+          <input type="number" value="${c.h||''}" placeholder="0" min="0"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
+            oninput="updateOceanCargo(${c.id},'h',this.value)"></div>
+        <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">PCS</div>
+          <input type="number" value="${c.pcs||1}" placeholder="1" min="1"
+            style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
+            oninput="updateOceanCargo(${c.id},'pcs',this.value)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">G.W. per PCS (KG)</div>
+          <input type="number" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
+            style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
+            oninput="updateOceanCargo(${c.id},'gw',this.value)"></div>
+        <div style="font-size:10px;color:var(--t3);padding-top:16px">
+          총 중량: <b>${c.gw && c.pcs ? Math.round(c.gw*c.pcs).toLocaleString()+' KG' : '—'}</b>
+          ${isOOG ? '<br><span style="color:#DC2626;font-size:9px">컨테이너 규격 초과 — OOG 선적 검토</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Container Loading Plan 계산 ──
+function calcCLP() {
+  if (!oceanCargoList.length || oceanCargoList.every(c => !c.l && !c.w && !c.h)) {
+    toast('화물 치수를 먼저 입력해주세요');
+    return;
+  }
+
+  const plan   = [];  // [{ ctrType, items:[{cargo, reason}], cbmUsed, gwUsed }]
+  const oog    = [];  // OOG 화물
+  const normal = [];  // 일반 화물 (PCS별 분리)
+
+  // 화물을 PCS 단위로 분리
+  oceanCargoList.forEach(c => {
+    if (!c.l && !c.w && !c.h) return;
+    const isOOG = c.l > OOG_THRESHOLD.L || c.w > OOG_THRESHOLD.W || c.h > OOG_THRESHOLD.H;
+    const cbmPer = c.l && c.w && c.h ? c.l * c.w * c.h / 1000000 : 0;
+    const gwPer  = c.gw || 0;
+    const label  = c.name || `화물 ${oceanCargoList.indexOf(c)+1}`;
+
+    for (let i = 0; i < (c.pcs || 1); i++) {
+      if (isOOG) {
+        oog.push({ label, cbm: cbmPer, gw: gwPer, l: c.l, w: c.w, h: c.h, pcs: 1 });
+      } else {
+        normal.push({ label, cbm: cbmPer, gw: gwPer, l: c.l, w: c.w, h: c.h, pcs: 1, used: false });
+      }
+    }
+  });
+
+  // 일반 화물 → Greedy bin packing (큰 화물 먼저 40HC 시도 → 안되면 20DC)
+  normal.sort((a, b) => b.cbm - a.cbm);
+
+  const bins = []; // [{ type, items, cbmUsed, gwUsed }]
+
+  normal.forEach(cargo => {
+    if (cargo.used) return;
+
+    // 기존 bin에 합적 가능한지 확인
+    let placed = false;
+    for (const bin of bins) {
+      const spec = CTR_SPEC[bin.type];
+      const newCBM = bin.cbmUsed + cargo.cbm;
+      const newGW  = bin.gwUsed  + cargo.gw;
+      // CBM 70% 이내 & 중량 초과 안하면 합적
+      if (newCBM <= spec.maxCBM * 0.85 && newGW <= spec.maxGW) {
+        bin.items.push(cargo);
+        bin.cbmUsed += cargo.cbm;
+        bin.gwUsed  += cargo.gw;
+        cargo.used = true;
+        placed = true;
+        break;
+      }
+    }
+
+    if (!placed) {
+      // 새 컨테이너 생성 — 화물 크기로 타입 결정
+      let type = '40HC';
+      if (cargo.h <= CTR_SPEC['20DC'].maxH && cargo.l <= CTR_SPEC['20DC'].maxL &&
+          cargo.cbm <= CTR_SPEC['20DC'].maxCBM * 0.85 && cargo.gw <= CTR_SPEC['20DC'].maxGW) {
+        type = '20DC'; // 20' 로 충분한 경우
+      }
+      bins.push({ type, items: [cargo], cbmUsed: cargo.cbm, gwUsed: cargo.gw });
+      cargo.used = true;
+    }
+  });
+
+  // 결과 정리
+  _clpPlan = { bins, oog };
+
+  // 표시
+  let html = '';
+
+  // 일반 컨테이너
+  bins.forEach((bin, i) => {
+    const spec = CTR_SPEC[bin.type];
+    const cbmPct = spec.maxCBM > 0 ? Math.round(bin.cbmUsed / spec.maxCBM * 100) : 0;
+    const gwPct  = spec.maxGW  > 0 ? Math.round(bin.gwUsed  / spec.maxGW  * 100) : 0;
+    const barColor = cbmPct > 85 ? '#DC2626' : cbmPct > 60 ? '#F59E0B' : '#10B981';
+
+    // 화물 목록 (같은 label 그룹화)
+    const grouped = {};
+    bin.items.forEach(it => { grouped[it.label] = (grouped[it.label]||0) + 1; });
+    const itemStr = Object.entries(grouped).map(([l,n]) => n > 1 ? `${l}×${n}` : l).join(', ');
+
+    html += `<div style="margin-bottom:8px;padding:8px 10px;background:#fff;border:1px solid var(--bd);border-radius:var(--r8)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:800;color:var(--ac)">${bin.type} × 1</span>
+        <span style="font-size:10px;color:var(--t3)">${bin.cbmUsed.toFixed(2)} / ${spec.maxCBM} CBM (${cbmPct}%) · ${Math.round(bin.gwUsed).toLocaleString()} / ${spec.maxGW.toLocaleString()} KG (${gwPct}%)</span>
+      </div>
+      <div style="height:4px;background:#E5E7EB;border-radius:2px;margin-bottom:5px"><div style="height:4px;background:${barColor};border-radius:2px;width:${cbmPct}%;transition:width .3s"></div></div>
+      <div style="font-size:10px;color:var(--t2)">📦 ${itemStr}</div>
+    </div>`;
+  });
+
+  // OOG 화물
+  if (oog.length) {
+    const oogGrouped = {};
+    oog.forEach(it => { oogGrouped[it.label] = (oogGrouped[it.label]||0) + 1; });
+    const oogStr = Object.entries(oogGrouped).map(([l,n]) => n > 1 ? `${l}×${n}` : l).join(', ');
+    html += `<div style="margin-bottom:8px;padding:8px 10px;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--r8)">
+      <div style="font-size:12px;font-weight:800;color:#DC2626;margin-bottom:3px">⚠ OOG (컨테이너 규격 초과)</div>
+      <div style="font-size:10px;color:#7F1D1D">Flat Rack / Open Top 또는 Break Bulk 선적 검토 필요</div>
+      <div style="font-size:10px;color:#991B1B;margin-top:3px">📦 ${oogStr}</div>
+    </div>`;
+  }
+
+  // 합계
+  const totalCBM = bins.reduce((a,b) => a + b.cbmUsed, 0) + oog.reduce((a,b) => a + b.cbm, 0);
+  const totalGW  = bins.reduce((a,b) => a + b.gwUsed,  0) + oog.reduce((a,b) => a + b.gw,  0);
+  html += `<div style="font-size:10px;color:var(--t3);text-align:right;margin-top:2px">총 ${bins.length + (oog.length?1:0)}개 유닛 · ${totalCBM.toFixed(2)} CBM · ${Math.round(totalGW).toLocaleString()} KG</div>`;
+
+  document.getElementById('clp-detail').innerHTML = html;
+  document.getElementById('clp-result').style.display = '';
+}
+
+// ── CLP 결과를 컨테이너 구성에 적용 ──
+function applyCLP() {
+  if (!_clpPlan) return;
+
+  // ① 기존 선택 전체 초기화
+  Object.keys(SC).forEach(type => {
+    const key = type.replace(/[()]/g,'_');
+    const btn = document.getElementById('ctbtn-' + key);
+    if (btn) btn.classList.remove('on');
+  });
+  SC = {};
+
+  // ② CT_GROUPS groupId 빠른 조회 맵
+  const typeToGroup = {};
+  CT_GROUPS.forEach(g => g.types.forEach(t => { typeToGroup[t] = g.id; }));
+
+  // ③ bins 집계 → { type: qty }
+  const counts = {};
+  _clpPlan.bins.forEach(bin => { counts[bin.type] = (counts[bin.type] || 0) + 1; });
+
+  // ④ 타입별 SC 등록 + 버튼 on + 수량 반영
+  Object.entries(counts).forEach(([type, qty]) => {
+    const key     = type.replace(/[()]/g,'_');
+    const groupId = typeToGroup[type];
+    if (!groupId) return; // CT_GROUPS에 없는 타입은 skip
+
+    // 컨테이너 그룹 아코디언 열기
+    const body = document.getElementById('ctb-' + groupId);
+    const arr  = document.getElementById('ctarr-' + groupId);
+    if (body && !body.classList.contains('o')) {
+      body.classList.add('o');
+      if (arr) arr.classList.add('o');
+    }
+
+    // SC 등록 & 버튼 활성화
+    SC[type] = qty;
+    const btn = document.getElementById('ctbtn-' + key);
+    if (btn) btn.classList.add('on');
+
+    // groupId 카운트 업데이트
+    updateCtCount(groupId);
+  });
+
+  // ⑤ summary 렌더 → 수량 입력칸 생성
+  renderCtSummary();
+
+  // ⑥ 수량 inpute에 qty 반영 (renderCtSummary 후 DOM 생성됨)
+  Object.entries(counts).forEach(([type, qty]) => {
+    const key = type.replace(/[()]/g,'_');
+    const qEl = document.getElementById('cqn-' + key);
+    if (qEl) { qEl.value = qty; }
+    SC[type] = qty;
+  });
+
+  // ⑦ 구간 입력칸 갱신
+  refreshAllCtrInputs();
+
+  const summary = Object.entries(counts).map(([t,q]) => `${t}×${q}`).join(', ');
+  toast(`✓ 컨테이너 구성 적용 완료 — ${summary}`);
+  document.getElementById('clp-result').style.display = 'none';
+
+  // 컨테이너 섹션으로 스크롤
+  document.getElementById('s1')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 페이지 초기화 시 화물 1개 추가
+function initOceanCargo() {
+  if (oceanCargoList.length === 0) addOceanCargo();
+}
 
 // ── Generate ──
 function gen() {
@@ -5210,13 +5509,14 @@ async function loadSample() {
   document.getElementById('validity').value = '15';
   document.getElementById('inco').value    = 'EXW';
 
-  // ── 2. CBM / GW ──
-  document.getElementById('dl').value   = '110';
-  document.getElementById('dw').value   = '110';
-  document.getElementById('dh').value   = '130';
-  document.getElementById('dpcs').value = '10';
-  calcCbm();
-  document.getElementById('gw').value = '5000';
+  // ── 2. 다중 화물 (110×110×130, 10PCS, G.W. 500KG/PCS = 5000KG) ──
+  oceanCargoList = [];
+  oceanCargoSeq  = 0;
+  addOceanCargo({ name:'Merchandise', l:110, w:110, h:130, pcs:10, gw:500 });
+  const cbmInp = document.getElementById('cbm');
+  const gwInp  = document.getElementById('gw');
+  if (cbmInp) cbmInp.value = (110*110*130*10/1000000).toFixed(3);
+  if (gwInp)  gwInp.value  = '5000';
 
   // ── 3. 환율 ──
   document.getElementById('cur-0-rate').value = '1531.0';
@@ -5406,37 +5706,68 @@ async function loadSample() {
 
 // ── 투어용 샘플 로드 (confirm 없이) ──
 async function loadSampleSilent() {
-  // loadSample의 confirm 부분만 건너뛰고 동일하게 실행
-  document.getElementById('shipper').value  = '(주)하이브';
-  document.getElementById('item').value     = 'Merchandise';
-  document.getElementById('validity').value = '15';
-  document.getElementById('inco').value     = 'EXW';
-  document.getElementById('dl').value   = '110';
-  document.getElementById('dw').value   = '110';
-  document.getElementById('dh').value   = '130';
-  document.getElementById('dpcs').value = '10';
-  calcCbm();
-  document.getElementById('gw').value        = '5000';
+  // 기본 정보
+  document.getElementById('shipper').value   = '(주)하이브';
+  document.getElementById('item').value      = 'Merchandise';
+  document.getElementById('validity').value  = '15';
+  document.getElementById('inco').value      = 'EXW';
   document.getElementById('cur-0-rate').value = '1531.0';
+
+  // POL/POD
   selectPort('pol', 'KRPUS', 'Busan', 'South Korea', '🇰🇷');
   document.getElementById('pol-input').value = 'KRPUS — Busan, South Korea';
   setPT('pol', 'CY');
   selectPort('pod', 'USLAX', 'Los Angeles', 'USA', '🇺🇸');
   document.getElementById('pod-input').value = 'USLAX — Los Angeles, USA';
   setPT('pod', 'CY');
-  SC = {};
-  ['20DC','40HC'].forEach(t => {
-    if (!SC[t]) SC[t] = 0;
-    SC[t] = t === '20DC' ? 1 : 2;
+
+  // 다중 화물 — 110×110×130 10PCS 5000KG
+  oceanCargoList = [];
+  oceanCargoSeq  = 0;
+  addOceanCargo({ name:'Merchandise', l:110, w:110, h:130, pcs:10, gw:500 });
+  // hidden inputs 업데이트
+  const cbmInp = document.getElementById('cbm');
+  const gwInp  = document.getElementById('gw');
+  if (cbmInp) cbmInp.value = (110*110*130*10/1000000).toFixed(3);
+  if (gwInp)  gwInp.value  = '5000';
+
+  // 컨테이너: 20DC×1, 40HC×2
+  Object.keys(SC).forEach(t => {
+    const key = t.replace(/[()]/g,'_');
+    const btn = document.getElementById('ctbtn-' + key);
+    if (btn) btn.classList.remove('on');
   });
+  SC = { '20DC': 1, '40HC': 2 };
+  ['20DC','40HC'].forEach(type => {
+    const typeToGroup = {};
+    CT_GROUPS.forEach(g => g.types.forEach(t => { typeToGroup[t] = g.id; }));
+    const groupId = typeToGroup[type];
+    const body = document.getElementById('ctb-' + groupId);
+    const arr  = document.getElementById('ctarr-' + groupId);
+    if (body && !body.classList.contains('o')) { body.classList.add('o'); if (arr) arr.classList.add('o'); }
+    const key = type.replace(/[()]/g,'_');
+    const btn = document.getElementById('ctbtn-' + key);
+    if (btn) btn.classList.add('on');
+    updateCtCount(groupId);
+  });
+  renderCtSummary();
+  await new Promise(r => setTimeout(r, 100));
+  const dc = document.getElementById('cqn-20DC'); if (dc) { dc.value = 1; }
+  const hc = document.getElementById('cqn-40HC'); if (hc) { hc.value = 2; }
+  SC['20DC'] = 1; SC['40HC'] = 2;
+
   refreshAllCtrInputs();
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 300));
 }
 
 // ── 투어용 견적서 미리보기 모달 ──
 function showTourQuotePreview() {
-  const qs = document.querySelector('#tq .qs');
-  if (!qs) return;
+  const qs = document.querySelector('#tq .qs') || document.querySelector('#cont .qs');
+  if (!qs) {
+    // gen()이 아직 안 됐을 수 있으니 한 번 더 시도
+    setTimeout(showTourQuotePreview, 600);
+    return;
+  }
 
   document.getElementById('tour-preview-modal')?.remove();
 
@@ -5505,11 +5836,10 @@ const TOUR_STEPS = [
     body: '<p>입력 완료 후 <b>✨ 견적서 생성</b> 버튼을 누르면</p><p>견적서와 수익 분석이 우측에 바로 생성돼요.</p><p><b>🖨 인쇄</b>를 눌러 PDF로도 저장할 수 있고,</p><p><b>🗂 견적 저장</b>을 누르면 History에 누적되어</p><p>팀원들과 함께 추후에도 지속 참고할 수 있습니다.</p><p style="margin-top:10px;padding:8px 12px;background:#F4F7FF;border-radius:8px;font-size:11px;color:var(--ac);font-weight:600">👇 아래에서 샘플 견적서를 미리 확인해보세요!</p>',
     target: null,
     onEnter: async function() {
-      // 샘플 데이터 로드 + 견적서 자동 생성
       await loadSampleSilent();
-      await new Promise(r => setTimeout(r, 300));
       gen();
-      await new Promise(r => setTimeout(r, 400));
+      // gen() 렌더링 완료 대기 후 미리보기 표시
+      await new Promise(r => setTimeout(r, 800));
       showTourQuotePreview();
     }
   },
@@ -5777,11 +6107,14 @@ document.addEventListener('focusin', e => {
   if (e.target.type === 'number') e.target.select();
 });
 
+function calcCbm() { /* 다중화물 방식으로 대체 — 하위 호환 유지 */ }
+
 // ── Init ──
 buildCtAccordions();
 initCharges(1, DEFAULT_S1);
 initCharges(2, DEFAULT_S2);
 initCharges(3, DEFAULT_S3);
+initOceanCargo();
 </script>
 </body>
 </html>
