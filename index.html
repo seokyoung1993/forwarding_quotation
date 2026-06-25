@@ -435,7 +435,7 @@ tr:hover td{background:#FAFBFD}
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</span><span style="font-size:12px;color:var(--t1);line-height:1.6">POL / POD 검색 — 항구명 또는 코드로 검색, CY/DOOR 선택</span></div>
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</span><span style="font-size:12px;color:var(--t1);line-height:1.6">컨테이너 선택 — 타입 선택 후 수량 입력</span></div>
-          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span><span style="font-size:12px;color:var(--t1);line-height:1.6">구간별 원가·판가 입력 — 1구간(내륙) → 2구간(해상) → 3구간(도착)</span></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span><span style="font-size:12px;color:var(--t1);line-height:1.6">구간별 원가·판가 입력 — 1구간(선적지) → 2구간(해상) → 3구간(도착)</span></div>
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</span><span style="font-size:12px;color:var(--t1);line-height:1.6">FAK 조회 — 2구간 FAK 버튼 → 선사·SCAC 검색 → 카드 클릭으로 자동 입력</span></div>
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">5</span><span style="font-size:12px;color:var(--t1);line-height:1.6">✨ 견적서 생성 — 좌측 하단 플로팅 버튼 또는 입력 패널 하단 버튼</span></div>
         </div>
@@ -489,7 +489,7 @@ tr:hover td{background:#FAFBFD}
 
     <!-- 3) 문구 수정 -->
     <div style="font-size:12px;color:#6B7280;line-height:1.8;margin-bottom:4px">
-      본 시스템은 <strong style="color:#111827">포워딩3팀 허가받은 담당자</strong>만 접근 가능합니다.
+      본 시스템은 <strong style="color:#111827">허가받은 담당자</strong>만 접근 가능합니다.
     </div>
     <div style="height:1px;background:#F3F4F6;margin:16px 0"></div>
 
@@ -566,6 +566,9 @@ tr:hover td{background:#FAFBFD}
     </button>
     <button onclick="loadSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.background='#FFF3CC'" onmouseout="this.style.background='#FFFBEE'">
       ✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span>
+    </button>
+    <button onclick="clearOceanForm()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px solid #E5E7EB;border-radius:20px;background:#fff;color:#6B7280;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s" onmouseover="this.style.background='#F9FAFB';this.style.borderColor='#DC2626';this.style.color='#DC2626'" onmouseout="this.style.background='#fff';this.style.borderColor='#E5E7EB';this.style.color='#6B7280'">
+      🗑 전체 지우기
     </button>
   </div>
 </div>
@@ -902,6 +905,7 @@ tr:hover td{background:#FAFBFD}
       ↩ 견적 불러오기
     </button>
     <button onclick="loadAirSample()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px dashed #C9A227;border-radius:20px;background:#FFFBEE;color:#92710A;cursor:pointer">✨ 샘플 보기 <span style="font-size:9px;opacity:.7">(실제값 아님)</span></button>
+    <button onclick="clearAirForm()" style="padding:4px 11px;font-size:10px;font-weight:700;border:1.5px solid #E5E7EB;border-radius:20px;background:#fff;color:#6B7280;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#F9FAFB';this.style.borderColor='#DC2626';this.style.color='#DC2626'" onmouseout="this.style.background='#fff';this.style.borderColor='#E5E7EB';this.style.color='#6B7280'">🗑 전체 지우기</button>
   </div>
 </div>
 
@@ -5847,7 +5851,7 @@ const TOUR_STEPS = [
   {
     icon: '👋',
     title: '포워딩 견적 시스템에 오신 걸 환영합니다!',
-    body: '<p>롯데글로벌로지스 포워딩3팀 EPC파트 전용 견적 시스템이에요.</p><p>처음 사용하시는 분들을 위해 핵심 기능을 간단히 안내해 드릴게요.</p>',
+    body: '<p>롯데글로벌로지스 포워딩영업 전용 견적 시스템이에요.</p><p>처음 사용하시는 분들을 위해 핵심 기능을 간단히 안내해 드릴게요.</p>',
     target: null,
   },
   {
@@ -5865,7 +5869,7 @@ const TOUR_STEPS = [
   {
     icon: '💰',
     title: '구간별 비용 — 기본 항목 자동 제공',
-    body: '<p>1구간(내륙) · 2구간(해상운임) · 3구간(도착지)에</p><p>THC, WFG, OFT, DOC FEE 등 <b>실무 기본 항목이 자동으로 채워져 있어요.</b></p><p><b>+ 항목 추가</b>로 늘리거나, <b>×</b>으로 불필요한 항목을 삭제할 수 있습니다.</p>',
+    body: '<p>1구간(선적지) · 2구간(해상운임) · 3구간(도착지)에</p><p>THC, WFG, OFT, DOC FEE 등 <b>견적 기본 항목이 자동으로 채워져 있어요.</b></p><p><b>+ 항목 추가</b>로 늘리거나, <b>×</b>으로 불필요한 항목을 삭제할 수 있습니다.</p>',
     target: ['#s2', '#s3', '#s4'],
   },
   {
@@ -6150,6 +6154,102 @@ document.addEventListener('input', e => {
 document.addEventListener('focusin', e => {
   if (e.target.type === 'number') e.target.select();
 });
+
+// ── 해상 전체 지우기 ──
+function clearOceanForm() {
+  if (!confirm('입력된 내용을 모두 지울까요?')) return;
+
+  // 기본 정보
+  ['shipper','shipper-en','item','validity','ocean-remark'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('validity').value = '15';
+  document.getElementById('inco').value = 'EXW';
+  document.getElementById('cur-0-rate').value = '';
+
+  // POL/POD 초기화
+  portState.pol = null; portState.pod = null;
+  portState.polType = 'CY'; portState.podType = 'CY';
+  document.getElementById('pol-input').value = '';
+  document.getElementById('pod-input').value = '';
+  document.getElementById('pol-selected').style.display = 'none';
+  document.getElementById('pod-selected').style.display = 'none';
+  document.getElementById('pol-addr-wrap')?.style && (document.getElementById('pol-addr-wrap').style.display = 'none');
+  document.getElementById('pod-addr-wrap')?.style && (document.getElementById('pod-addr-wrap').style.display = 'none');
+
+  // 컨테이너 초기화
+  Object.keys(SC).forEach(t => {
+    const key = t.replace(/[()]/g,'_');
+    document.getElementById('ctbtn-'+key)?.classList.remove('on');
+  });
+  SC = {};
+  renderCtSummary();
+
+  // 화물 초기화
+  oceanCargoList = []; oceanCargoSeq = 0;
+  addOceanCargo();
+  document.getElementById('clp-result').style.display = 'none';
+
+  // 구간 초기화
+  initCharges(1, DEFAULT_S1);
+  initCharges(2, DEFAULT_S2);
+  initCharges(3, DEFAULT_S3);
+
+  // 결과 패널 초기화
+  document.getElementById('tq').innerHTML = '';
+  document.getElementById('emp').style.display = '';
+  document.getElementById('cont').style.display = 'none';
+
+  // DG 초기화
+  const dgEl = document.getElementById('dg-on');
+  if (dgEl && dgEl.checked) { dgEl.checked = false; dgEl.dispatchEvent(new Event('change')); }
+
+  toast('✓ 해상 견적 입력 내용이 초기화됐습니다');
+}
+
+// ── 항공 전체 지우기 ──
+function clearAirForm() {
+  if (!confirm('입력된 내용을 모두 지울까요?')) return;
+
+  // 기본 정보
+  ['air-shipper','air-item','air-validity','air-remark'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('air-validity').value = '7';
+  document.getElementById('air-inco').value = 'EXW';
+  document.getElementById('air-cur-0-rate').value = '';
+
+  // POL/POD 초기화
+  airPortState.pol = null; airPortState.pod = null;
+  airPortState.polType = 'CY'; airPortState.podType = 'CY';
+  document.getElementById('air-pol-input').value = '';
+  document.getElementById('air-pod-input').value = '';
+  document.getElementById('air-pol-selected').style.display = 'none';
+  document.getElementById('air-pod-selected').style.display = 'none';
+
+  // 화물 초기화
+  airCargoList = []; airCargoSeq = 0;
+  const cwInp = document.getElementById('air-cw');
+  if (cwInp) { cwInp.value = ''; delete cwInp.dataset.manual; }
+  addAirCargo();
+  document.getElementById('air-cw-total').style.display = 'none';
+  airState.cw = 0; airState.gw = 0; airState.cbm = 0;
+
+  // 구간 초기화
+  initAirCharges();
+
+  // DG 초기화
+  airDgOn = false;
+  const dgEl = document.getElementById('air-dg-on');
+  if (dgEl) { dgEl.checked = false; dgEl.dispatchEvent(new Event('change')); }
+
+  // 결과 패널 초기화
+  document.getElementById('air-tq').innerHTML = '';
+  document.getElementById('air-emp').style.display = '';
+  document.getElementById('air-cont').style.display = 'none';
+
+  toast('✓ 항공 견적 입력 내용이 초기화됐습니다');
+}
 
 function calcCbm() { /* 다중화물 방식으로 대체 — 하위 호환 유지 */ }
 
