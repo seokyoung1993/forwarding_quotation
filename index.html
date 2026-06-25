@@ -498,18 +498,7 @@ tr:hover td{background:#FAFBFD}
     <input type="password" id="site-pw-input" placeholder="" maxlength="20"
       style="width:100%;padding:12px 16px;border:2px solid #E5E7EB;border-radius:10px;font-size:16px;text-align:center;letter-spacing:8px;box-sizing:border-box;outline:none;transition:border-color .15s;margin-bottom:14px"
       onfocus="this.style.borderColor='#1A56DB'" onblur="this.style.borderColor='#E5E7EB'"
-      onkeydown="if(event.key==='Enter')document.getElementById('site-apikey-input').focus()">
-
-    <!-- 6) API Key -->
-    <div style="text-align:left;font-size:11px;font-weight:700;color:#374151;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
-      <span>Claude API Key <span style="font-weight:400;color:#9CA3AF">(AI 인사이트용 — 없어도 접속 가능)</span></span>
-      <a href="https://console.anthropic.com" target="_blank" style="font-size:10px;color:#1A56DB;text-decoration:none;font-weight:400;white-space:nowrap">발급받기 →</a>
-    </div>
-    <input type="password" id="site-apikey-input" placeholder="sk-ant-api03-xxxxxx"
-      style="width:100%;padding:12px 14px;border:2px solid #E5E7EB;border-radius:10px;font-size:11px;font-family:monospace;box-sizing:border-box;outline:none;transition:border-color .15s;margin-bottom:12px"
-      onfocus="this.style.borderColor='#1A56DB'" onblur="this.style.borderColor='#E5E7EB'"
       onkeydown="if(event.key==='Enter')unlockSite()">
-
 
     <div id="site-pw-err" style="font-size:11px;color:#DC2626;font-weight:600;margin-bottom:8px;min-height:18px"></div>
 
@@ -528,7 +517,7 @@ tr:hover td{background:#FAFBFD}
   <div class="logo">포워딩 견적 시스템</div>
   <div style="display:flex;gap:8px;align-items:center">
     <span class="hb">v0.4</span>
-    <span id="api-badge" style="font-size:9px;color:#F59E0B;padding:2px 8px;background:rgba(255,255,255,.07);border-radius:100px;cursor:pointer" onclick="promptApiKey()" title="클릭하여 API Key 입력">● AI 미연결</span>
+    <span id="api-badge" style="font-size:10px;color:#F59E0B;padding:3px 10px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:100px;cursor:pointer;transition:all .15s" onclick="promptApiKey()" title="클릭하여 Claude API Key 입력">⚡ AI Key 설정</span>
     <span style="font-size:10px;color:rgba(255,255,255,.35)">포워딩3팀 EPC파트</span>
     <button onclick="openHelp()" title="도움말" style="width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">?</button>
   </div>
@@ -3322,22 +3311,29 @@ async function rai(S){
   document.getElementById('ta').innerHTML = `
   <div style="padding:0 2px">
 
-    <!-- ① 화주 전달용 시황 브리핑 -->
+    <!-- ① 시황 브리핑 & 뉴스 검색 -->
     <div class="aic" style="margin-bottom:14px">
       <div class="aihd">
         <div class="aiico" style="background:#EEF3FD;color:#1A56DB">📢</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--t1)">화주 전달용 시황 브리핑</div>
-          <div style="font-size:10px;color:var(--t3)">${route} 구간 · 선사 SPACE / 운임 동향 / 항만 혼잡</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:var(--t1)">시황 브리핑 &amp; 뉴스 검색</div>
         </div>
         <button onclick="genShipperBriefing()" id="btn-briefing"
           style="margin-left:auto;padding:5px 13px;background:#1A56DB;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
-          생성하기
+          🔍 뉴스 검색
         </button>
       </div>
+      <!-- 키워드 입력 -->
+      <div style="padding:10px 14px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="briefing-keyword" placeholder="검색 키워드 (예: USLAX 운임 동향 / 부산항 혼잡 / 컨테이너 운임 / LA항 파업)"
+          style="flex:1;min-width:180px;padding:7px 10px;font-size:11px;border:1px solid var(--bd);border-radius:var(--r8)"
+          onkeydown="if(event.key==='Enter')genShipperBriefing()">
+        <button onclick="genShipperBriefing()" style="padding:6px 14px;background:#F4F7FF;color:var(--ac);border:1px solid var(--ac);border-radius:var(--r8);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔍 검색</button>
+      </div>
+      <div style="padding:4px 14px 8px;font-size:10px;color:var(--t3)">키워드 입력 후 검색 → 8개 물류 전문 뉴스 사이트 바로가기 · 비워두면 견적 구간 자동 추천 · 완전 무료</div>
       <div class="aibody">
         <div class="aiout" id="ao-briefing" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
-          버튼을 눌러 ${route} 구간 시황 분석을 생성하세요.
+          키워드를 입력하고 🔍 뉴스 검색을 눌러주세요.
         </div>
       </div>
     </div>
@@ -3348,7 +3344,7 @@ async function rai(S){
         <div class="aiico" style="background:#F0FDF4;color:#047857">🔒</div>
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--t1)">내부 수익성 분석</div>
-          <div style="font-size:10px;color:var(--t3)">마진 적정성 · 원가 절감 · 영업 전략 · 리스크</div>
+          <div style="font-size:10px;color:var(--t3)">8개 항목 · 견적 데이터 기반 심층 분석</div>
         </div>
         <button onclick="genInternalAnalysis()" id="btn-internal"
           style="margin-left:auto;padding:5px 13px;background:#047857;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
@@ -3368,181 +3364,270 @@ async function rai(S){
   window._aiS = S;
 }
 
-// ── ① 화주 전달용 시황 브리핑 생성 ──
-async function genShipperBriefing() {
-  const S = window._aiS;
-  if (!S) return;
-  const ctS    = Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
-  const polCode = S.pol.code || '—';
-  const podCode = S.pod.code || '—';
-  const polCity = S.pol.city || '';
-  const podCity = S.pod.city || '';
+// ── ① 시황 브리핑 & 뉴스 검색 ──
 
-  const btn = document.getElementById('btn-briefing');
-  const out = document.getElementById('ao-briefing');
-  btn.disabled = true;
-  btn.textContent = '생성 중...';
-  out.innerHTML = `<span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span>`;
 
-  const pr = `당신은 국제 포워딩/물류 업계 10년 경력의 시장 전문가입니다.
-아래 구간과 화물 정보를 바탕으로, 화주에게 전달할 수 있는 **물류 시황 브리핑**을 작성해주세요.
-화주 입장에서 의사결정에 도움이 되는 정보 위주로, 전문적이면서도 이해하기 쉽게 한국어로 작성하세요.
+// ══════════════════════════════════════════
+// 시황 브리핑 — 퀵링크 방식 (완전 무료)
+// 키워드 기반 구글뉴스 / 전문 미디어 검색 링크를 새 탭으로 열어줌
+// ══════════════════════════════════════════
 
-【견적 구간】 ${polCode}(${polCity}) → ${podCode}(${podCity})
-【인코텀즈】 ${S.inco}
-【컨테이너】 ${ctS}
-【화물】 ${S.item}
-【견적 환율】 1 USD = ${S.exRate ? S.exRate.toFixed(1) : '—'}원
-${S.dg ? `【위험물】 UN No.${S.dgUn} / Class ${S.dgClass}` : ''}
-${S.notes ? `【특이사항】 ${S.notes}` : ''}
+// 물류 전문 뉴스 사이트 목록
+const NEWS_SITES = [
+  { name: 'Google 뉴스',       icon: '🔍', color: '#4285F4',
+    url: kw => `https://news.google.com/search?q=${encodeURIComponent(kw)}&hl=ko&gl=KR` },
+  { name: '한국해운신문',       icon: '🚢', color: '#1A56DB',
+    url: kw => `https://www.klnews.co.kr/news/articleList.html?sc_word=${encodeURIComponent(kw)}` },
+  { name: '코리아쉬핑가제트',   icon: '📰', color: '#047857',
+    url: kw => `https://www.ksg.co.kr/news/main_newsView.jsp?pNum=&pageno=1&search=${encodeURIComponent(kw)}` },
+  { name: 'forwarder.kr',      icon: '📦', color: '#7C3AED',
+    url: kw => `https://www.forwarder.kr/search?query=${encodeURIComponent(kw)}` },
+  { name: 'FreightWaves',      icon: '🌐', color: '#DC2626',
+    url: kw => `https://www.freightwaves.com/news?s=${encodeURIComponent(kw)}` },
+  { name: 'Hellenic Shipping', icon: '⚓', color: '#0E7490',
+    url: kw => `https://www.hellenicshippingnews.com/?s=${encodeURIComponent(kw)}` },
+  { name: 'The Loadstar',      icon: '✈️', color: '#B45309',
+    url: kw => `https://theloadstar.com/?s=${encodeURIComponent(kw)}` },
+  { name: 'Splash247',         icon: '🌊', color: '#0369A1',
+    url: kw => `https://splash247.com/?s=${encodeURIComponent(kw)}` },
+];
 
-아래 항목들을 포함해서 브리핑을 작성해주세요. 각 항목은 소제목(##)으로 구분하고, bullet point(•)로 세부 내용을 작성해주세요:
-
-1. **해당 구간 운임 동향**
-   - 최근 운임이 상승/하락/보합 추세인지, 주요 원인
-   - PSS(성수기 할증), GRI(운임 인상) 등 예정된 부대비용 변동 예고
-   - 빠른 선적 확정 시 비용 절감 가능 여부
-
-2. **선사 SPACE 상황**
-   - 해당 구간 주요 선사들의 SPACE 여유 여부
-   - 예약 권장 시기 및 주의사항
-
-3. **도착 항만 현황** (${podCity || podCode})
-   - 현재 항만 혼잡도 및 예상 체류·대기 시간
-   - 혼잡으로 인한 추가 비용 발생 가능성 (Demurrage/Detention)
-
-4. **환율 리스크 안내**
-   - 현재 견적 기준 환율(USD/KRW) 및 변동 리스크
-   - 실제 정산 시 환율 차이 발생 가능성
-   - 환 헤지 또는 조기 확정 권고 여부
-
-5. **적하보험 가입 권고**
-   - 화물 특성상 보험 가입 필요성
-   - 미가입 시 손상·분실 리스크
-   - ${S.inco}조건 기준 화주의 보험 책임 범위
-
-6. **수입지 통관 및 규제 이슈** (${podCity || podCode} 기준)
-   - ISF(Importer Security Filing) / AMS(Advance Manifest) 제출 의무
-   - 해당 품목(${S.item}) 관련 수입 규제·인증 요건 여부
-   - 한-${S.pod.country || '수입국'} FTA 적용 가능 여부 및 원산지 증명서 준비 안내
-   - 최근 관세 정책 변동 사항 (해당되는 경우)
-
-7. **인코텀즈(${S.inco}) 기준 화주 책임 범위**
-   - ${S.inco} 조건에서 화주가 부담하는 구간과 비용 명확히 안내
-   - 책임 범위 오해로 인한 분쟁 예방 포인트
-
-8. **화주에게 권고하는 즉시 액션**
-   - 지금 당장 화주가 취해야 할 액션 2~3가지
-   - 확정 기한 또는 주의 시기
-
-전체 내용은 화주에게 직접 전달 가능한 수준으로 작성하되, 불필요한 기술 용어는 괄호로 설명을 추가해주세요.`;
-
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:2000,
-        messages:[{role:'user', content:pr}]})
-    });
-    const data = await r.json();
-    if (!r.ok) {
-      // API 오류 응답 처리
-      const errMsg = data.error?.message || data.error?.type || JSON.stringify(data);
-      out.textContent = `⚠ API 오류 (${r.status})\n\n${errMsg}`;
-      btn.disabled = false; btn.textContent = '재생성'; return;
-    }
-    const result = data.content?.map(c=>c.text||'').join('').trim();
-    out.textContent = result || '결과를 받지 못했습니다. 다시 시도해주세요.';
-  } catch(e) {
-    out.textContent = '⚠ 연결 오류\n\n' + (e.message || 'Claude API가 연결된 환경에서 사용 가능합니다.');
-  }
-  btn.disabled = false;
-  btn.textContent = '재생성';
+// 자동 키워드 조합
+function buildKeywords(userKw, polCode, podCode, mode) {
+  if (userKw) return [userKw, userKw + (mode==='air'?' air cargo freight':' container shipping')];
+  if (mode === 'air') return [
+    `${polCode} ${podCode} 항공운임`,
+    `항공화물 운임 동향 FSC`,
+    `${podCode} air freight rate`,
+    `air cargo rate ${new Date().getFullYear()}`,
+  ];
+  return [
+    `${polCode} ${podCode} 해상운임`,
+    `컨테이너 운임 동향`,
+    `${podCode} container shipping rate`,
+    `ocean freight rate ${new Date().getFullYear()}`,
+  ];
 }
 
-// ── ② 내부 수익성 분석 생성 ──
-async function genInternalAnalysis() {
+function renderQuickLinks(keywords, mode) {
+  const mainKw = keywords[0];
+
+  // 추천 검색어 태그
+  const kwTags = keywords.map(kw =>
+    `<button onclick="openNewsSearch('${kw.replace(/'/g,"\\'")}','${mode}')"
+      style="padding:4px 10px;border:1px solid var(--bd);border-radius:100px;background:#fff;font-size:11px;color:var(--t2);cursor:pointer;transition:all .13s;white-space:nowrap"
+      onmouseover="this.style.background='var(--ac-bg)';this.style.borderColor='var(--ac)';this.style.color='var(--ac)'"
+      onmouseout="this.style.background='#fff';this.style.borderColor='var(--bd)';this.style.color='var(--t2)'"
+    >${kw}</button>`
+  ).join('');
+
+  // 사이트별 링크 카드
+  const siteCards = NEWS_SITES.map(site =>
+    `<a href="${site.url(mainKw)}" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid var(--bd);border-radius:var(--r8);text-decoration:none;transition:all .13s"
+      onmouseover="this.style.borderColor='${site.color}';this.style.background='#F8FAFF'"
+      onmouseout="this.style.borderColor='var(--bd)';this.style.background='#fff'">
+      <span style="font-size:16px;flex-shrink:0">${site.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:11px;font-weight:700;color:var(--t1)">${site.name}</div>
+        <div style="font-size:10px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"${mainKw}" 검색</div>
+      </div>
+      <span style="font-size:10px;color:${site.color};font-weight:600;flex-shrink:0">열기 →</span>
+    </a>`
+  ).join('');
+
+  return `
+    <div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">추천 검색어</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${kwTags}</div>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">뉴스 사이트 바로가기 — <b style="color:var(--t1)">"${mainKw}"</b></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      ${siteCards}
+    </div>
+    <div style="margin-top:10px;padding:8px 12px;background:#F9FAFB;border-radius:var(--r8);font-size:10px;color:var(--t3)">
+      💡 버튼 클릭 시 해당 사이트에서 키워드 검색 결과가 새 탭으로 열립니다
+    </div>`;
+}
+
+function openNewsSearch(kw, mode) {
+  const briefingKwId = mode === 'air' ? 'air-briefing-keyword' : 'briefing-keyword';
+  const el = document.getElementById(briefingKwId);
+  if (el) el.value = kw;
+  if (mode === 'air') genAirShipperBriefing();
+  else genShipperBriefing();
+}
+
+// ── 해상 시황 브리핑 ──
+function genShipperBriefing() {
+  const S       = window._aiS;
+  const keyword = document.getElementById('briefing-keyword')?.value.trim() || '';
+  const btn     = document.getElementById('btn-briefing');
+  const out     = document.getElementById('ao-briefing');
+
+  btn.textContent = '재검색';
+
+  const polCode = S?.pol?.code || '부산';
+  const podCode = S?.pod?.code || '';
+  const keywords = buildKeywords(keyword, polCode, podCode, 'sea');
+
+  out.innerHTML = renderQuickLinks(keywords, 'sea');
+}
+
+// ── 항공 시황 브리핑 ──
+function genAirShipperBriefing() {
+  const S       = window._airS;
+  const keyword = document.getElementById('air-briefing-keyword')?.value.trim() || '';
+  const btn     = document.getElementById('air-btn-briefing');
+  const out     = document.getElementById('air-ao-briefing');
+
+  btn.textContent = '재검색';
+
+  const polCode = S?.pol?.code || '인천';
+  const podCode = S?.pod?.code || '';
+  const keywords = buildKeywords(keyword, polCode, podCode, 'air');
+
+  out.innerHTML = renderQuickLinks(keywords, 'air');
+}
+
+function genInternalAnalysis() {
   const S = window._aiS;
-  if (!S) return;
-  const ctS = Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
-  const mi  = [...S.d1,...S.d2,...S.d3]
-    .filter(c => c.price > 0 || c.priceKRW > 0)
-    .map(c => {
-      const pk = c.isCtype ? c.priceKRW : c.priceKRW * (c.per==='BL'?1:S.tc);
-      const ck = c.isCtype ? c.costKRW  : c.costKRW  * (c.per==='BL'?1:S.tc);
-      const margin = pk - ck;
-      return `  - ${c.name} [${c.per}/${c.mode}]: 원가 ${fmt(ck)}원 → 판가 ${fmt(pk)}원 (마진 ${fmt(margin)}원)`;
-    }).join('\n');
+  if (!S) { toast('견적서를 먼저 생성해주세요'); return; }
 
-  const seg1pct = S.gc>0 ? Math.round(S.t1.cost/S.gc*100) : 0;
-  const seg2pct = S.gc>0 ? Math.round(S.t2.cost/S.gc*100) : 0;
-  const seg3pct = S.gc>0 ? Math.round(S.t3.cost/S.gc*100) : 0;
-
-  const btn = document.getElementById('btn-internal');
   const out = document.getElementById('ao-internal');
-  btn.disabled = true;
-  btn.textContent = '생성 중...';
-  out.innerHTML = `<span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span>`;
-
-  const pr = `당신은 국제 포워딩 업계 10년 경력의 견적 전문가입니다.
-아래 견적 데이터를 분석해 영업사원이 내부적으로 참조할 수 있는 **수익성 분석 리포트**를 작성해주세요.
-각 항목은 bullet point(•)로 시작하고, 실무에 바로 활용 가능한 수준으로 한국어로 작성하세요.
-
-【견적 개요】
-• 화주: ${S.shipper}
-• 구간: ${S.pol.code||'—'}(${S.polType}) → ${S.pod.code||'—'}(${S.podType})
-• 인코텀즈: ${S.inco} / 화물: ${S.item} / 컨테이너: ${ctS}
-${S.cbm!=='—'?`• CBM: ${S.cbm} / GW: ${S.gw}KG`:''}
-${S.dg?`• ⚠ 위험물: UN No.${S.dgUn} Class ${S.dgClass}`:''}
-
-【수익 현황】
-• 총 원가: ${fmt(S.gc)}원 / 총 판가: ${fmt(S.gp)}원
-• 매출총이익: ${fmt(S.gm)}원 / 마진율: ${S.mr.toFixed(1)}%
-• 구간 원가 비중: 1구간 ${seg1pct}% / 2구간 ${seg2pct}% / 3구간 ${seg3pct}%
-
-【항목별 수익 내역】
-${mi || '없음'}
-
-${S.notes?`【특이사항】\n${S.notes}`:''}
-
-아래 4가지 항목을 분석해주세요:
-
-1. **마진율 적정성 평가** — ${S.mr.toFixed(1)}%가 해당 구간/인코텀즈에서 적정한지, 리스크 요인은 무엇인지
-2. **원가 구조 분석 및 절감 포인트** — 원가 비중이 높은 구간/항목과 절감 가능한 방법
-3. **수주 가능성 및 영업 전략** — 경쟁력 있는 포인트와 화주 설득 포인트
-4. **리스크 포인트** — 인코텀즈, DG, DOOR 조건, 환율, 유효기간 등 주의해야 할 사항`;
-
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:1400,
-        messages:[{role:'user', content:pr}]})
-    });
-    const data = await r.json();
-    if (!r.ok) {
-      const errMsg = data.error?.message || data.error?.type || JSON.stringify(data);
-      out.textContent = `⚠ API 오류 (${r.status})\n\n${errMsg}`;
-      btn.disabled = false; btn.textContent = '재생성'; return;
-    }
-    const result = data.content?.map(c=>c.text||'').join('').trim();
-    out.textContent = result || '결과를 받지 못했습니다. 다시 시도해주세요.';
-  } catch(e) {
-    out.textContent = '⚠ 연결 오류\n\n' + (e.message || 'Claude API가 연결된 환경에서 사용 가능합니다.');
-  }
-  btn.disabled = false;
+  const btn = document.getElementById('btn-internal');
   btn.textContent = '재생성';
+
+  const ctS     = Object.entries(S.SC).map(([k,v])=>`${k}×${v}`).join(', ');
+  const seg1pct = S.gc>0 ? (S.t1.cost/S.gc*100).toFixed(1) : 0;
+  const seg2pct = S.gc>0 ? (S.t2.cost/S.gc*100).toFixed(1) : 0;
+  const seg3pct = S.gc>0 ? (S.t3.cost/S.gc*100).toFixed(1) : 0;
+
+  // 항목별 마진
+  const items = [...(S.d1||[]),...(S.d2||[]),...(S.d3||[])].filter(c=>c.price>0||c.priceKRW>0).map(c=>{
+    const pk = c.isCtype ? c.priceKRW : c.priceKRW*(c.per==='BL'?1:S.tc||1);
+    const ck = c.isCtype ? c.costKRW  : c.costKRW *(c.per==='BL'?1:S.tc||1);
+    return {...c, pk, ck, margin:pk-ck, mr:pk>0?(pk-ck)/pk*100:0};
+  });
+
+  // ① 마진율 평가
+  const mr = S.mr;
+  const mrGrade = mr>=20?{label:'우수',color:'#10B981',icon:'🟢'}:mr>=12?{label:'양호',color:'#F59E0B',icon:'🟡'}:mr>=7?{label:'주의',color:'#F97316',icon:'🟠'}:{label:'위험',color:'#DC2626',icon:'🔴'};
+
+  // ② 원가 비중 가장 높은 구간
+  const segMax = seg2pct>=seg1pct&&seg2pct>=seg3pct?'2구간(해상운임)':seg1pct>=seg3pct?'1구간(선적지)':'3구간(도착지)';
+
+  // ③ 환율 리스크 시뮬
+  const ex = S.exRate||1400;
+  const gpUSD = S.gp/ex; const gcUSD = S.gc/ex;
+  const mr_up   = gpUSD>0?((gpUSD-gcUSD*(1+0.05))/gpUSD*100).toFixed(1):0; // 원가 5% 상승
+  const mr_down = gpUSD>0?((gpUSD-(gcUSD*(1-0.05)))/gpUSD*100).toFixed(1):0;
+  const mr_fx_up  = (S.gp - S.gc*(1+0.03))/(S.gp)*100; // 환율 3% 상승 시 원가 증가
+  const mr_fx_dn  = mr_fx_up>0?mr_fx_up.toFixed(1):0;
+
+  // ④ 저마진 항목
+  const lowItems = items.filter(i=>i.mr<5&&i.pk>0).map(i=>i.name);
+  // 고마진 항목
+  const highItems = items.filter(i=>i.mr>=25).map(i=>i.name);
+
+  // ⑤ 항목별 마진 테이블 HTML
+  const itemRows = items.map(c=>{
+    const color = c.mr>=20?'#10B981':c.mr>=10?'#F59E0B':'#DC2626';
+    const bar   = Math.max(0,Math.min(100,c.mr)).toFixed(0);
+    return `<tr>
+      <td style="padding:5px 8px;font-size:11px;color:var(--t1)">${c.name}</td>
+      <td style="padding:5px 8px;font-size:11px;text-align:right;color:var(--t3)">${fmt(c.ck)}원</td>
+      <td style="padding:5px 8px;font-size:11px;text-align:right;color:var(--t2)">${fmt(c.pk)}원</td>
+      <td style="padding:5px 8px;font-size:11px;text-align:right;font-weight:700;color:${color}">${c.mr.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+  out.innerHTML = `<div style="font-size:12px;line-height:1.9;color:var(--t2)">
+
+  <div style="background:#F4F7FF;border-radius:var(--r8);padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;text-align:center">
+    <div><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">총 원가</div><div style="font-size:14px;font-weight:800;color:var(--t1)">${fmt(S.gc)}원</div></div>
+    <div><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">총 판가</div><div style="font-size:14px;font-weight:800;color:var(--gn)">${fmt(S.gp)}원</div></div>
+    <div><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">이익</div><div style="font-size:14px;font-weight:800;color:var(--gn)">${fmt(S.gm)}원</div></div>
+    <div style="background:#fff;border-radius:6px;border:2px solid ${mrGrade.color}"><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">마진율</div><div style="font-size:14px;font-weight:800;color:${mrGrade.color}">${mr.toFixed(1)}% ${mrGrade.icon}</div></div>
+  </div>
+
+  <b style="color:var(--t1)">① 마진율 적정성 — ${mrGrade.label} (${mr.toFixed(1)}%)</b><br>
+  ${mr>=20?'✅ 업계 권장 마진(20% 이상) 충족. 가격 경쟁력을 유지하면서 추가 할인 여지가 있습니다.':mr>=12?`⚠ 양호 수준이나 목표 마진(20%)까지 ${(20-mr).toFixed(1)}%p 부족. 추가 비용 발생 시 수익성이 저하될 수 있습니다.`:mr>=7?`🔶 주의 구간. 운임 인상·환율 변동 발생 시 수익성 적자 전환 리스크가 높습니다. 판가 인상 또는 원가 절감 검토 필요.`:`🚨 위험 수준. 즉각적인 원가 재검토 또는 판가 재협상이 필요합니다.`}
+  <br><br>
+
+  <b style="color:var(--t1)">② 구간별 원가 구조</b><br>
+  • 1구간(선적지): <b>${seg1pct}%</b> (${fmt(S.t1.cost)}원) / 2구간(해상운임): <b>${seg2pct}%</b> (${fmt(S.t2.cost)}원) / 3구간(도착지): <b>${seg3pct}%</b> (${fmt(S.t3.cost)}원)<br>
+  • 원가 집중 구간: <b>${segMax}</b> — 이 구간 협상·최적화가 수익성 개선에 가장 효과적입니다.
+  ${parseFloat(seg2pct)>60?'<br>• ⚠ 2구간 비중이 60% 초과 — 선사 협상 또는 FAK 재검토를 권장합니다.':''}
+  <br><br>
+
+  <b style="color:var(--t1)">③ 수익 리스크 시뮬레이션</b><br>
+  <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:4px">
+    <tr style="background:#F4F5F8"><th style="padding:5px 8px;text-align:left;font-weight:600">시나리오</th><th style="padding:5px 8px;text-align:right">예상 마진율</th><th style="padding:5px 8px;text-align:right">변화</th></tr>
+    <tr><td style="padding:5px 8px">현재 (기준)</td><td style="padding:5px 8px;text-align:right;font-weight:700">${mr.toFixed(1)}%</td><td style="padding:5px 8px;text-align:right">—</td></tr>
+    <tr style="background:#FEF9EC"><td style="padding:5px 8px">운임 5% 인상 시</td><td style="padding:5px 8px;text-align:right;color:#DC2626;font-weight:700">${mr_up}%</td><td style="padding:5px 8px;text-align:right;color:#DC2626">▼ ${(mr-mr_up).toFixed(1)}%p</td></tr>
+    <tr style="background:#F0FDF4"><td style="padding:5px 8px">운임 5% 절감 시</td><td style="padding:5px 8px;text-align:right;color:#10B981;font-weight:700">${mr_down}%</td><td style="padding:5px 8px;text-align:right;color:#10B981">▲ ${(mr_down-mr).toFixed(1)}%p</td></tr>
+    <tr style="background:#FEF9EC"><td style="padding:5px 8px">환율 3% 상승 시 (원가 증가)</td><td style="padding:5px 8px;text-align:right;color:#DC2626;font-weight:700">${mr_fx_dn}%</td><td style="padding:5px 8px;text-align:right;color:#DC2626">▼ ${(mr-mr_fx_dn).toFixed(1)}%p</td></tr>
+  </table>
+  <br>
+
+  <b style="color:var(--t1)">④ 항목별 마진 상세</b>
+  <table style="width:100%;border-collapse:collapse;margin-top:6px">
+    <tr style="background:#F4F5F8"><th style="padding:5px 8px;font-size:10px;text-align:left">항목</th><th style="padding:5px 8px;font-size:10px;text-align:right">원가</th><th style="padding:5px 8px;font-size:10px;text-align:right">판가</th><th style="padding:5px 8px;font-size:10px;text-align:right">마진율</th></tr>
+    ${itemRows}
+  </table>
+  ${lowItems.length?`<div style="margin-top:6px;font-size:11px;color:#DC2626">⚠ 저마진 항목(5% 미만): ${lowItems.join(', ')}</div>`:''}
+  ${highItems.length?`<div style="margin-top:4px;font-size:11px;color:#10B981">✅ 고마진 항목(25% 이상): ${highItems.join(', ')}</div>`:''}
+  <br>
+
+  <b style="color:var(--t1)">⑤ 인코텀즈(${S.inco}) 수익성 영향</b><br>
+  ${{
+    'EXW':'• EXW 조건: 화주가 선적지부터 전 구간 비용 부담 → 1구간(선적지 트럭킹·통관) 원가 발생<br>• 포워더 개입 범위가 넓어 추가 서비스 제공 기회가 큰 조건입니다.',
+    'FOB':'• FOB 조건: 화주가 수출통관·선적지 비용 직접 부담 → 1구간 원가가 낮음<br>• 포워더는 주로 해상·도착지 구간만 담당하여 마진 구조가 단순합니다.',
+    'CIF':'• CIF 조건: 포워더가 해상운임·보험 포함 → 운임 변동 리스크 포워더 부담<br>• 운임 상승 시 마진 직격. 유효기간 내 운임 고정 필요.',
+    'CFR':'• CFR 조건: 포워더가 해상운임 부담 → 운임 변동 리스크 직접 노출<br>• FAK 운임 확정 후 견적 발행 권장.',
+    'DAP':'• DAP 조건: 도착지 국내 운송까지 포워더 부담 → 3구간 원가 비중 높음<br>• 현지 파트너사 원가 변동 모니터링 필요.',
+    'DDP':'• DDP 조건: 관세·세금 포함 전 구간 포워더 부담 → 통관 지연·추가 비용 리스크 최대<br>• 마진 버퍼를 충분히 확보해야 하는 조건.'
+  }[S.inco]||`• ${S.inco} 조건: 견적서 범위에 맞게 구간별 원가가 반영되었습니다.`}
+  <br><br>
+
+  <b style="color:var(--t1)">⑥ 컨테이너 구성 (${ctS}) 적정성</b><br>
+  ${Object.entries(S.SC).map(([t,q])=>{
+    const spec={'20DC':{cbm:33,gw:28000},'40DC':{cbm:67,gw:26500},'40HC':{cbm:76,gw:26500},'45HC':{cbm:86,gw:26000}};
+    const sp = spec[t];
+    if(!sp) return '';
+    const totalCBM = parseFloat(S.cbm||0);
+    const totalGW  = parseFloat(S.gw||0);
+    const cbmUtil = sp&&totalCBM>0?Math.round(totalCBM/(sp.cbm*q)*100):0;
+    const gwUtil  = sp&&totalGW >0?Math.round(totalGW/(sp.gw*q)*100):0;
+    const util = Math.max(cbmUtil,gwUtil);
+    const uColor = util>=80?'#10B981':util>=50?'#F59E0B':'#DC2626';
+    return `• ${t}×${q}: 적재율 CBM ${cbmUtil}% / GW ${gwUtil}% <span style="color:${uColor};font-weight:700">(${util>=80?'✅ 양호':util>=50?'⚠ 보통':'⚠ 여유 과다'})</span>`;
+  }).join('<br>')}
+  <br><br>
+
+  <b style="color:var(--t1)">⑦ 수주 전략 & 협상 포인트</b><br>
+  ${mr>=15?'• 현재 마진율은 경쟁력 있는 수준입니다. 가격보다 서비스 차별화(빠른 선적, 전담 CS)를 강조하세요.':'• 마진 개선을 위해 FAK 재협상 또는 복수 선사 비교 견적을 먼저 진행하세요.'}
+  <br>• 화주 관심 포인트: 유효기간 <b>${S.val}일</b> — 기간 내 확정 유도 멘트가 효과적입니다.
+  <br>• 인코텀즈 <b>${S.inco}</b> 조건 변경 시 추가 서비스 제안 가능 여부를 검토해보세요.
+  <br><br>
+
+  <b style="color:var(--t1)">⑧ 즉시 액션 리스트</b><br>
+  ${mr<10?'🔴 1순위: 원가 재검토 또는 판가 인상 협의 — 현재 마진이 위험 수준입니다.<br>':''}\
+  ${parseFloat(seg2pct)>60?'🟡 2구간 FAK 운임 재협상 또는 대안 선사 검토<br>':''}
+  • 유효기간 ${S.val}일 — 화주에게 <b>${S.val}일 이내 확정</b> 요청 메시지 발송
+  • 환율 기준 ${ex.toFixed(0)}원 — 환율 변동 ±3% 이상 시 견적 재발행 조건 안내
+  ${S.dg?'• ⚠ DG 화물 — 선사 DG 승인 사전 요청 및 추가 서차지 확인 필수<br>':''}
+  ${S.polType==='DOOR'||S.podType==='DOOR'?'• DOOR 조건 — 실제 트럭킹 원가 재확인 (주소·거리 기준)<br>':''}
+  • 견적 저장 후 History에 보관 → 추후 유사 건 불러오기로 재활용
+
+  <div style="margin-top:12px;padding:8px 12px;background:#FEF9EC;border-radius:var(--r8);font-size:10px;color:#92400E">
+    ⚠ 본 분석은 입력된 견적 데이터 기반 자동 산출 결과입니다. 실제 영업 판단에는 시장 상황·화주 특성을 종합적으로 고려하세요.
+  </div>
+</div>`;
 }
+
+
 
 // ── Print: 새 창에서 견적서만 출력 ──
 function printQuote() {
@@ -4905,18 +4990,24 @@ function raiAir(S) {
     <div class="aic" style="margin-bottom:14px">
       <div class="aihd">
         <div class="aiico" style="background:#EEF3FD;color:#1A56DB">📢</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--t1)">화주 전달용 항공 시황 브리핑</div>
-          <div style="font-size:10px;color:var(--t3)">${route} · 항공사 SPACE / 운임 동향 / 공항 혼잡</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:var(--t1)">시황 브리핑 &amp; 뉴스 검색</div>
         </div>
         <button onclick="genAirShipperBriefing()" id="air-btn-briefing"
           style="margin-left:auto;padding:5px 13px;background:#1A56DB;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
-          생성하기
+          🔍 뉴스 검색
         </button>
       </div>
+      <div style="padding:10px 14px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" id="air-briefing-keyword" placeholder="검색 키워드 (예: ICN-LAX 항공운임 / FSC 동향 / 인천공항 혼잡)"
+          style="flex:1;min-width:180px;padding:7px 10px;font-size:11px;border:1px solid var(--bd);border-radius:var(--r8)"
+          onkeydown="if(event.key==='Enter')genAirShipperBriefing()">
+        <button onclick="genAirShipperBriefing()" style="padding:6px 14px;background:#F4F7FF;color:var(--ac);border:1px solid var(--ac);border-radius:var(--r8);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔍 검색</button>
+      </div>
+      <div style="padding:4px 14px 8px;font-size:10px;color:var(--t3)">키워드 입력 후 검색 → 8개 물류 전문 뉴스 사이트 바로가기 · 비워두면 견적 구간 자동 추천 · 완전 무료</div>
       <div class="aibody">
         <div class="aiout" id="air-ao-briefing" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
-          버튼을 눌러 ${route} 항공 시황 분석을 생성하세요.
+          키워드를 입력하고 🔍 뉴스 검색을 눌러주세요.
         </div>
       </div>
     </div>
@@ -4925,7 +5016,7 @@ function raiAir(S) {
         <div class="aiico" style="background:#F0FDF4;color:#047857">🔒</div>
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--t1)">내부 수익성 분석</div>
-          <div style="font-size:10px;color:var(--t3)">마진 적정성 · C.W. 최적화 · 영업 전략 · 리스크</div>
+          <div style="font-size:10px;color:var(--t3)">8개 항목 · 견적 데이터 기반 심층 분석</div>
         </div>
         <button onclick="genAirInternalAnalysis()" id="air-btn-internal"
           style="margin-left:auto;padding:5px 13px;background:#047857;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
@@ -4941,128 +5032,112 @@ function raiAir(S) {
   </div>`;
 }
 
-async function genAirShipperBriefing() {
-  const S = window._airS; if (!S) return;
-  const btn = document.getElementById('air-btn-briefing');
-  const out = document.getElementById('air-ao-briefing');
-  btn.disabled=true; btn.textContent='생성 중...';
-  out.innerHTML=`<span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span>`;
-  const pr = `국제 항공 포워딩 10년 경력 전문가로서, 화주에게 전달할 항공 물류 시황 브리핑을 작성해주세요.
 
-【구간】 ${S.pol.code}(${S.pol.city}) → ${S.pod.code}(${S.pod.city})
-【화물】 ${S.item} / C.W. ${S.cw}KG / 인코텀즈 ${S.inco}
-${S.dg?`【위험물】 UN No.${S.dgUn} Class ${S.dgClass}`:''}
-
-1. **항공 운임 동향** — 현재 해당 구간 운임 추세, Fuel Surcharge 변동
-2. **항공사 SPACE 상황** — 주요 항공사 탑재 여유, 예약 권장 시기
-3. **도착 공항 현황** (${S.pod.city}) — 혼잡도, 통관 소요 시간
-4. **부대비용 변동 예고** — FSC/SSC 인상 예정 여부
-5. **적하보험 및 인코텀즈(${S.inco}) 책임 범위**
-6. **수입지 통관 규제** — ${S.pod.country} 기준 해당 품목 규제
-7. **화주 즉시 액션 권고** 2~3가지
-
-각 항목은 ##소제목과 bullet point(•)로 작성해주세요.`;
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:pr}]})});
-    const data=await r.json();
-    if(!r.ok){out.textContent=`⚠ API 오류 (${r.status})\n${data.error?.message||''}`;return;}
-    out.textContent=data.content?.map(c=>c.text||'').join('').trim()||'결과를 받지 못했습니다.';
-  }catch(e){out.textContent='⚠ 연결 오류\n'+e.message;}
-  btn.disabled=false; btn.textContent='재생성';
-}
-
-async function genAirInternalAnalysis() {
-  const S = window._airS; if (!S) return;
-  const btn = document.getElementById('air-btn-internal');
-  const out = document.getElementById('air-ao-internal');
-  btn.disabled=true; btn.textContent='생성 중...';
-  out.innerHTML=`<span style="color:var(--t2)">분석 중 </span><span class="dots"><span></span><span></span><span></span></span>`;
-  const pr = `항공 포워딩 견적 전문가로서 내부 수익성 분석 리포트를 작성해주세요.
-
-【개요】 ${S.pol.code} → ${S.pod.code} / ${S.item} / C.W. ${S.cw}KG / ${S.inco}
-【수익】 원가 ${Math.round(S.gc).toLocaleString()}원 / 판가 ${Math.round(S.gp).toLocaleString()}원 / 마진율 ${S.mr.toFixed(1)}%
-
-1. **마진율 ${S.mr.toFixed(1)}% 적정성** — 항공 구간 기준 평가
-2. **C.W. 최적화** — 현재 C.W. ${S.cw}KG 기준 비용 절감 방안
-3. **원가 구조 분석** — FSC/SSC 비중과 절감 포인트
-4. **수주 전략** — 경쟁력 있는 포인트와 화주 설득 방법
-5. **리스크** — 환율, 항공사 SPACE, DG 여부, 유효기간 등
-
-각 항목은 ##소제목과 bullet(•)으로 작성해주세요.`;
-  try {
-    const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,messages:[{role:'user',content:pr}]})});
-    const data=await r.json();
-    if(!r.ok){out.textContent=`⚠ API 오류 (${r.status})\n${data.error?.message||''}`;return;}
-    out.textContent=data.content?.map(c=>c.text||'').join('').trim()||'결과를 받지 못했습니다.';
-  }catch(e){out.textContent='⚠ 연결 오류\n'+e.message;}
-  btn.disabled=false; btn.textContent='재생성';
-}
-
-// ── 항공 인쇄 ──
-function printAirQuote() {
-  const qs = document.querySelector('#air-tq .qs');
-  if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
-  openPrintWindow(qs.outerHTML, 'Quotation Sheet (AIR) — LGL');
-}
-
-function saveAirQuote() {
-  const airTqEl = document.getElementById('air-tq');
-  if (!airTqEl || !airTqEl.innerHTML.trim()) {
-    toast('⚠ 먼저 항공 견적서를 생성해주세요');
-    return;
-  }
+function genAirInternalAnalysis() {
   const S = window._airS;
-  if (!S) { toast('⚠ 먼저 항공 견적서를 생성해주세요'); return; }
+  if (!S) { toast('항공 견적서를 먼저 생성해주세요'); return; }
 
-  const authorList = HIST_AUTHORS.map((a,i) => `${i+1}. ${a}`).join('  ');
-  const input = prompt(`저장할 작성자를 선택하세요:\n${authorList}\n\n번호 또는 이름 직접 입력:`);
-  if (input === null) return;
-  const author = HIST_AUTHORS[parseInt(input)-1] || input.trim() || '미지정';
+  const out = document.getElementById('air-ao-internal');
+  const btn = document.getElementById('air-btn-internal');
+  btn.textContent = '재생성';
 
-  const airStateSnap = {
-    type: '항공',
-    shipper:  S.shipper,
-    item:     S.item,
-    inco:     S.inco,
-    validity: S.validity,
-    exRate:   document.getElementById('air-cur-0-rate')?.value || '',
-    pol:      document.getElementById('air-pol-input')?.value || '',
-    pod:      document.getElementById('air-pod-input')?.value || '',
-    polType:  airPortState.polType || 'CY',
-    podType:  airPortState.podType || 'CY',
-    cw: S.cw, gw: S.gw, cbm: S.cbm,
-    airCharges: JSON.parse(JSON.stringify(airCharges)),
-    remark: document.getElementById('air-remark')?.value || '',
-    dg: S.dg,
-  };
+  const mr = S.mr || 0;
+  const mrGrade = mr>=20?{label:'우수',color:'#10B981',icon:'🟢'}:mr>=12?{label:'양호',color:'#F59E0B',icon:'🟡'}:mr>=7?{label:'주의',color:'#F97316',icon:'🟠'}:{label:'위험',color:'#DC2626',icon:'🔴'};
 
-  const record = {
-    id:      Date.now(),
-    savedAt: new Date().toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
-    author,  shipper: S.shipper,
-    pol:     S.pol.code, pod: S.pod.code,
-    inco:    S.inco,     item: S.item,
-    ctStr:   `C.W. ${S.cw}KG`,
-    gc:      Math.round(S.gc),
-    gp:      Math.round(S.gp),
-    mr:      S.mr,
-    type:    '항공',
-    val:     S.validity || 7,
-    snapshot: airTqEl.innerHTML,
-    stateSnapshot: airStateSnap,
-  };
+  const seg1pct = S.gc>0?(S.t1.cost/S.gc*100).toFixed(1):0;
+  const seg2pct = S.gc>0?(S.t2.cost/S.gc*100).toFixed(1):0;
+  const seg3pct = S.gc>0?(S.t3.cost/S.gc*100).toFixed(1):0;
 
-  quoteHistory.unshift(record);
-  updateAuthorFilter();
-  toast(`✓ 항공 견적 저장 완료 — ${S.shipper} (${author})`);
-  saveHistoryToLocal();
-  switchMode('history');
+  const items = [...(S.d1||[]),...(S.d2||[]),...(S.d3||[])].filter(c=>c.price>0||c.priceKRW>0).map(c=>{
+    const pk = c.priceKRW||0; const ck = c.costKRW||0;
+    return {...c, pk, ck, margin:pk-ck, mr:pk>0?(pk-ck)/pk*100:0};
+  });
+
+  const mr_up   = S.gp>0?((S.gp - S.gc*1.05)/S.gp*100).toFixed(1):0;
+  const mr_down = S.gp>0?((S.gp - S.gc*0.95)/S.gp*100).toFixed(1):0;
+  const mr_fx   = S.gp>0?((S.gp - S.gc*1.03)/S.gp*100).toFixed(1):0;
+
+  const lowItems  = items.filter(i=>i.mr<5&&i.pk>0).map(i=>i.name);
+  const highItems = items.filter(i=>i.mr>=25).map(i=>i.name);
+
+  const itemRows = items.map(c=>{
+    const color = c.mr>=20?'#10B981':c.mr>=10?'#F59E0B':'#DC2626';
+    return `<tr>
+      <td style="padding:5px 8px;font-size:11px;color:var(--t1)">${c.name}</td>
+      <td style="padding:5px 8px;font-size:11px;text-align:right;color:var(--t3)">${fmt(c.ck)}원</td>
+      <td style="padding:5px 8px;font-size:11px;text-align:right;color:var(--t2)">${fmt(c.pk)}원</td>
+      <td style="padding:5px 8px;font-size:11px;text-align:right;font-weight:700;color:${color}">${c.mr.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+  const cw = S.cw||0; const gw = S.gw||0; const vw = S.cbm?S.cbm*167:0;
+  const cwBasis = cw===gw?'GW 기준 (실중량 = C.W.)':cw===vw?'VW 기준 (부피중량 = C.W.)':'C.W. 직접 입력';
+
+  out.innerHTML = `<div style="font-size:12px;line-height:1.9;color:var(--t2)">
+
+  <div style="background:#F4F7FF;border-radius:var(--r8);padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;text-align:center">
+    <div><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">총 원가</div><div style="font-size:14px;font-weight:800;color:var(--t1)">${fmt(S.gc)}원</div></div>
+    <div><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">총 판가</div><div style="font-size:14px;font-weight:800;color:var(--gn)">${fmt(S.gp)}원</div></div>
+    <div><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">이익</div><div style="font-size:14px;font-weight:800;color:var(--gn)">${fmt(S.gm)}원</div></div>
+    <div style="background:#fff;border-radius:6px;border:2px solid ${mrGrade.color}"><div style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase">마진율</div><div style="font-size:14px;font-weight:800;color:${mrGrade.color}">${mr.toFixed(1)}% ${mrGrade.icon}</div></div>
+  </div>
+
+  <b style="color:var(--t1)">① 마진율 적정성 — ${mrGrade.label} (${mr.toFixed(1)}%)</b><br>
+  ${mr>=20?'✅ 권장 마진 충족. 가격 경쟁력 유지 중.':mr>=12?`⚠ 양호하나 목표(20%)까지 ${(20-mr).toFixed(1)}%p 부족.`:mr>=7?'🔶 주의 구간. 운임·환율 변동 시 수익성 저하 위험.':'🚨 위험 수준. 판가 재협상 또는 원가 절감 즉시 필요.'}
+  <br><br>
+
+  <b style="color:var(--t1)">② C.W. 분석 (${cw.toFixed(1)} KG)</b><br>
+  • 적용 기준: <b>${cwBasis}</b><br>
+  • G.W.: ${gw.toFixed(1)}KG / V.W.: ${vw.toFixed(1)}KG (CBM×167)<br>
+  ${cw>gw*1.2?'• ⚠ 부피중량이 실중량보다 20% 이상 큰 경우 — 화물 재포장·압축 검토로 C.W. 절감 가능':'• ✅ C.W. 구성이 적정합니다.'}
+  <br><br>
+
+  <b style="color:var(--t1)">③ 구간별 원가 구조</b><br>
+  • 1구간: <b>${seg1pct}%</b> / 2구간(항공운임): <b>${seg2pct}%</b> / 3구간: <b>${seg3pct}%</b><br>
+  ${parseFloat(seg2pct)>65?'• ⚠ 2구간 비중 65% 초과 — 항공사 협상 또는 환적 루트 검토 권장':'• ✅ 구간 원가 분포가 균형적입니다.'}
+  <br><br>
+
+  <b style="color:var(--t1)">④ 수익 리스크 시뮬레이션</b><br>
+  <table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:4px">
+    <tr style="background:#F4F5F8"><th style="padding:5px 8px;text-align:left;font-weight:600">시나리오</th><th style="padding:5px 8px;text-align:right">예상 마진율</th><th style="padding:5px 8px;text-align:right">변화</th></tr>
+    <tr><td style="padding:5px 8px">현재 (기준)</td><td style="padding:5px 8px;text-align:right;font-weight:700">${mr.toFixed(1)}%</td><td style="padding:5px 8px;text-align:right">—</td></tr>
+    <tr style="background:#FEF9EC"><td style="padding:5px 8px">운임 5% 인상</td><td style="padding:5px 8px;text-align:right;color:#DC2626;font-weight:700">${mr_up}%</td><td style="padding:5px 8px;text-align:right;color:#DC2626">▼ ${(mr-mr_up).toFixed(1)}%p</td></tr>
+    <tr style="background:#F0FDF4"><td style="padding:5px 8px">운임 5% 절감</td><td style="padding:5px 8px;text-align:right;color:#10B981;font-weight:700">${mr_down}%</td><td style="padding:5px 8px;text-align:right;color:#10B981">▲ ${(mr_down-mr).toFixed(1)}%p</td></tr>
+    <tr style="background:#FEF9EC"><td style="padding:5px 8px">환율 3% 상승</td><td style="padding:5px 8px;text-align:right;color:#DC2626;font-weight:700">${mr_fx}%</td><td style="padding:5px 8px;text-align:right;color:#DC2626">▼ ${(mr-mr_fx).toFixed(1)}%p</td></tr>
+  </table>
+  <br>
+
+  <b style="color:var(--t1)">⑤ 항목별 마진 상세</b>
+  <table style="width:100%;border-collapse:collapse;margin-top:6px">
+    <tr style="background:#F4F5F8"><th style="padding:5px 8px;font-size:10px;text-align:left">항목</th><th style="padding:5px 8px;font-size:10px;text-align:right">원가</th><th style="padding:5px 8px;font-size:10px;text-align:right">판가</th><th style="padding:5px 8px;font-size:10px;text-align:right">마진율</th></tr>
+    ${itemRows}
+  </table>
+  ${lowItems.length?`<div style="margin-top:6px;font-size:11px;color:#DC2626">⚠ 저마진 항목: ${lowItems.join(', ')}</div>`:''}
+  ${highItems.length?`<div style="margin-top:4px;font-size:11px;color:#10B981">✅ 고마진 항목: ${highItems.join(', ')}</div>`:''}
+  <br>
+
+  <b style="color:var(--t1)">⑥ FSC 비중 분석</b><br>
+  ${(()=>{const fsc=items.find(i=>i.name.includes('FSC'));if(!fsc)return'• FSC 항목 없음';const fscPct=S.gc>0?(fsc.ck/S.gc*100).toFixed(1):0;return `• FSC 원가 비중: <b>${fscPct}%</b> (${fmt(fsc.ck)}원)<br>${parseFloat(fscPct)>20?'• ⚠ FSC 비중 20% 초과 — 유가 변동에 따라 운임이 크게 달라질 수 있습니다. 유가 연동 조건 확인 필요.':'• ✅ FSC 비중 적정 수준입니다.'}`;})()}
+  <br><br>
+
+  <b style="color:var(--t1)">⑦ 수주 전략</b><br>
+  ${mr>=15?'• 현재 마진율은 경쟁력 있는 수준입니다. 서비스 품질과 빠른 Transit Time을 강조하세요.':'• 마진 개선을 위해 항공사 협상 또는 환적 루트(SLB 포함) 검토를 먼저 진행하세요.'}
+  <br>• 유효기간 <b>${S.validity||7}일</b> — 기간 내 확정 유도 필수
+  <br>• C.W. <b>${cw.toFixed(1)}KG</b> — 100KG 단위 구간요율 확인하여 최적 C.W. 구간 선택 검토
+  <br><br>
+
+  <b style="color:var(--t1)">⑧ 즉시 액션 리스트</b><br>
+  ${mr<10?'🔴 1순위: 원가 재검토 또는 판가 인상 — 현재 마진 위험 수준<br>':''}
+  • 화주에게 <b>${S.validity||7}일 이내</b> 확정 요청 메시지 발송
+  • 환율 기준 ${(S.exRate||1400).toFixed(0)}원 — 변동 ±3% 초과 시 재견적 조건 안내
+  ${S.dg?'• ⚠ DG 화물 — 항공사 DGR 승인 사전 확인 필수<br>':''}
+  • 견적 저장 → History 보관 → 유사 건 불러오기 재활용
+
+  <div style="margin-top:12px;padding:8px 12px;background:#FEF9EC;border-radius:var(--r8);font-size:10px;color:#92400E">
+    ⚠ 본 분석은 입력된 견적 데이터 기반 자동 산출 결과입니다.
+  </div>
+</div>`;
 }
-
 // ── 항공 switchMode 시 초기화 ──
 function initAirPanel() {
   if (airCharges[1].length === 0) initAirCharges();
@@ -6047,29 +6122,13 @@ function unlockSite() {
   const inp = document.getElementById('site-pw-input');
 
   if (pw === SITE_PASSWORD) {
-    const key = document.getElementById('site-apikey-input')?.value.trim() || '';
-    if (key) ANTHROPIC_API_KEY = key;
-
     const lock = document.getElementById('site-lock');
     lock.style.transition = 'opacity .4s';
     lock.style.opacity = '0';
     setTimeout(() => {
       lock.style.display = 'none';
-      const badge = document.getElementById('api-badge');
-      if (badge) {
-        if (ANTHROPIC_API_KEY) {
-          badge.textContent = '● AI 연결됨';
-          badge.style.color = '#10B981';
-        } else {
-          badge.textContent = '● AI 미연결';
-          badge.style.color = '#F59E0B';
-          badge.style.cursor = 'pointer';
-          badge.title = '클릭하여 API Key 입력';
-          badge.onclick = promptApiKey;
-        }
-      }
-        document.getElementById('shipper')?.focus();
-      // 입장할 때마다 온보딩 투어 자동 시작
+      updateApiBadge();
+      document.getElementById('shipper')?.focus();
       setTimeout(startTour, 600);
     }, 400);
   } else {
@@ -6082,14 +6141,42 @@ function unlockSite() {
 }
 
 function promptApiKey() {
-  const key = prompt('Claude API Key를 입력하세요\n(sk-ant-api03-... 형식)\n\n※ 브라우저 메모리에만 저장됩니다.');
-  if (key && key.startsWith('sk-')) {
-    ANTHROPIC_API_KEY = key.trim();
-    const badge = document.getElementById('api-badge');
-    if (badge) { badge.textContent = '● AI 연결됨'; badge.style.color = '#10B981'; badge.onclick = null; badge.style.cursor='default'; }
-    toast('✓ API Key 등록 완료 — AI 인사이트를 사용할 수 있습니다');
-  } else if (key !== null) {
+  const current = ANTHROPIC_API_KEY ? '(현재 연결됨 — 변경하려면 새 Key 입력, 빈값 입력 시 제거)' : '';
+  const key = prompt(`Claude API Key를 입력하세요 ${current}\n\n형식: sk-ant-api03-...\n발급: https://console.anthropic.com\n\n※ 브라우저 메모리에만 저장 · 서버 전송 없음`);
+  if (key === null) return;
+  const trimmed = key.trim();
+  if (!trimmed) {
+    ANTHROPIC_API_KEY = '';
+    updateApiBadge();
+    toast('AI Key가 제거됐습니다');
+    return;
+  }
+  if (!trimmed.startsWith('sk-ant-')) {
     toast('⚠ 올바른 API Key 형식이 아닙니다 (sk-ant-api03-...로 시작)');
+    return;
+  }
+  ANTHROPIC_API_KEY = trimmed;
+  updateApiBadge();
+  toast('✓ Claude API Key 연결 완료 — AI 인사이트를 사용할 수 있어요!');
+}
+
+function updateApiBadge() {
+  const badge = document.getElementById('api-badge');
+  if (!badge) return;
+  if (ANTHROPIC_API_KEY) {
+    badge.innerHTML = '⚡ AI 연결됨';
+    badge.style.color = '#10B981';
+    badge.style.background = 'rgba(16,185,129,.15)';
+    badge.style.borderColor = 'rgba(16,185,129,.3)';
+    badge.title = 'Claude API 연결됨 — 클릭하여 Key 변경/제거';
+    badge.style.cursor = 'pointer';
+  } else {
+    badge.innerHTML = '⚡ AI Key 설정';
+    badge.style.color = '#F59E0B';
+    badge.style.background = 'rgba(245,158,11,.15)';
+    badge.style.borderColor = 'rgba(245,158,11,.3)';
+    badge.title = '클릭하여 Claude API Key 입력';
+    badge.style.cursor = 'pointer';
   }
 }
 
