@@ -131,15 +131,15 @@ input[type=number]{text-align:right}
 .fetch-rate:hover{background:var(--ac-bg);border-color:var(--ac);color:var(--ac)}
 
 /* ── Charge rows — fluid, 화면 너비에 따라 자동 조절 ── */
-.cr{display:grid;grid-template-columns:minmax(100px,2fr) 58px minmax(80px,1.2fr) 22px;gap:5px;align-items:start;padding:7px 0;border-bottom:1px solid #ECEEF5}
+.cr{display:grid;grid-template-columns:minmax(100px,2fr) 58px minmax(120px,1.6fr) 22px;gap:5px;align-items:start;padding:7px 0;border-bottom:1px solid #ECEEF5}
 .cr:last-child{border-bottom:none}
 .cr-name{font-size:11px;color:var(--t1);padding-top:3px;min-width:0;overflow:hidden}
 .msel{padding:3px 4px;font-size:10px;height:26px;min-width:52px;max-width:100%}
-.cv{padding:3px 6px;font-size:11px;text-align:right;height:26px;width:100%;min-width:0}
+.cv{padding:4px 8px;font-size:12px;font-weight:600;text-align:right;height:30px;width:100%;min-width:60px;box-sizing:border-box}
 /* ctype input row — 고정 px 제거, 비율로 */
-.ctype-inp-row{display:grid;grid-template-columns:minmax(64px,28%) 1fr 14px 1fr;gap:5px;align-items:center;padding:6px 0;border-bottom:0.5px solid #F0F1F6}
+.ctype-inp-row{display:flex;flex-direction:column;gap:4px;padding:7px 0;border-bottom:0.5px solid #F0F1F6}
 .ctype-inp-row:last-of-type{border-bottom:none}
-.ctype-inp-row input{width:100%;min-width:0;padding:4px 6px;font-size:11px;font-weight:500;text-align:right;border:1px solid var(--bd);border-radius:var(--r4);height:28px;transition:border-color .13s;letter-spacing:-.01em}
+.ctype-inp-row input{width:100%;min-width:0;padding:5px 8px;font-size:12px;font-weight:600;text-align:right;border:1px solid var(--bd);border-radius:var(--r4);height:30px;transition:border-color .13s;letter-spacing:-.01em;box-sizing:border-box}
 .ctype-inp-row input:focus{border-color:var(--ac);box-shadow:0 0 0 2px rgba(26,86,219,.1);outline:none}
 .ctype-inp-row input.fak-target{border-color:var(--ac);background:var(--ac-bg);box-shadow:0 0 0 2px rgba(26,86,219,.15)}
 .add-charge{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ac);cursor:pointer;padding:5px 0 2px;user-select:none;font-weight:600}
@@ -389,7 +389,7 @@ tr:hover td{background:#FAFBFD}
     ✈️ 견적서 생성
   </button>
 </div>
-════════════════════════════════════════ -->
+
 <!-- ════════════════════════════════════════
      온보딩 투어 오버레이
 ════════════════════════════════════════ -->
@@ -435,7 +435,7 @@ tr:hover td{background:#FAFBFD}
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</span><span style="font-size:12px;color:var(--t1);line-height:1.6">POL / POD 검색 — 항구명 또는 코드로 검색, CY/DOOR 선택</span></div>
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</span><span style="font-size:12px;color:var(--t1);line-height:1.6">컨테이너 선택 — 타입 선택 후 수량 입력</span></div>
-          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span><span style="font-size:12px;color:var(--t1);line-height:1.6">구간별 원가·판가 입력 — 1구간(선적지) → 2구간(해상) → 3구간(도착)</span></div>
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span><span style="font-size:12px;color:var(--t1);line-height:1.6">1구간(선적지) → 2구간(해상운임) → 3구간(도착지) 구간별 원가·판가 입력</span></div>
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</span><span style="font-size:12px;color:var(--t1);line-height:1.6">FAK 조회 — 2구간 FAK 버튼 → 선사·SCAC 검색 → 카드 클릭으로 자동 입력</span></div>
           <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:#F4F7FF;border-radius:var(--r8)"><span style="width:20px;height:20px;background:var(--ac);color:#fff;border-radius:50%;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">5</span><span style="font-size:12px;color:var(--t1);line-height:1.6">✨ 견적서 생성 — 좌측 하단 플로팅 버튼 또는 입력 패널 하단 버튼</span></div>
         </div>
@@ -462,7 +462,7 @@ tr:hover td{background:#FAFBFD}
 
       <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--r8);padding:12px 14px">
         <div style="font-size:11px;font-weight:700;color:#991B1B;margin-bottom:6px">⚠ 주의사항</div>
-        <div style="font-size:11px;color:#7F1D1D;line-height:1.9">수익 시뮬레이션 탭은 <strong>내부용</strong> — 화주에게 공유 금지<br>견적 History는 브라우저 세션 내 보관 (새로고침 시 초기화)<br>AI 인사이트 API Key는 메모리에만 저장 (서버 전송 없음)</div>
+        <div style="font-size:11px;color:#7F1D1D;line-height:1.9">수익 시뮬레이션 탭은 <strong>내부용</strong> — 화주에게 공유 금지<br>견적 History는 <strong>현재 브라우저에만</strong> 저장 (이 PC 한정 · 동료와 공유 안 됨)<br>브라우저 데이터 삭제 시 저장된 견적도 함께 사라집니다</div>
       </div>
 
     </div>
@@ -517,8 +517,6 @@ tr:hover td{background:#FAFBFD}
   <div class="logo">포워딩 견적 시스템</div>
   <div style="display:flex;gap:8px;align-items:center">
     <span class="hb">v0.4</span>
-    <span id="api-badge" style="font-size:10px;color:#F59E0B;padding:3px 10px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:100px;cursor:pointer;transition:all .15s" onclick="promptApiKey()" title="클릭하여 Claude API Key 입력">⚡ AI Key 설정</span>
-    <span style="font-size:10px;color:rgba(255,255,255,.35)">포워딩3팀 EPC파트</span>
     <button onclick="openHelp()" title="도움말" style="width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">?</button>
   </div>
 </header>
@@ -625,7 +623,7 @@ tr:hover td{background:#FAFBFD}
     </div>
 
     <div class="fr c2">
-      <div class="fd"><label>화물 품목 (Commodity)</label><input type="text" id="item" placeholder="예: MACHINERY"></div>
+      <div class="fd"><label>화물 품목 (Commodity)</label><input type="text" id="item" placeholder="예: MERCHANDISE"></div>
       <div class="fd"><label>인코텀즈</label>
         <select id="inco">
           <optgroup label="E Group"><option selected>EXW</option></optgroup>
@@ -636,7 +634,7 @@ tr:hover td{background:#FAFBFD}
       </div>
     </div>
     <div class="fr c1">
-      <div class="fd"><label>유효기간 (일)</label><input type="number" id="validity" value="15" min="1" style="font-weight:600;max-width:120px"></div>
+      <div class="fd"><label>유효기간 (일)</label><input type="number" inputmode="decimal" id="validity" value="15" min="1" style="font-weight:600;max-width:120px"></div>
     </div>
 
     <!-- DG 여부 -->
@@ -675,7 +673,7 @@ tr:hover td{background:#FAFBFD}
           <div class="fd"><label>Packing Group</label>
             <select id="dg-pg"><option value="">선택</option><option>PG I — 고위험</option><option>PG II — 중위험</option><option>PG III — 저위험</option></select>
           </div>
-          <div class="fd"><label>Flash Point (℃, 해당 시)</label><input type="number" id="dg-fp" placeholder="예: -18"></div>
+          <div class="fd"><label>Flash Point (℃, 해당 시)</label><input type="number" inputmode="decimal" id="dg-fp" placeholder="예: -18"></div>
         </div>
       </div>
     </div>
@@ -715,7 +713,7 @@ tr:hover td{background:#FAFBFD}
       <div id="cur-list">
         <div class="cur-row">
           <div class="fd"><label>통화</label><select id="cur-0-code" style="height:28px;padding:3px 6px"><option value="USD">USD — 미국 달러</option></select></div>
-          <div class="fd"><label>매매기준율 (원)</label><div class="ui"><input type="number" id="cur-0-rate" value="1448.0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div>
+          <div class="fd"><label>매매기준율 (원)</label><div class="ui"><input type="number" inputmode="decimal" id="cur-0-rate" value="1448.0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div>
           <div style="padding-top:18px"><button class="del-btn" style="background:#F0F2F7;color:var(--t3);cursor:default" title="기본 통화">—</button></div>
         </div>
       </div>
@@ -732,7 +730,6 @@ tr:hover td{background:#FAFBFD}
       <span class="stit">컨테이너 구성</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px" onclick="event.stopPropagation()">
-      <button class="refresh-btn" onclick="refreshAllCtrInputs();toast('↻ 구간별 운임 입력 칸 갱신 완료')">↻ 구간 갱신</button>
       <span class="sarr" id="s1a">▼</span>
     </div>
   </div>
@@ -856,18 +853,23 @@ tr:hover td{background:#FAFBFD}
 <!-- ════════ RIGHT ════════ -->
 <div class="right">
   <!-- ④ 실시간 예상 금액 바 -->
-  <div id="live-bar" style="display:none;background:linear-gradient(90deg,#0F1729,#1A2744);border-radius:var(--r8);padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.05em;text-transform:uppercase">예상 합계</div>
-    <div id="live-total" style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-.01em">—</div>
-    <div id="live-margin" style="font-size:10px;color:rgba(255,255,255,.5)">마진 —</div>
-    <div style="font-size:10px;color:rgba(255,255,255,.35)">※ 실시간 추정값 · 견적서 생성 버튼으로 확정</div>
+  <div id="live-bar" style="display:none;background:linear-gradient(90deg,#0F1729,#1A2744);border-radius:var(--r8);padding:12px 20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;color:rgba(255,255,255,.55);font-weight:600">예상 합계</span>
+      <span id="live-total" style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.01em">—</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;color:rgba(255,255,255,.55);font-weight:600">마진</span>
+      <span id="live-margin" style="font-size:20px;font-weight:800;color:#F59E0B">—</span>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.3)">※ 실시간 추정값 · 견적서 생성 버튼으로 확정</div>
   </div>
   <div class="empty" id="emp"><div class="ei">📋</div><div class="et">견적 정보를 입력해주세요</div><div class="ed">항구 검색 → 컨테이너 선택 → 구간별 원가 입력 후 "견적서 생성"을 누르세요.</div></div>
   <div id="cont" style="display:none">
     <div class="tabs">
       <div class="tab on" onclick="sv('quote')">📄 견적서</div>
       <div class="tab" onclick="sv('sim')">📊 수익 시뮬레이션</div>
-      <div class="tab" onclick="sv('ai')">✦ AI 인사이트</div>
+      <div class="tab" onclick="sv('ai')">✦ 인사이트</div>
     </div>
     <div class="krow" id="krow"></div>
     <div id="tq"></div>
@@ -985,7 +987,7 @@ tr:hover td{background:#FAFBFD}
 
     <div class="fr c1">
       <div class="fd"><label>유효기간 (일)</label>
-        <input type="number" id="air-validity" value="7" min="1" style="max-width:120px;font-weight:600">
+        <input type="number" inputmode="decimal" id="air-validity" value="7" min="1" style="max-width:120px;font-weight:600">
       </div>
     </div>
 
@@ -1068,7 +1070,7 @@ tr:hover td{background:#FAFBFD}
       <div class="fd">
         <label>C.W. 직접 입력 <span style="font-size:9px;color:var(--t3)">(위 계산값 override — 비워두면 자동)</span></label>
         <div style="position:relative">
-          <input type="number" id="air-cw" placeholder="자동 계산" min="0" step="0.5"
+          <input type="number" inputmode="decimal" id="air-cw" placeholder="자동 계산" min="0" step="0.5"
             style="padding-right:36px;font-weight:700;border-color:var(--am)"
             oninput="onAirCWManual()">
           <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--am);font-weight:700">KG</span>
@@ -1086,23 +1088,28 @@ tr:hover td{background:#FAFBFD}
     <span class="sarr" id="as_cura">▼</span>
   </div>
   <div class="sbody" id="as_curb">
-    <div class="cur-row" id="air-cur-rows">
-      <div class="fd"><label>통화</label>
-        <select id="air-cur-0-code" style="height:28px;padding:3px 6px">
-          <option value="USD">USD — 미국 달러</option>
-          <option value="EUR">EUR — 유로</option>
-          <option value="JPY">JPY — 일본 엔</option>
-          <option value="CNY">CNY — 중국 위안</option>
-          <option value="VND">VND — 베트남 동</option>
-          <option value="IDR">IDR — 인도네시아 루피아</option>
-        </select>
-      </div>
-      <div class="fd"><label>매매기준율 (원)</label>
-        <div class="ui"><input type="number" id="air-cur-0-rate" value="1448.0" min="0.1" step="0.1"><span class="usf">KRW</span><button class="cur-del-btn" style="display:none">—</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+      <span class="flbl">환율 설정</span>
+      <button class="fetch-rate" id="air-fetch-btn" onclick="fetchAirRates()">↻ 당일 기준율 조회</button>
+    </div>
+    <div id="air-cur-rows">
+      <div class="cur-row">
+        <div class="fd"><label>통화</label>
+          <select id="air-cur-0-code" style="height:28px;padding:3px 6px">
+            <option value="USD">USD — 미국 달러</option>
+            <option value="EUR">EUR — 유로</option>
+            <option value="JPY">JPY — 일본 엔</option>
+            <option value="CNY">CNY — 중국 위안</option>
+            <option value="VND">VND — 베트남 동</option>
+            <option value="IDR">IDR — 인도네시아 루피아</option>
+          </select>
+        </div>
+        <div class="fd"><label>매매기준율 (원)</label>
+          <div class="ui"><input type="number" inputmode="decimal" id="air-cur-0-rate" value="1448.0" min="0.1" step="0.1"><span class="usf">KRW</span><button class="cur-del-btn" style="display:none">—</button></div>
+        </div>
       </div>
     </div>
     <div id="air-extra-cur-rows"></div>
-    <button class="cur-btn" onclick="fetchAirRates()" style="white-space:nowrap;font-size:10px;margin-bottom:4px">↻ 당일 기준율 조회</button>
     <div class="add-link" onclick="addAirCur()">＋ 환종 추가 (JPY, EUR, IDR 등)</div>
   </div>
 </div>
@@ -1165,6 +1172,17 @@ tr:hover td{background:#FAFBFD}
 
 <!-- ════ RIGHT ════ -->
 <div class="right">
+  <div id="air-live-bar" style="display:none;background:linear-gradient(90deg,#0F1729,#1A2744);border-radius:var(--r8);padding:12px 20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;color:rgba(255,255,255,.55);font-weight:600">예상 합계</span>
+      <span id="air-live-total" style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.01em">—</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;color:rgba(255,255,255,.55);font-weight:600">마진</span>
+      <span id="air-live-margin" style="font-size:20px;font-weight:800;color:#F59E0B">—</span>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.3)">※ 실시간 추정값 · 견적서 생성 버튼으로 확정</div>
+  </div>
   <div class="empty" id="air-emp">
     <div class="ei">✈️</div>
     <div class="et">항공 견적 정보를 입력해주세요</div>
@@ -1174,7 +1192,7 @@ tr:hover td{background:#FAFBFD}
     <div class="tabs">
       <div class="tab on" onclick="svAir('quote')">📄 견적서</div>
       <div class="tab" onclick="svAir('sim')">📊 수익 시뮬레이션</div>
-      <div class="tab" onclick="svAir('ai')">✦ AI 인사이트</div>
+      <div class="tab" onclick="svAir('ai')">✦ 인사이트</div>
     </div>
     <div id="air-tq"></div>
     <div id="air-ts" style="display:none"></div>
@@ -1195,7 +1213,7 @@ tr:hover td{background:#FAFBFD}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:800;color:var(--t1);letter-spacing:-.01em">견적 History</div>
-        <div style="font-size:12px;color:var(--t3);margin-top:2px">팀원들이 작성한 견적서를 저장·조회합니다.</div>
+        <div style="font-size:12px;color:var(--t3);margin-top:2px">작성한 견적서를 저장하고 다시 불러올 수 있습니다.</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button onclick="saveCurrentQuote()" style="padding:8px 16px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .14s" onmouseover="this.style.background='var(--ac-h)'" onmouseout="this.style.background='var(--ac)'">
@@ -1220,13 +1238,12 @@ tr:hover td{background:#FAFBFD}
         <option value="">전체 작성자</option>
       </select>
     </div>
-    <!-- 날짜 범위 필터 -->
-    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
-      <span style="font-size:11px;color:var(--t3);white-space:nowrap">저장일:</span>
-      <input type="date" id="hist-date-from" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 8px;border:1px solid var(--bd);border-radius:var(--r8)">
-      <span style="font-size:11px;color:var(--t3)">~</span>
-      <input type="date" id="hist-date-to" onchange="renderHistory()" style="height:34px;font-size:11px;padding:0 8px;border:1px solid var(--bd);border-radius:var(--r8)">
-      <button onclick="document.getElementById('hist-date-from').value='';document.getElementById('hist-date-to').value='';renderHistory()" style="padding:0 12px;height:34px;border:1px solid var(--bd);background:#fff;border-radius:var(--r8);font-size:11px;cursor:pointer;color:var(--t3)">날짜 초기화</button>
+    <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">
+      <span style="font-size:11px;color:var(--t3);white-space:nowrap;flex-shrink:0">저장일</span>
+      <input type="date" id="hist-date-from" onchange="renderHistory()" style="flex:1;min-width:0;height:34px;font-size:11px;padding:0 8px;border:1px solid var(--bd);border-radius:var(--r8)">
+      <span style="font-size:11px;color:var(--t3);flex-shrink:0">~</span>
+      <input type="date" id="hist-date-to" onchange="renderHistory()" style="flex:1;min-width:0;height:34px;font-size:11px;padding:0 8px;border:1px solid var(--bd);border-radius:var(--r8)">
+      <button onclick="document.getElementById('hist-date-from').value='';document.getElementById('hist-date-to').value='';renderHistory()" style="padding:0 12px;height:34px;border:1px solid var(--bd);background:#fff;border-radius:var(--r8);font-size:11px;cursor:pointer;color:var(--t3);white-space:nowrap;flex-shrink:0">초기화</button>
     </div>
 
     <!-- 통계 카드 -->
@@ -2050,7 +2067,7 @@ function renderCtSummary() {
       <span class="ct-qty-name">${type}</span>
       <div class="qctrl">
         <button class="qbtn" onclick="adjCt('${type}',-1)">−</button>
-        <input type="number" class="qnum" id="cqn-${key}" value="${SC[type]}" min="1" onchange="SC['${type}']=parseInt(this.value)||1; refreshAllCtrInputs()">
+        <input type="number" inputmode="decimal" class="qnum" id="cqn-${key}" value="${SC[type]}" min="1" onchange="SC['${type}']=parseInt(this.value)||1; refreshAllCtrInputs()">
         <button class="qbtn" onclick="adjCt('${type}',1)">+</button>
       </div>
       <button class="ct-del" onclick="removeCt('${type}','${CT_GROUPS.find(g=>g.types.includes(type))?.id||''}')">✕</button>
@@ -2284,16 +2301,16 @@ function buildInp(uid, mode, cur, per, seg, cObj) {
     const vV  = sv.v || '', pV = sv.p || '', rV = sv.r || '';
     let inpHtml = '';
     if (mode==='실비') {
-      inpHtml = `<div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="0" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>`;
+      inpHtml = `<div class="ui"><input type="number" inputmode="decimal" class="cv" id="v-${uid}" placeholder="0" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>`;
     } else if (mode==='마진금') {
       inpHtml = `<div style="display:flex;flex-direction:column;gap:3px">
-        <div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>
-        <div class="ui"><input type="number" class="cv" id="p-${uid}" placeholder="판가" min="0" value="${pV}" oninput="setVal('${uid}','p',this.value)"><span class="usf">${cur}</span></div>
+        <div class="ui"><input type="number" inputmode="decimal" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>
+        <div class="ui"><input type="number" inputmode="decimal" class="cv" id="p-${uid}" placeholder="판가" min="0" value="${pV}" oninput="setVal('${uid}','p',this.value)"><span class="usf">${cur}</span></div>
       </div>`;
     } else {
       inpHtml = `<div style="display:flex;flex-direction:column;gap:3px">
-        <div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>
-        <div class="ui"><input type="number" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100" value="${rV}" oninput="setVal('${uid}','r',this.value)"><span class="usf">%</span></div>
+        <div class="ui"><input type="number" inputmode="decimal" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vV}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>
+        <div class="ui"><input type="number" inputmode="decimal" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100" value="${rV}" oninput="setVal('${uid}','r',this.value)"><span class="usf">%</span></div>
       </div>`;
     }
     return inpHtml + `<div style="font-size:9px;color:var(--t3);margin-top:3px;display:flex;align-items:center;justify-content:space-between">
@@ -2316,25 +2333,25 @@ function buildInp(uid, mode, cur, per, seg, cObj) {
     const arrow = mode!=='실비' ? `<span style="font-size:11px;color:var(--t3);text-align:center;line-height:30px">→</span>` : `<span></span>`;
     const vFocus= isSeg2 ? `onfocus="setFakTarget(this,'${uid}','${tEsc}','cost')"` : '';
     const pFocus= isSeg2 ? `onfocus="setFakTarget(this,'${uid}','${tEsc}','price')"` : '';
-    const pInp  = pId ? `<input type="number" id="${pId}" placeholder="${pPH}" min="0"${mode==='마진율'?' max="100"':''} value="${pV2}" ${pFocus} oninput="setCtVal('${uid}','${tEsc}','${pFld}',this.value);refreshCtypeSum('${uid}','${mode}')">` : `<span></span>`;
+    const pInp  = pId ? `<div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:9px;color:var(--t3);white-space:nowrap;min-width:24px">${mode==='마진율'?'마진%':'판가'}</span>
+        <input type="number" inputmode="decimal" id="${pId}" placeholder="${pPH}" min="0"${mode==='마진율'?' max="100"':''} value="${pV2}" ${pFocus} oninput="setCtVal('${uid}','${tEsc}','${pFld}',this.value);refreshCtypeSum('${uid}','${mode}')" style="flex:1">
+      </div>` : '';
     return `<div class="ctype-inp-row">
-      <span style="font-size:10px;font-weight:700;color:var(--ac);font-family:monospace">${t}<span style="color:var(--t3);font-weight:400">×${qty}</span></span>
-      <input type="number" id="v-${key}" placeholder="원가" min="0" value="${vV2}" ${vFocus} oninput="setCtVal('${uid}','${tEsc}','v',this.value);refreshCtypeSum('${uid}','${mode}')">
-      ${arrow}${pInp}
+      <span style="font-size:11px;font-weight:700;color:var(--ac);font-family:monospace">${t}<span style="color:var(--t3);font-weight:400;font-size:10px"> ×${qty}</span></span>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:9px;color:var(--t3);white-space:nowrap;min-width:24px">원가</span>
+        <input type="number" inputmode="decimal" id="v-${key}" placeholder="원가" min="0" value="${vV2}" ${vFocus} oninput="setCtVal('${uid}','${tEsc}','v',this.value);refreshCtypeSum('${uid}','${mode}')" style="flex:1">
+      </div>
+      ${pInp}
     </div>`;
   }).join('');
 
-  const fakHint = isSeg2 ? `<span style="font-size:9px;color:var(--ac);cursor:pointer;font-weight:600" onclick="clearFakTarget()">원가칸 클릭 후 FAK 조회 →</span>` : '';
+  const fakHint = isSeg2 ? `<span style="font-size:9px;color:var(--ac);cursor:pointer;font-weight:600" onclick="clearFakTarget()">원가 칸 클릭 후 FAK 조회 →</span>` : '<span></span>';
   return `<div style="background:#F8F9FC;border:1px solid var(--bd);border-radius:var(--r8);padding:8px 10px">
-    <div style="font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
-      <span style="color:var(--ac);cursor:pointer" onclick="setByType('${uid}',false)">◂ 단일값</span>
-      <span style="color:var(--t3)">타입별 단가</span>
+    <div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <span style="font-size:11px;color:var(--ac);cursor:pointer;font-weight:600" onclick="setByType('${uid}',false)" title="단일값 입력으로 전환">◂ 단일값</span>
       ${fakHint}
-    </div>
-    <div style="display:grid;grid-template-columns:minmax(64px,28%) 1fr 14px 1fr;gap:5px;margin-bottom:4px;padding-bottom:5px;border-bottom:1px solid var(--bd)">
-      <span style="font-size:9px;color:var(--t3)">타입</span>
-      <span style="font-size:9px;color:var(--t3);text-align:right">원가(${cur})</span><span></span>
-      ${mode!=='실비'?`<span style="font-size:9px;color:var(--t3);text-align:right">${mode==='마진금'?'판가':'마진%'}(${cur})</span>`:'<span></span>'}
     </div>
     ${rows}
     <div id="ctype-sum-${uid}" style="margin-top:6px;padding-top:5px;border-top:1px solid var(--bd);font-size:10px;color:var(--t2);text-align:right"></div>
@@ -2375,9 +2392,9 @@ function buildSimpleInp(uid, mode, cur) {
   const pVal = saved.p || '';
   const rVal = saved.r || '';
 
-  if (mode==='실비') return `<div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="0" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>`;
-  if (mode==='마진금') return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="p-${uid}" placeholder="판가" min="0" value="${pVal}" oninput="setVal('${uid}','p',this.value)"><span class="usf">${cur}</span></div></div>`;
-  return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div><div class="ui"><input type="number" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100" value="${rVal}" oninput="setVal('${uid}','r',this.value)"><span class="usf">%</span></div></div>`;
+  if (mode==='실비') return `<div class="ui"><input type="number" inputmode="decimal" class="cv" id="v-${uid}" placeholder="0" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div>`;
+  if (mode==='마진금') return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" inputmode="decimal" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div><div class="ui"><input type="number" inputmode="decimal" class="cv" id="p-${uid}" placeholder="판가" min="0" value="${pVal}" oninput="setVal('${uid}','p',this.value)"><span class="usf">${cur}</span></div></div>`;
+  return `<div style="display:flex;flex-direction:column;gap:3px"><div class="ui"><input type="number" inputmode="decimal" class="cv" id="v-${uid}" placeholder="원가" min="0" value="${vVal}" oninput="setVal('${uid}','v',this.value)"><span class="usf">${cur}</span></div><div class="ui"><input type="number" inputmode="decimal" class="cv" id="r-${uid}" placeholder="마진%" min="0" max="100" value="${rVal}" oninput="setVal('${uid}','r',this.value)"><span class="usf">%</span></div></div>`;
 }
 
 // 컨타입별 합계 실시간 표시
@@ -2602,7 +2619,7 @@ function addCur() {
   const opts = CURRENCIES.filter(c=>!c.startsWith('USD')).map(c=>`<option>${c}</option>`).join('');
   const row = document.createElement('div');
   row.className='cur-row'; row.id='cur-row-'+i;
-  row.innerHTML=`<div class="fd"><label>통화</label><select id="cur-${i}-code" style="height:28px;padding:3px 6px"><option>JPY — 일본 엔</option>${opts}</select></div><div class="fd"><label>기준율</label><div class="ui"><input type="number" id="cur-${i}-rate" placeholder="0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div><div style="padding-top:18px"><button class="del-btn" onclick="delCur(${i})">✕</button></div>`;
+  row.innerHTML=`<div class="fd"><label>통화</label><select id="cur-${i}-code" style="height:28px;padding:3px 6px"><option>JPY — 일본 엔</option>${opts}</select></div><div class="fd"><label>기준율</label><div class="ui"><input type="number" inputmode="decimal" id="cur-${i}-rate" placeholder="0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div><div style="padding-top:18px"><button class="del-btn" onclick="delCur(${i})">✕</button></div>`;
   document.getElementById('cur-list').appendChild(row);
   curCount++;
 }
@@ -2791,25 +2808,25 @@ function renderOceanCargoList() {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px">
         <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">L (cm)</div>
-          <input type="number" value="${c.l||''}" placeholder="0" min="0"
+          <input type="number" inputmode="decimal" value="${c.l||''}" placeholder="0" min="0"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
             oninput="updateOceanCargo(${c.id},'l',this.value)"></div>
         <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">W (cm)</div>
-          <input type="number" value="${c.w||''}" placeholder="0" min="0"
+          <input type="number" inputmode="decimal" value="${c.w||''}" placeholder="0" min="0"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
             oninput="updateOceanCargo(${c.id},'w',this.value)"></div>
         <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">H (cm)</div>
-          <input type="number" value="${c.h||''}" placeholder="0" min="0"
+          <input type="number" inputmode="decimal" value="${c.h||''}" placeholder="0" min="0"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
             oninput="updateOceanCargo(${c.id},'h',this.value)"></div>
         <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">PCS</div>
-          <input type="number" value="${c.pcs||1}" placeholder="1" min="1"
+          <input type="number" inputmode="decimal" value="${c.pcs||1}" placeholder="1" min="1"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
             oninput="updateOceanCargo(${c.id},'pcs',this.value)"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
         <div><div style="font-size:9px;color:var(--t3);margin-bottom:2px">G.W. per PCS (KG)</div>
-          <input type="number" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
+          <input type="number" inputmode="decimal" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
             style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
             oninput="updateOceanCargo(${c.id},'gw',this.value)"></div>
         <div style="font-size:10px;color:var(--t3);padding-top:16px">
@@ -3086,6 +3103,11 @@ function sv(n){
   // KPI 카드 전환
   document.querySelectorAll('.kpi-pub').forEach(el=>el.style.display=n==='quote'?'':'none');
   document.querySelectorAll('.kpi-int').forEach(el=>el.style.display=n==='sim'?'':'none');
+  // 인사이트 탭 진입 시 추천 키워드 카드 자동 표시
+  if (n==='ai') {
+    const out = document.getElementById('ao-briefing');
+    if (out && !out.querySelector('a')) genShipperBriefing();
+  }
 }
 
 function rq(S){
@@ -3327,10 +3349,11 @@ async function rai(S){
       <div style="padding:10px 14px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input type="text" id="briefing-keyword" placeholder="검색 키워드 (예: USLAX 운임 동향 / 부산항 혼잡 / 컨테이너 운임 / LA항 파업)"
           style="flex:1;min-width:180px;padding:7px 10px;font-size:11px;border:1px solid var(--bd);border-radius:var(--r8)"
+          oninput="genShipperBriefing()"
           onkeydown="if(event.key==='Enter')genShipperBriefing()">
         <button onclick="genShipperBriefing()" style="padding:6px 14px;background:#F4F7FF;color:var(--ac);border:1px solid var(--ac);border-radius:var(--r8);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔍 검색</button>
       </div>
-      <div style="padding:4px 14px 8px;font-size:10px;color:var(--t3)">키워드 입력 후 검색 → 8개 물류 전문 뉴스 사이트 바로가기 · 비워두면 견적 구간 자동 추천 · 완전 무료</div>
+      <div style="padding:4px 14px 8px;font-size:10px;color:var(--t3)">키워드 입력 후 검색 → 8개 물류 전문 뉴스 사이트 바로가기 · 비워두면 견적 구간 자동 추천</div>
       <div class="aibody">
         <div class="aiout" id="ao-briefing" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
           키워드를 입력하고 🔍 뉴스 검색을 눌러주세요.
@@ -3338,25 +3361,6 @@ async function rai(S){
       </div>
     </div>
 
-    <!-- ② 내부 수익성 분석 -->
-    <div class="aic">
-      <div class="aihd">
-        <div class="aiico" style="background:#F0FDF4;color:#047857">🔒</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--t1)">내부 수익성 분석</div>
-          <div style="font-size:10px;color:var(--t3)">8개 항목 · 견적 데이터 기반 심층 분석</div>
-        </div>
-        <button onclick="genInternalAnalysis()" id="btn-internal"
-          style="margin-left:auto;padding:5px 13px;background:#047857;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
-          생성하기
-        </button>
-      </div>
-      <div class="aibody">
-        <div class="aiout" id="ao-internal" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
-          버튼을 눌러 내부 수익성 분석을 생성하세요.
-        </div>
-      </div>
-    </div>
 
   </div>`;
 
@@ -3375,13 +3379,13 @@ async function rai(S){
 // 물류 전문 뉴스 사이트 목록
 const NEWS_SITES = [
   { name: 'Google 뉴스',       icon: '🔍', color: '#4285F4',
-    url: kw => `https://news.google.com/search?q=${encodeURIComponent(kw)}&hl=ko&gl=KR` },
+    url: kw => `https://news.google.com/search?q=${encodeURIComponent(kw)}&hl=ko&gl=KR&ceid=KR:ko` },
   { name: '한국해운신문',       icon: '🚢', color: '#1A56DB',
-    url: kw => `https://www.klnews.co.kr/news/articleList.html?sc_word=${encodeURIComponent(kw)}` },
+    url: kw => `https://www.klnews.co.kr/news/articleList.html?sc_area=A&sc_word=${encodeURIComponent(kw)}` },
   { name: '코리아쉬핑가제트',   icon: '📰', color: '#047857',
-    url: kw => `https://www.ksg.co.kr/news/main_newsView.jsp?pNum=&pageno=1&search=${encodeURIComponent(kw)}` },
+    url: kw => `https://www.ksg.co.kr/news/news_list.jsp?schKeyword=${encodeURIComponent(kw)}` },
   { name: 'forwarder.kr',      icon: '📦', color: '#7C3AED',
-    url: kw => `https://www.forwarder.kr/search?query=${encodeURIComponent(kw)}` },
+    url: kw => `https://www.google.com/search?q=site:forwarder.kr+${encodeURIComponent(kw)}` },
   { name: 'FreightWaves',      icon: '🌐', color: '#DC2626',
     url: kw => `https://www.freightwaves.com/news?s=${encodeURIComponent(kw)}` },
   { name: 'Hellenic Shipping', icon: '⚓', color: '#0E7490',
@@ -3394,60 +3398,77 @@ const NEWS_SITES = [
 
 // 자동 키워드 조합
 function buildKeywords(userKw, polCode, podCode, mode) {
-  if (userKw) return [userKw, userKw + (mode==='air'?' air cargo freight':' container shipping')];
-  if (mode === 'air') return [
-    `${polCode} ${podCode} 항공운임`,
-    `항공화물 운임 동향 FSC`,
-    `${podCode} air freight rate`,
-    `air cargo rate ${new Date().getFullYear()}`,
-  ];
-  return [
+  const yr = new Date().getFullYear();
+  const base = userKw ? userKw : (mode === 'air' ? `${polCode} ${podCode} 항공운임` : `${polCode} ${podCode} 해상운임`);
+
+  if (mode === 'air') {
+    return userKw ? [
+      userKw,
+      `${userKw} 항공운임`,
+      `${userKw} air cargo`,
+      `${userKw} 항공화물`,
+    ] : [
+      `${polCode} ${podCode} 항공운임`,
+      `항공화물 운임 동향`,
+      `FSC 유류할증료`,
+      `인천공항 항공화물`,
+      `${podCode} air freight rate`,
+      `air cargo capacity ${yr}`,
+      `항공운임 전망`,
+      `벨리 카고 동향`,
+    ];
+  }
+  return userKw ? [
+    userKw,
+    `${userKw} 해상운임`,
+    `${userKw} container`,
+    `${userKw} 물류`,
+  ] : [
     `${polCode} ${podCode} 해상운임`,
     `컨테이너 운임 동향`,
-    `${podCode} container shipping rate`,
-    `ocean freight rate ${new Date().getFullYear()}`,
+    `SCFI 운임지수`,
+    `부산항 물동량`,
+    `${podCode} container rate`,
+    `해상운임 전망 ${yr}`,
+    `항만 적체 혼잡`,
+    `선복 부족 공급`,
   ];
 }
 
 function renderQuickLinks(keywords, mode) {
   const mainKw = keywords[0];
 
-  // 추천 검색어 태그
+  // 추천 검색어 태그 — 클릭 시 구글뉴스로 바로 검색 (입력칸 변경 안 함)
   const kwTags = keywords.map(kw =>
-    `<button onclick="openNewsSearch('${kw.replace(/'/g,"\\'")}','${mode}')"
-      style="padding:4px 10px;border:1px solid var(--bd);border-radius:100px;background:#fff;font-size:11px;color:var(--t2);cursor:pointer;transition:all .13s;white-space:nowrap"
+    `<a href="https://news.google.com/search?q=${encodeURIComponent(kw)}&hl=ko&gl=KR" target="_blank" rel="noopener"
+      style="padding:4px 11px;border:1px solid var(--bd);border-radius:100px;background:#fff;font-size:11px;color:var(--t2);cursor:pointer;transition:all .13s;white-space:nowrap;text-decoration:none;display:inline-block"
       onmouseover="this.style.background='var(--ac-bg)';this.style.borderColor='var(--ac)';this.style.color='var(--ac)'"
       onmouseout="this.style.background='#fff';this.style.borderColor='var(--bd)';this.style.color='var(--t2)'"
-    >${kw}</button>`
+    >${kw}</a>`
   ).join('');
 
-  // 사이트별 링크 카드
+  // 사이트별 링크 칩 (컴팩트)
   const siteCards = NEWS_SITES.map(site =>
     `<a href="${site.url(mainKw)}" target="_blank" rel="noopener"
-      style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid var(--bd);border-radius:var(--r8);text-decoration:none;transition:all .13s"
+      style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:#fff;border:1px solid var(--bd);border-radius:var(--r8);text-decoration:none;transition:all .13s"
       onmouseover="this.style.borderColor='${site.color}';this.style.background='#F8FAFF'"
       onmouseout="this.style.borderColor='var(--bd)';this.style.background='#fff'">
-      <span style="font-size:16px;flex-shrink:0">${site.icon}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:11px;font-weight:700;color:var(--t1)">${site.name}</div>
-        <div style="font-size:10px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"${mainKw}" 검색</div>
-      </div>
-      <span style="font-size:10px;color:${site.color};font-weight:600;flex-shrink:0">열기 →</span>
+      <span style="font-size:14px;flex-shrink:0">${site.icon}</span>
+      <span style="flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${site.name}</span>
+      <span style="font-size:11px;color:${site.color};font-weight:600;flex-shrink:0">→</span>
     </a>`
   ).join('');
 
   return `
-    <div style="margin-bottom:10px">
-      <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">추천 검색어</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">${kwTags}</div>
+    <div style="margin-bottom:8px">
+      <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:5px">추천 검색어</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${kwTags}</div>
     </div>
-    <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:6px">뉴스 사이트 바로가기 — <b style="color:var(--t1)">"${mainKw}"</b></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    <div style="font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:5px">뉴스 사이트 — <b style="color:var(--t1);text-transform:none">"${mainKw}"</b></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:5px">
       ${siteCards}
     </div>
-    <div style="margin-top:10px;padding:8px 12px;background:#F9FAFB;border-radius:var(--r8);font-size:10px;color:var(--t3)">
-      💡 버튼 클릭 시 해당 사이트에서 키워드 검색 결과가 새 탭으로 열립니다
-    </div>`;
+    <div style="margin-top:8px;font-size:10px;color:var(--t3)">💡 클릭 시 새 탭으로 검색 결과가 열립니다</div>`;
 }
 
 function openNewsSearch(kw, mode) {
@@ -3870,10 +3891,16 @@ function fakSearch() {
     });
     if (!validCarriers.length) return;
 
+    // 정렬용 기준 컨타입 (필터 있으면 그것, 없으면 20→40→40HC 순)
+    const sortType = ctype || '20';
+    const rateOf = v => v[sortType] || v['20'] || v['40'] || v['40HC'] || Infinity;
+    validCarriers.sort((a, b) => rateOf(a[1]) - rateOf(b[1]));
+
     html += `<div style="margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:var(--t1);margin-bottom:6px;display:flex;align-items:center;gap:8px">
         <span style="font-family:monospace;background:#F0F2F7;padding:2px 7px;border-radius:4px;color:var(--ac)">${scac}</span>
         <span style="font-size:9px;color:var(--t3)">${FAK_VALIDITY}</span>
+        <span style="font-size:9px;color:var(--gn);font-weight:600">↑ 저가순</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px">`;
 
@@ -4302,25 +4329,25 @@ function renderAirCargoList() {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:7px">
         <div>
           <div style="font-size:9px;color:var(--t3);margin-bottom:2px">L (cm)</div>
-          <input type="number" value="${c.l||''}" placeholder="0" min="0"
+          <input type="number" inputmode="decimal" value="${c.l||''}" placeholder="0" min="0"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
             oninput="updateAirCargo(${c.id},'l',this.value)">
         </div>
         <div>
           <div style="font-size:9px;color:var(--t3);margin-bottom:2px">W (cm)</div>
-          <input type="number" value="${c.w||''}" placeholder="0" min="0"
+          <input type="number" inputmode="decimal" value="${c.w||''}" placeholder="0" min="0"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
             oninput="updateAirCargo(${c.id},'w',this.value)">
         </div>
         <div>
           <div style="font-size:9px;color:var(--t3);margin-bottom:2px">H (cm)</div>
-          <input type="number" value="${c.h||''}" placeholder="0" min="0"
+          <input type="number" inputmode="decimal" value="${c.h||''}" placeholder="0" min="0"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
             oninput="updateAirCargo(${c.id},'h',this.value)">
         </div>
         <div>
           <div style="font-size:9px;color:var(--t3);margin-bottom:2px">PCS</div>
-          <input type="number" value="${c.pcs||1}" placeholder="1" min="1"
+          <input type="number" inputmode="decimal" value="${c.pcs||1}" placeholder="1" min="1"
             style="width:100%;padding:5px 6px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
             oninput="updateAirCargo(${c.id},'pcs',this.value)">
         </div>
@@ -4329,7 +4356,7 @@ function renderAirCargoList() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center">
         <div>
           <div style="font-size:9px;color:var(--t3);margin-bottom:2px">G.W. (KG)</div>
-          <input type="number" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
+          <input type="number" inputmode="decimal" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
             style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
             oninput="updateAirCargo(${c.id},'gw',this.value)">
         </div>
@@ -4481,7 +4508,7 @@ function addAirCur() {
   row.className = 'cur-row';
   row.id = `air-cur-row-${i}`;
   row.innerHTML = `<div class="fd"><label>통화</label><select id="air-cur-${i}-code" style="height:28px;padding:3px 6px"><option>${opts.join('</option><option>')}</option></select></div>
-    <div class="fd"><label>기준율</label><div class="ui"><input type="number" id="air-cur-${i}-rate" placeholder="0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div>
+    <div class="fd"><label>기준율</label><div class="ui"><input type="number" inputmode="decimal" id="air-cur-${i}-rate" placeholder="0" min="0.1" step="0.1"><span class="usf">KRW</span></div></div>
     <div style="padding-top:18px"><button class="del-btn" onclick="delAirCur(${i})">✕</button></div>`;
   document.getElementById('air-extra-cur-rows').appendChild(row);
   airCurCount++;
@@ -4534,16 +4561,16 @@ function airChargeRowHTML(c, curs, seg) {
   const vV = saved.v||'', pV = saved.p||'', rV = saved.r||'';
   let inpHtml = '';
   if (c.m==='실비') {
-    inpHtml = `<div class="ui"><input type="number" class="cv" id="av-${c.uid}" placeholder="0" min="0" value="${vV}" oninput="setAirVal('${c.uid}','v',this.value)"><span class="usf">${c.cur}</span></div>`;
+    inpHtml = `<div class="ui"><input type="number" inputmode="decimal" class="cv" id="av-${c.uid}" placeholder="0" min="0" value="${vV}" oninput="setAirVal('${c.uid}','v',this.value)"><span class="usf">${c.cur}</span></div>`;
   } else if (c.m==='마진금') {
     inpHtml = `<div style="display:flex;flex-direction:column;gap:3px">
-      <div class="ui"><input type="number" class="cv" id="av-${c.uid}" placeholder="원가" min="0" value="${vV}" oninput="setAirVal('${c.uid}','v',this.value)"><span class="usf">${c.cur}</span></div>
-      <div class="ui"><input type="number" class="cv" id="ap-${c.uid}" placeholder="판가" min="0" value="${pV}" oninput="setAirVal('${c.uid}','p',this.value)"><span class="usf">${c.cur}</span></div>
+      <div class="ui"><input type="number" inputmode="decimal" class="cv" id="av-${c.uid}" placeholder="원가" min="0" value="${vV}" oninput="setAirVal('${c.uid}','v',this.value)"><span class="usf">${c.cur}</span></div>
+      <div class="ui"><input type="number" inputmode="decimal" class="cv" id="ap-${c.uid}" placeholder="판가" min="0" value="${pV}" oninput="setAirVal('${c.uid}','p',this.value)"><span class="usf">${c.cur}</span></div>
     </div>`;
   } else {
     inpHtml = `<div style="display:flex;flex-direction:column;gap:3px">
-      <div class="ui"><input type="number" class="cv" id="av-${c.uid}" placeholder="원가" min="0" value="${vV}" oninput="setAirVal('${c.uid}','v',this.value)"><span class="usf">${c.cur}</span></div>
-      <div class="ui"><input type="number" class="cv" id="ar-${c.uid}" placeholder="마진%" min="0" max="100" value="${rV}" oninput="setAirVal('${c.uid}','r',this.value)"><span class="usf">%</span></div>
+      <div class="ui"><input type="number" inputmode="decimal" class="cv" id="av-${c.uid}" placeholder="원가" min="0" value="${vV}" oninput="setAirVal('${c.uid}','v',this.value)"><span class="usf">${c.cur}</span></div>
+      <div class="ui"><input type="number" inputmode="decimal" class="cv" id="ar-${c.uid}" placeholder="마진%" min="0" max="100" value="${rV}" oninput="setAirVal('${c.uid}','r',this.value)"><span class="usf">%</span></div>
     </div>`;
   }
   const perLabel = perVal==='CW' ? 'C.W.당' : perVal==='KG' ? 'KG당' : 'BL당';
@@ -4710,6 +4737,11 @@ function svAir(n) {
   document.getElementById('air-tq').style.display = n==='quote' ? '' : 'none';
   document.getElementById('air-ts').style.display = n==='sim'   ? '' : 'none';
   document.getElementById('air-ta').style.display = n==='ai'    ? '' : 'none';
+  // 인사이트 탭 진입 시 추천 키워드 카드 자동 표시
+  if (n==='ai') {
+    const out = document.getElementById('air-ao-briefing');
+    if (out && !out.querySelector('a')) genAirShipperBriefing();
+  }
 }
 
 function raqAir(S) {
@@ -5001,31 +5033,14 @@ function raiAir(S) {
       <div style="padding:10px 14px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input type="text" id="air-briefing-keyword" placeholder="검색 키워드 (예: ICN-LAX 항공운임 / FSC 동향 / 인천공항 혼잡)"
           style="flex:1;min-width:180px;padding:7px 10px;font-size:11px;border:1px solid var(--bd);border-radius:var(--r8)"
+          oninput="genAirShipperBriefing()"
           onkeydown="if(event.key==='Enter')genAirShipperBriefing()">
         <button onclick="genAirShipperBriefing()" style="padding:6px 14px;background:#F4F7FF;color:var(--ac);border:1px solid var(--ac);border-radius:var(--r8);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">🔍 검색</button>
       </div>
-      <div style="padding:4px 14px 8px;font-size:10px;color:var(--t3)">키워드 입력 후 검색 → 8개 물류 전문 뉴스 사이트 바로가기 · 비워두면 견적 구간 자동 추천 · 완전 무료</div>
+      <div style="padding:4px 14px 8px;font-size:10px;color:var(--t3)">키워드 입력 후 검색 → 8개 물류 전문 뉴스 사이트 바로가기 · 비워두면 견적 구간 자동 추천</div>
       <div class="aibody">
         <div class="aiout" id="air-ao-briefing" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
           키워드를 입력하고 🔍 뉴스 검색을 눌러주세요.
-        </div>
-      </div>
-    </div>
-    <div class="aic">
-      <div class="aihd">
-        <div class="aiico" style="background:#F0FDF4;color:#047857">🔒</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--t1)">내부 수익성 분석</div>
-          <div style="font-size:10px;color:var(--t3)">8개 항목 · 견적 데이터 기반 심층 분석</div>
-        </div>
-        <button onclick="genAirInternalAnalysis()" id="air-btn-internal"
-          style="margin-left:auto;padding:5px 13px;background:#047857;color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">
-          생성하기
-        </button>
-      </div>
-      <div class="aibody">
-        <div class="aiout" id="air-ao-internal" style="white-space:pre-wrap;min-height:60px;color:var(--t3);font-size:12px">
-          버튼을 눌러 내부 수익성 분석을 생성하세요.
         </div>
       </div>
     </div>
@@ -5937,8 +5952,8 @@ const TOUR_STEPS = [
   },
   {
     icon: '🚢',
-    title: '화주 정보 & POL / POD 검색',
-    body: '<p>화주명, 품목, 인코텀즈를 입력한 뒤 POL(출발항)과 POD(도착항)을 검색하세요.</p><p>항구명 또는 <b>SCAC 코드</b>(KRPUS, USLAX 등)로 검색할 수 있어요.</p><p><b>DOOR</b> 선택 시 출발지·최종 도착지 주소도 직접 입력할 수 있습니다.</p>',
+    title: 'POL / POD 검색',
+    body: '<p>POL(출발항)과 POD(도착항)을 검색하세요.</p><p>항구명 또는 <b>SCAC 코드</b>(KRPUS, USLAX 등)로 검색할 수 있어요.</p><p><b>DOOR</b> 선택 시 출발지·최종 도착지 주소도 직접 입력할 수 있습니다.</p>',
     target: ['#pol-wrap', '#pod-wrap'],
   },
   {
@@ -6187,45 +6202,66 @@ window.addEventListener('load', () => {
 
 // ④ 실시간 예상 합계
 function updateLiveBar() {
-  const bar = document.getElementById('live-bar');
-  if (!bar) return;
-
-  // 현재 활성 탭 확인
   const isAir   = document.getElementById('panel-air')?.style.display !== 'none';
   const isOcean = document.getElementById('panel-ocean')?.style.display !== 'none';
-  if (!isOcean && !isAir) { bar.style.display='none'; return; }
 
-  try {
-    let gp = 0, gc = 0;
-    if (isOcean && Object.keys(SC).length > 0) {
-      const tc = Object.values(SC).reduce((a,b)=>a+b,0);
-      const bl = 1;
-      const all = [...charges[1],...charges[2],...charges[3]];
-      all.forEach(c => {
-        const d = getCD(c);
-        const m = d.per==='BL' ? bl : tc;
-        if (d.isCtype) { gp+=d.priceKRW; gc+=d.costKRW; }
-        else           { gp+=d.priceKRW*m; gc+=d.costKRW*m; }
-      });
+  // ── 해상 live-bar ──
+  const oceanBar = document.getElementById('live-bar');
+  if (oceanBar) {
+    if (isOcean) {
+      try {
+        let gp = 0, gc = 0;
+        if (Object.keys(SC).length > 0) {
+          const tc = Object.values(SC).reduce((a,b)=>a+b,0);
+          const bl = 1;
+          [...charges[1],...charges[2],...charges[3]].forEach(c => {
+            const d = getCD(c);
+            const m = d.per==='BL' ? bl : tc;
+            if (d.isCtype) { gp+=d.priceKRW; gc+=d.costKRW; }
+            else           { gp+=d.priceKRW*m; gc+=d.costKRW*m; }
+          });
+        }
+        if (gp === 0 && gc === 0) { oceanBar.style.display='none'; }
+        else {
+          const margin = gp - gc;
+          const mr     = gp > 0 ? (margin/gp*100).toFixed(1) : 0;
+          const mrColor = mr >= 15 ? '#4ADE80' : mr >= 8 ? '#FCD34D' : '#F87171';
+          oceanBar.style.display = 'flex';
+          document.getElementById('live-total').textContent = fmt(Math.round(gp)) + '원';
+          document.getElementById('live-margin').innerHTML  = `<span style="color:${mrColor}">${fmt(Math.round(margin))}원 (${mr}%)</span>`;
+        }
+      } catch(e) {}
+    } else {
+      oceanBar.style.display = 'none';
     }
-    if (isAir && airState.cw > 0) {
-      [...airCharges[1],...airCharges[2],...airCharges[3]].forEach(c => {
-        const d = getAirCD(c);
-        gp += d.priceKRW; gc += d.costKRW;
-      });
+  }
+
+  // ── 항공 live-bar ──
+  const airBar = document.getElementById('air-live-bar');
+  if (airBar) {
+    if (isAir) {
+      try {
+        let gp = 0, gc = 0;
+        if (airState.cw > 0) {
+          [...airCharges[1],...airCharges[2],...airCharges[3]].forEach(c => {
+            const d = getAirCD(c);
+            gp += d.priceKRW; gc += d.costKRW;
+          });
+        }
+        if (gp === 0 && gc === 0) { airBar.style.display='none'; }
+        else {
+          const margin = gp - gc;
+          const mr     = gp > 0 ? (margin/gp*100).toFixed(1) : 0;
+          const mrColor = mr >= 15 ? '#4ADE80' : mr >= 8 ? '#FCD34D' : '#F87171';
+          airBar.style.display = 'flex';
+          document.getElementById('air-live-total').textContent = fmt(Math.round(gp)) + '원';
+          document.getElementById('air-live-margin').innerHTML  = `<span style="color:${mrColor}">${fmt(Math.round(margin))}원 (${mr}%)</span>`;
+        }
+      } catch(e) {}
+    } else {
+      airBar.style.display = 'none';
     }
-
-    if (gp === 0 && gc === 0) { bar.style.display='none'; return; }
-
-    const margin = gp - gc;
-    const mr     = gp > 0 ? (margin/gp*100).toFixed(1) : 0;
-    const mrColor = mr >= 15 ? '#4ADE80' : mr >= 8 ? '#FCD34D' : '#F87171';
-
-    bar.style.display = 'flex';
-    document.getElementById('live-total').textContent   = fmt(Math.round(gp)) + '원';
-    document.getElementById('live-margin').innerHTML    =
-      `마진 <span style="color:${mrColor};font-weight:700">${fmt(Math.round(margin))}원 (${mr}%)</span>`;
-  } catch(e) { /* 계산 오류 시 조용히 무시 */ }
+  }
 }
 
 // input 이벤트 위임으로 실시간 업데이트 (debounce 300ms)
@@ -6340,12 +6376,69 @@ function clearAirForm() {
 
 function calcCbm() { /* 다중화물 방식으로 대체 — 하위 호환 유지 */ }
 
+// ══════════════════════════════════════════
+// 모달 접근성 — ESC 닫기 + 포커스 트랩
+// ══════════════════════════════════════════
+const MODAL_IDS = ['help-modal', 'fak-overlay', 'hist-modal', 'tour-preview-modal'];
+
+// ESC로 열려있는 모달 닫기
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+
+  // 투어가 열려있으면 투어 종료
+  const tour = document.getElementById('tour-overlay');
+  if (tour && tour.style.display !== 'none' && tour.style.display !== '') {
+    endTour(); return;
+  }
+  if (tour && getComputedStyle(tour).display !== 'none') {
+    endTour(); return;
+  }
+
+  // 일반 모달 중 열려있는 것 닫기 (가장 위 z-index부터)
+  for (const id of MODAL_IDS) {
+    const m = document.getElementById(id);
+    if (m && getComputedStyle(m).display !== 'none') {
+      m.style.display = 'none';
+      return;
+    }
+  }
+});
+
+// 포커스 트랩 — 모달 내부에서 Tab 순환
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Tab') return;
+
+  // 현재 열려있는 모달 찾기
+  let activeModal = null;
+  for (const id of [...MODAL_IDS, 'tour-overlay']) {
+    const m = document.getElementById(id);
+    if (m && getComputedStyle(m).display !== 'none') { activeModal = m; break; }
+  }
+  if (!activeModal) return;
+
+  // 모달 내 포커스 가능한 요소들
+  const focusable = activeModal.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusable.length) return;
+
+  const first = focusable[0];
+  const last  = focusable[focusable.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault(); last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault(); first.focus();
+  }
+});
+
 // ── Init ──
 buildCtAccordions();
 initCharges(1, DEFAULT_S1);
 initCharges(2, DEFAULT_S2);
 initCharges(3, DEFAULT_S3);
 initOceanCargo();
+switchMode('ocean');
 </script>
 </body>
 </html>
