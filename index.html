@@ -5590,7 +5590,7 @@ let quoteHistory = []; // [ { id, savedAt, author, shipper, pol, pod, inco, item
 //   예: 'https://forwarding-quotation.vercel.app/api/quotes'
 //   비워두면('') 기존처럼 이 PC에만 저장됩니다(localStorage).
 // ══════════════════════════════════════════
-const QUOTES_API_URL = '';  // ← 여기에 배포된 /api/quotes 주소 입력
+const QUOTES_API_URL = 'https://forwarding-quotation.vercel.app/api/quotes';  // ← 여기에 배포된 /api/quotes 주소 입력
 let _dbReady = false;       // DB 연결 성공 여부
 
 // localStorage에서 불러오기 (DB 미사용 시 또는 초기 표시용)
