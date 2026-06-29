@@ -3364,6 +3364,41 @@ async function rai(S){
   document.getElementById('ta').innerHTML = `
   <div style="padding:0 2px">
 
+    <!-- ⓐ 화주용 시황 코멘트 생성기 (AI) -->
+    <div class="aic" style="margin-bottom:14px">
+      <div class="aihd">
+        <div class="aiico" style="background:#FEF3E2;color:#D97706">📝</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:var(--t1)">화주용 시황 코멘트 생성</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:1px">키워드를 입력하면 메일에 넣을 시황 설명 문구를 만들어드려요</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <!-- 키워드 -->
+        <input type="text" id="ai-cmt-keyword" placeholder="시황 키워드 (예: 중동 정세 유가 상승 / ${route} 선복 부족 / 성수기 GRI)"
+          style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r8);margin-bottom:8px"
+          onkeydown="if(event.key==='Enter')genAiComment('sea')">
+        <!-- 톤 선택 -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <label style="flex:1;min-width:90px"><input type="radio" name="ai-cmt-tone" value="polite" checked style="display:none" onchange="setCmtTone(this)"><span class="cmt-tone-btn on" style="display:block;text-align:center;padding:6px;font-size:11px;font-weight:700;border:1px solid var(--ac);background:var(--ac-bg);color:var(--ac);border-radius:var(--r8);cursor:pointer">🙏 정중한 양해</span></label>
+          <label style="flex:1;min-width:90px"><input type="radio" name="ai-cmt-tone" value="info" style="display:none" onchange="setCmtTone(this)"><span class="cmt-tone-btn" style="display:block;text-align:center;padding:6px;font-size:11px;font-weight:700;border:1px solid var(--bd);background:#fff;color:var(--t3);border-radius:var(--r8);cursor:pointer">📊 정보 제공</span></label>
+          <label style="flex:1;min-width:90px"><input type="radio" name="ai-cmt-tone" value="urgent" style="display:none" onchange="setCmtTone(this)"><span class="cmt-tone-btn" style="display:block;text-align:center;padding:6px;font-size:11px;font-weight:700;border:1px solid var(--bd);background:#fff;color:var(--t3);border-radius:var(--r8);cursor:pointer">⚡ 긴급 유도</span></label>
+        </div>
+        <button onclick="genAiComment('sea')" id="ai-cmt-btn"
+          style="width:100%;padding:10px;background:linear-gradient(90deg,#D97706,#F59E0B);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer">
+          ✨ AI 시황 코멘트 생성
+        </button>
+        <!-- 결과 -->
+        <div id="ai-cmt-result" style="display:none;margin-top:12px">
+          <textarea id="ai-cmt-text" readonly style="width:100%;box-sizing:border-box;min-height:140px;padding:12px;font-size:12px;line-height:1.7;border:1px solid var(--bd);border-radius:var(--r8);background:#FAFBFD;color:var(--t1);resize:vertical"></textarea>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button onclick="copyAiComment()" style="flex:1;padding:8px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer">📋 복사</button>
+            <button onclick="genAiComment('sea')" style="padding:8px 14px;background:#fff;color:var(--t3);border:1px solid var(--bd);border-radius:var(--r8);font-size:11px;cursor:pointer">↻ 재생성</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ① 시황 브리핑 & 뉴스 검색 -->
     <div class="aic" style="margin-bottom:14px">
       <div class="aihd">
@@ -3406,6 +3441,14 @@ async function rai(S){
 // 시황 브리핑 — 퀵링크 방식 (완전 무료)
 // 키워드 기반 구글뉴스 / 전문 미디어 검색 링크를 새 탭으로 열어줌
 // ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// 시황 코멘트 생성기 — 서버리스(AI) 엔드포인트
+// ※ 배포 후 본인의 Vercel 주소로 변경하세요!
+//   예: 'https://lgl-quote.vercel.app/api/insight'
+//   비워두면('') AI 기능 비활성화, 뉴스 검색만 작동
+// ══════════════════════════════════════════
+const INSIGHT_API_URL = '';  // ← 여기에 배포된 서버리스 함수 주소 입력
 
 // 물류 전문 뉴스 사이트 목록
 const NEWS_SITES = [
@@ -3508,6 +3551,125 @@ function openNewsSearch(kw, mode) {
   if (el) el.value = kw;
   if (mode === 'air') genAirShipperBriefing();
   else genShipperBriefing();
+}
+
+// ══════════════════════════════════════════
+// 화주용 시황 코멘트 생성기 (AI · 서버리스 호출)
+// ══════════════════════════════════════════
+
+// 톤 버튼 시각적 토글
+function setCmtTone(radio) {
+  const group = radio.name;
+  document.querySelectorAll(`input[name="${group}"]`).forEach(r => {
+    const span = r.nextElementSibling;
+    if (!span) return;
+    if (r.checked) {
+      span.style.border = '1px solid var(--ac)';
+      span.style.background = 'var(--ac-bg)';
+      span.style.color = 'var(--ac)';
+    } else {
+      span.style.border = '1px solid var(--bd)';
+      span.style.background = '#fff';
+      span.style.color = 'var(--t3)';
+    }
+  });
+}
+
+async function genAiComment(mode) {
+  const pre = mode === 'air' ? 'air-' : '';
+  const S = mode === 'air' ? window._airS : window._aiS;
+  const kwInput = document.getElementById(`${pre}ai-cmt-keyword`);
+  const btn     = document.getElementById(`${pre}ai-cmt-btn`);
+  const resBox  = document.getElementById(`${pre}ai-cmt-result`);
+  const textEl  = document.getElementById(`${pre}ai-cmt-text`);
+
+  const keywords = (kwInput?.value || '').trim();
+  if (!keywords) { toast('시황 키워드를 입력해주세요 (예: 유가 상승, 선복 부족)'); return; }
+
+  // API 주소 미설정 시 안내
+  if (!INSIGHT_API_URL) {
+    toast('⚠ AI 기능이 아직 연결되지 않았습니다 (배포 후 설정 필요)');
+    if (resBox && textEl) {
+      resBox.style.display = '';
+      textEl.value = '※ AI 시황 코멘트 기능을 사용하려면 서버리스 함수 배포 후 코드 상단의 INSIGHT_API_URL을 설정해야 합니다.\n\n자세한 내용은 함께 제공된 "배포 가이드"를 참고하세요.';
+    }
+    return;
+  }
+
+  // 선택된 톤
+  const tone = document.querySelector(`input[name="${pre}ai-cmt-tone"]:checked`)?.value || 'polite';
+
+  // 견적의 할증료 추출
+  const surKeys = ['BAF','FSC','GRI','PSS','EBS','CAF','유류','할증'];
+  const allCharges = mode === 'air'
+    ? [...(S?.d1||[]),...(S?.d2||[]),...(S?.d3||[])]
+    : [...(S?.d1||[]),...(S?.d2||[]),...(S?.d3||[])];
+  const surcharges = [...new Set(
+    allCharges.map(c => c.name || c.n || '').filter(n => surKeys.some(k => n.toUpperCase().includes(k)))
+  )];
+
+  // 로딩 표시
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ AI가 시황을 분석 중...';
+  btn.style.opacity = '0.7';
+
+  try {
+    const resp = await fetch(INSIGHT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        keywords,
+        pol: S?.pol?.code || '',
+        pod: S?.pod?.code || '',
+        mode,
+        tone,
+        surcharges,
+      }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(data.error || `오류 ${resp.status}`);
+    }
+
+    if (resBox && textEl) {
+      resBox.style.display = '';
+      textEl.value = data.comment || '(응답이 비어있습니다)';
+      // 높이 자동 조정
+      textEl.style.height = 'auto';
+      textEl.style.height = Math.min(textEl.scrollHeight + 4, 400) + 'px';
+    }
+    toast('✓ AI 시황 코멘트가 생성됐어요');
+
+  } catch (err) {
+    toast('⚠ 생성 실패: ' + (err.message || '네트워크 오류'));
+    if (resBox && textEl) {
+      resBox.style.display = '';
+      textEl.value = '생성에 실패했습니다.\n\n사유: ' + (err.message || '알 수 없는 오류') +
+        '\n\n• 서버리스 함수가 배포되었는지\n• INSIGHT_API_URL이 올바른지\n• Vercel에 API 키가 설정되었는지\n확인해주세요.';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+    btn.style.opacity = '1';
+  }
+}
+
+function copyAiComment(mode) {
+  const pre = mode === 'air' ? 'air-' : '';
+  const textEl = document.getElementById(`${pre}ai-cmt-text`);
+  if (!textEl || !textEl.value) { toast('복사할 내용이 없습니다'); return; }
+  navigator.clipboard.writeText(textEl.value).then(
+    () => toast('📋 메일 본문이 복사됐어요 — 메일에 붙여넣으세요'),
+    () => {
+      // fallback
+      textEl.select();
+      document.execCommand('copy');
+      toast('📋 복사됐어요');
+    }
+  );
 }
 
 // ── 해상 시황 브리핑 ──
@@ -5133,6 +5295,39 @@ function raiAir(S) {
   const route = `${S.pol.code} → ${S.pod.code}`;
   document.getElementById('air-ta').innerHTML = `
   <div style="padding:0 2px">
+
+    <!-- ⓐ 화주용 시황 코멘트 생성기 (AI) -->
+    <div class="aic" style="margin-bottom:14px">
+      <div class="aihd">
+        <div class="aiico" style="background:#FEF3E2;color:#D97706">📝</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:var(--t1)">화주용 시황 코멘트 생성</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:1px">키워드를 입력하면 메일에 넣을 시황 설명 문구를 만들어드려요</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px">
+        <input type="text" id="air-ai-cmt-keyword" placeholder="시황 키워드 (예: 항공 성수기 FSC 인상 / ${route} 벨리 카고 부족 / 유가 상승)"
+          style="width:100%;box-sizing:border-box;padding:8px 10px;font-size:12px;border:1px solid var(--bd);border-radius:var(--r8);margin-bottom:8px"
+          onkeydown="if(event.key==='Enter')genAiComment('air')">
+        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+          <label style="flex:1;min-width:90px"><input type="radio" name="air-ai-cmt-tone" value="polite" checked style="display:none" onchange="setCmtTone(this)"><span class="cmt-tone-btn on" style="display:block;text-align:center;padding:6px;font-size:11px;font-weight:700;border:1px solid var(--ac);background:var(--ac-bg);color:var(--ac);border-radius:var(--r8);cursor:pointer">🙏 정중한 양해</span></label>
+          <label style="flex:1;min-width:90px"><input type="radio" name="air-ai-cmt-tone" value="info" style="display:none" onchange="setCmtTone(this)"><span class="cmt-tone-btn" style="display:block;text-align:center;padding:6px;font-size:11px;font-weight:700;border:1px solid var(--bd);background:#fff;color:var(--t3);border-radius:var(--r8);cursor:pointer">📊 정보 제공</span></label>
+          <label style="flex:1;min-width:90px"><input type="radio" name="air-ai-cmt-tone" value="urgent" style="display:none" onchange="setCmtTone(this)"><span class="cmt-tone-btn" style="display:block;text-align:center;padding:6px;font-size:11px;font-weight:700;border:1px solid var(--bd);background:#fff;color:var(--t3);border-radius:var(--r8);cursor:pointer">⚡ 긴급 유도</span></label>
+        </div>
+        <button onclick="genAiComment('air')" id="air-ai-cmt-btn"
+          style="width:100%;padding:10px;background:linear-gradient(90deg,#D97706,#F59E0B);color:#fff;border:none;border-radius:var(--r8);font-size:12px;font-weight:700;cursor:pointer">
+          ✨ AI 시황 코멘트 생성
+        </button>
+        <div id="air-ai-cmt-result" style="display:none;margin-top:12px">
+          <textarea id="air-ai-cmt-text" readonly style="width:100%;box-sizing:border-box;min-height:140px;padding:12px;font-size:12px;line-height:1.7;border:1px solid var(--bd);border-radius:var(--r8);background:#FAFBFD;color:var(--t1);resize:vertical"></textarea>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button onclick="copyAiComment('air')" style="flex:1;padding:8px;background:var(--ac);color:#fff;border:none;border-radius:var(--r8);font-size:11px;font-weight:700;cursor:pointer">📋 복사</button>
+            <button onclick="genAiComment('air')" style="padding:8px 14px;background:#fff;color:var(--t3);border:1px solid var(--bd);border-radius:var(--r8);font-size:11px;cursor:pointer">↻ 재생성</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="aic" style="margin-bottom:14px">
       <div class="aihd">
         <div class="aiico" style="background:#EEF3FD;color:#1A56DB">📢</div>
