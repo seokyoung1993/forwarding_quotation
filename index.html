@@ -516,7 +516,7 @@ tr:hover td{background:#FAFBFD}
 <header>
   <div class="logo">포워딩 견적 시스템</div>
   <div style="display:flex;gap:8px;align-items:center">
-    <span id="draft-indicator" style="font-size:10px;color:#10B981;opacity:0;transition:opacity .3s;white-space:nowrap">✓ 임시저장됨</span>
+    <span id="draft-indicator" style="font-size:11px;font-weight:700;color:#FBBF24;opacity:0;transition:opacity .3s;white-space:nowrap">✓ 임시저장됨</span>
     <span class="hb">v0.4</span>
     <button onclick="openHelp()" title="도움말" style="width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">?</button>
   </div>
@@ -1143,7 +1143,7 @@ tr:hover td{background:#FAFBFD}
 <div class="sec" id="as3">
   <div class="shd" onclick="tog('as3')">
     <span class="sdot" style="background:var(--ac)"></span>
-    <span class="stit">2구간 — 항공 운임</span>
+    <span class="stit">2구간</span>
     <span class="sarr" id="as3a">▼</span>
   </div>
   <div class="sbody" id="as3b">
@@ -2783,6 +2783,8 @@ function updateOceanCargoCalc(id) {
   const cbm = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
   const cbmEl = document.getElementById(`ocargo-cbm-${c.id}`);
   const oogEl = document.getElementById(`ocargo-oog-${c.id}`);
+  const twEl  = document.getElementById(`ocargo-tw-${c.id}`);
+  const oogMsgEl = document.getElementById(`ocargo-oogmsg-${c.id}`);
   if (cbmEl) cbmEl.textContent = cbm ? cbm.toFixed(3) + ' CBM' : '—';
   const isOOG = c.l > OOG_THRESHOLD.L || c.w > OOG_THRESHOLD.W || c.h > OOG_THRESHOLD.H;
   if (oogEl) {
@@ -2790,6 +2792,9 @@ function updateOceanCargoCalc(id) {
     oogEl.style.color  = '#DC2626';
     oogEl.style.fontWeight = '700';
   }
+  // 총 중량 = PCS당 G.W. × PCS
+  if (twEl) twEl.textContent = (c.gw && c.pcs) ? Math.round(c.gw*c.pcs).toLocaleString()+' KG' : '—';
+  if (oogMsgEl) oogMsgEl.innerHTML = isOOG ? '<br><span style="color:#DC2626;font-size:9px">컨테이너 규격 초과 — OOG 선적 검토</span>' : '';
   // 전체 CBM/GW 합산 → hidden inputs 업데이트
   const totCBM = oceanCargoList.reduce((a, x) => a + (x.l && x.w && x.h ? x.l*x.w*x.h*x.pcs/1000000 : 0), 0);
   const totGW  = oceanCargoList.reduce((a, x) => a + (x.gw * x.pcs || 0), 0);
@@ -2842,8 +2847,8 @@ function renderOceanCargoList() {
             style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box"
             oninput="updateOceanCargo(${c.id},'gw',this.value)"></div>
         <div style="font-size:10px;color:var(--t3);padding-top:16px">
-          총 중량: <b>${c.gw && c.pcs ? Math.round(c.gw*c.pcs).toLocaleString()+' KG' : '—'}</b>
-          ${isOOG ? '<br><span style="color:#DC2626;font-size:9px">컨테이너 규격 초과 — OOG 선적 검토</span>' : ''}
+          총 중량: <b id="ocargo-tw-${c.id}">${c.gw && c.pcs ? Math.round(c.gw*c.pcs).toLocaleString()+' KG' : '—'}</b>
+          <span id="ocargo-oogmsg-${c.id}">${isOOG ? '<br><span style="color:#DC2626;font-size:9px">컨테이너 규격 초과 — OOG 선적 검토</span>' : ''}</span>
         </div>
       </div>
     </div>`;
@@ -3668,6 +3673,77 @@ function printQuote() {
   if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
   openPrintWindow(qs.outerHTML, 'Quotation Sheet — LGL');
 }
+
+// ── 항공 견적서 인쇄 ──
+function printAirQuote() {
+  const qs = document.querySelector('#air-tq .qs');
+  if (!qs) { toast('견적서를 먼저 생성해주세요'); return; }
+  openPrintWindow(qs.outerHTML, 'Air Quotation Sheet — LGL');
+}
+
+// ── 항공 견적 저장 ──
+function saveAirQuote() {
+  const S = window._airS;
+  const tqEl = document.getElementById('air-tq');
+  if (!S || !tqEl || !tqEl.innerHTML.trim()) {
+    toast('⚠ 먼저 항공 견적서를 생성해주세요');
+    return;
+  }
+
+  const authorList = HIST_AUTHORS.map((a,i) => `${i+1}. ${a}`).join('  ');
+  const input = prompt(`저장할 작성자를 선택하세요:\n${authorList}\n\n번호 또는 이름 직접 입력:`);
+  if (input === null) return;
+  const author = HIST_AUTHORS[parseInt(input)-1] || input.trim() || '미지정';
+
+  const shipper = S.shipper || '—';
+  const polCode = S.pol?.code || '—';
+  const podCode = S.pod?.code || '—';
+
+  const snapshot = tqEl.innerHTML || '';
+
+  // 불러오기용 stateSnapshot
+  const stateSnapshot = {
+    type: '항공',
+    shipper: document.getElementById('air-shipper')?.value || '',
+    item:    document.getElementById('air-item')?.value || '',
+    inco:    document.getElementById('air-inco')?.value || '',
+    validity: document.getElementById('air-validity')?.value || '7',
+    exRate:  document.getElementById('air-cur-0-rate')?.value || '',
+    pol:     document.getElementById('air-pol-input')?.value || '',
+    pod:     document.getElementById('air-pod-input')?.value || '',
+    airCargoList: JSON.parse(JSON.stringify(airCargoList)),
+    airCharges:   JSON.parse(JSON.stringify(airCharges)),
+    remark:  document.getElementById('air-remark')?.value || '',
+    dg:      document.getElementById('air-dg-on')?.checked || false,
+    dgUn:    document.getElementById('air-dg-un')?.value || '',
+    dgClass: document.getElementById('air-dg-class')?.value || '',
+  };
+
+  const record = {
+    id:      Date.now(),
+    savedAt: new Date().toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    author, shipper,
+    pol: polCode,
+    pod: podCode,
+    inco: S.inco || '—',
+    item: S.item || '—',
+    ctStr: S.cw ? `C.W. ${S.cw.toFixed(1)}KG` : '—',
+    gc: Math.round(S.gc)||0,
+    gp: Math.round(S.gp)||0,
+    mr: parseFloat(S.mr)||0,
+    type: '항공',
+    val: parseInt(S.validity)||7,
+    snapshot,
+    stateSnapshot,
+  };
+
+  quoteHistory.unshift(record);
+  updateAuthorFilter();
+  toast(`✓ 항공 견적 저장 완료 — ${shipper} (${author})`);
+  saveHistoryToLocal();
+  clearDraft();
+  switchMode('history');
+}
 function checkFAKPassword() {
   // 버튼 클릭 시 먼저 비밀번호 모달 표시
   document.getElementById('fak-pw-input').value = '';
@@ -4321,11 +4397,12 @@ function renderAirCargoList() {
   if (!container) return;
 
   container.innerHTML = airCargoList.map((c, idx) => {
-    const cbm   = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
-    const vw    = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 6000 * 10) / 10 : 0;
-    const rowCw = Math.max(vw, c.gw);
-    const badgeTxt = (vw >= c.gw && rowCw > 0) ? 'VW 적용' : (rowCw > 0 ? 'GW 적용' : '');
-    const badgeColor = (vw >= c.gw && rowCw > 0) ? 'background:#EEF3FD;color:var(--ac)' : 'background:#F0FDF4;color:#047857';
+    const cbm    = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
+    const vw     = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 6000 * 10) / 10 : 0;
+    const totalGw = (c.gw || 0) * (c.pcs || 1);  // PCS당 G.W. × 수량 = 총 G.W.
+    const rowCw  = Math.max(vw, totalGw);
+    const badgeTxt = (vw >= totalGw && rowCw > 0) ? 'VW 적용' : (rowCw > 0 ? 'GW 적용' : '');
+    const badgeColor = (vw >= totalGw && rowCw > 0) ? 'background:#EEF3FD;color:var(--ac)' : 'background:#F0FDF4;color:#047857';
 
     return `<div style="background:#F9FAFB;border:1px solid var(--bd);border-radius:var(--r8);padding:10px 12px;margin-bottom:6px">
       <!-- 헤더 -->
@@ -4367,7 +4444,7 @@ function renderAirCargoList() {
       <!-- G.W. + 결과 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center">
         <div>
-          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">G.W. (KG)</div>
+          <div style="font-size:9px;color:var(--t3);margin-bottom:2px">G.W. per PCS (KG)</div>
           <input type="number" inputmode="decimal" value="${c.gw||''}" placeholder="0" min="0" step="0.1"
             style="width:100%;padding:5px 6px;font-size:12px;font-weight:600;border:1px solid var(--bd);border-radius:var(--r4);text-align:right;box-sizing:border-box;min-width:0"
             oninput="updateAirCargo(${c.id},'gw',this.value)">
@@ -4375,7 +4452,7 @@ function renderAirCargoList() {
         <div style="font-size:10px;color:var(--t3);text-align:center;line-height:1.7">
           CBM: <strong><span id="cargo-cbm-${c.id}">${cbm.toFixed(3)}</span></strong>
           &nbsp;·&nbsp; VW: <strong><span id="cargo-vw-${c.id}">${vw ? vw.toFixed(1)+' KG' : '—'}</span></strong>
-          <br><span id="cargo-pcs-${c.id}">${c.pcs > 1 ? `${c.pcs}PCS × ${c.gw ? (c.gw/c.pcs).toFixed(1)+'KG' : '—'}` : ''}</span>
+          <br><span id="cargo-pcs-${c.id}">${c.gw ? `총 G.W. ${totalGw.toFixed(1)}KG (${c.pcs}PCS × ${c.gw}KG)` : ''}</span>
         </div>
       </div>
     </div>`;
@@ -4390,7 +4467,7 @@ function recalcAirTotalCW(rerender = true) {
     const vw  = (c.l && c.w && c.h) ? c.l * c.w * c.h * c.pcs / 6000    : 0;
     totalCBM += cbm;
     totalVW  += vw;
-    totalGW  += c.gw || 0;
+    totalGW  += (c.gw || 0) * (c.pcs || 1);  // PCS당 G.W. × 수량
   });
 
   totalCBM = Math.round(totalCBM * 1000) / 1000;
@@ -4416,7 +4493,8 @@ function recalcAirTotalCW(rerender = true) {
   airCargoList.forEach(c => {
     const cbm = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 1000000 * 1000) / 1000 : 0;
     const vw  = (c.l && c.w && c.h) ? Math.round(c.l * c.w * c.h * c.pcs / 6000 * 10) / 10 : 0;
-    const rowCw = Math.max(vw, c.gw);
+    const totalGw = (c.gw || 0) * (c.pcs || 1);
+    const rowCw = Math.max(vw, totalGw);
     const cbmEl = document.getElementById(`cargo-cbm-${c.id}`);
     const vwEl  = document.getElementById(`cargo-vw-${c.id}`);
     const cwEl  = document.getElementById(`cargo-cw-${c.id}`);
@@ -4426,9 +4504,9 @@ function recalcAirTotalCW(rerender = true) {
     if (cwEl) {
       cwEl.textContent = rowCw ? `${rowCw.toFixed(1)} KG` : '';
       const badge = cwEl.nextElementSibling;
-      if (badge) badge.textContent = (vw >= c.gw && rowCw > 0) ? 'VW 적용' : (rowCw > 0 ? 'GW 적용' : '');
+      if (badge) badge.textContent = (vw >= totalGw && rowCw > 0) ? 'VW 적용' : (rowCw > 0 ? 'GW 적용' : '');
     }
-    if (pcsEl) pcsEl.textContent = c.pcs > 1 ? `${c.pcs}PCS × ${c.gw ? (c.gw/c.pcs).toFixed(1)+'KG' : '—'}` : '';
+    if (pcsEl) pcsEl.textContent = c.gw ? `총 G.W. ${totalGw.toFixed(1)}KG (${c.pcs}PCS × ${c.gw}KG)` : '';
   });
 
   // airState 업데이트
@@ -4774,7 +4852,16 @@ function raqAir(S) {
       const pd = c.cur==='KRW'
         ? `${fmt(c.price * c.qty)}원`
         : `${c.cur} ${(c.price * c.qty).toFixed(2)} (${fmt(pk)}원)`;
-      return `<tr><td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${perLbl}</small></td>
+      // 산출 공식 (단가 × 수량)
+      let formula = perLbl;
+      if (c.per==='CW' || c.per==='KG') {
+        const unit = c.cur==='KRW' ? `${fmt(c.price)}원` : `${c.cur} ${c.price.toFixed(2)}`;
+        formula = `C.W. ${c.qty.toFixed(1)}KG × ${unit}`;
+      } else if (c.qty > 1) {
+        const unit = c.cur==='KRW' ? `${fmt(c.price)}원` : `${c.cur} ${c.price.toFixed(2)}`;
+        formula = `${unit} × ${c.qty}`;
+      }
+      return `<tr><td>${c.name}<small style="display:block;color:var(--t3);font-size:9px">${formula}</small></td>
         <td class="tdp" style="text-align:right">${pd}</td></tr>`;
     }).join('');
   }
@@ -5188,11 +5275,11 @@ function loadAirSample() {
   selectAirPort('pol','ICN','Incheon','South Korea','🇰🇷');
   selectAirPort('pod','LAX','Los Angeles','USA','🇺🇸');
 
-  // 치수/중량 → 다중화물 형식으로 (110×110×130, 10PCS, G.W. 5000)
+  // 치수/중량 → 다중화물 형식으로 (110×110×130, 10PCS, PCS당 G.W. 500)
   airCargoList = [];
   airCargoSeq = 0;
-  addAirCargo({ l:110, w:110, h:130, pcs:10, gw:5000 });
-  // → VW = 110×110×130×10/6000 = 2626.7KG, GW = 5000KG → C.W. = 5000KG
+  addAirCargo({ l:110, w:110, h:130, pcs:10, gw:500 });
+  // → VW = 110×110×130×10/6000 = 2626.7KG, 총GW = 500×10 = 5000KG → C.W. = 5000KG
 
   // 모든 섹션 열기
   ['as1b','as_curb','as2b','as3b','as4b'].forEach(id => {
@@ -5987,6 +6074,7 @@ const TOUR_STEPS = [
     body: '<p>입력 완료 후 <b>✨ 견적서 생성</b> 버튼을 누르면</p><p>견적서와 수익 분석이 우측에 바로 생성돼요.</p><p><b>🖨 인쇄</b>를 눌러 PDF로도 저장할 수 있고,</p><p><b>🗂 견적 저장</b>을 누르면 History에 누적되어</p><p>팀원들과 함께 추후에도 지속 참고할 수 있습니다.</p><p style="margin-top:10px;padding:8px 12px;background:#F4F7FF;border-radius:8px;font-size:11px;color:var(--ac);font-weight:600">👇 아래에서 샘플 견적서를 미리 확인해보세요!</p>',
     target: null,
     onEnter: async function() {
+      _tourLoadedSample = true;
       await loadSampleSilent();
       gen();
       // gen() 렌더링 완료 대기 후 미리보기 표시
@@ -5997,6 +6085,7 @@ const TOUR_STEPS = [
 ];
 
 let tourIdx = 0;
+let _tourLoadedSample = false;
 
 function startTour() {
   tourIdx = 0;
@@ -6013,6 +6102,15 @@ function endTour() {
     window.removeEventListener('resize', _tourResizeHandler);
     _tourScrollHandler = null;
     _tourResizeHandler = null;
+  }
+  // 투어 중 샘플이 로드됐으면 폼 초기화 (사용자가 빈 화면에서 시작하도록)
+  if (_tourLoadedSample) {
+    _tourLoadedSample = false;
+    if (typeof clearOceanFormSilent === 'function') clearOceanFormSilent();
+  }
+  // 투어 종료 후, 작성 중이던 draft가 있으면 복원 배너 표시
+  if (typeof checkDraftOnLoad === 'function' && localStorage.getItem(DRAFT_KEY)) {
+    setTimeout(checkDraftOnLoad, 300);
   }
 }
 
@@ -6157,13 +6255,8 @@ function unlockSite() {
       lock.style.display = 'none';
       updateApiBadge();
       document.getElementById('shipper')?.focus();
-      // 작성 중이던 draft가 있으면 복원 배너 우선, 없으면 온보딩 투어
-      const hasDraft = !!localStorage.getItem(DRAFT_KEY);
-      if (hasDraft) {
-        checkDraftOnLoad();
-      } else {
-        setTimeout(startTour, 600);
-      }
+      // 온보딩 투어 항상 표시 (입장 시마다)
+      setTimeout(startTour, 600);
     }, 400);
   } else {
     err.textContent = '⚠ 비밀번호가 올바르지 않습니다.';
@@ -6300,7 +6393,11 @@ document.addEventListener('focusin', e => {
 // ── 해상 전체 지우기 ──
 function clearOceanForm() {
   if (!confirm('입력된 내용을 모두 지울까요?')) return;
+  clearOceanFormSilent();
+  toast('✓ 해상 견적 입력 내용이 초기화됐습니다');
+}
 
+function clearOceanFormSilent() {
   // 기본 정보
   ['shipper','shipper-en','item','validity','ocean-remark'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
@@ -6314,8 +6411,8 @@ function clearOceanForm() {
   portState.polType = 'CY'; portState.podType = 'CY';
   document.getElementById('pol-input').value = '';
   document.getElementById('pod-input').value = '';
-  document.getElementById('pol-selected').style.display = 'none';
-  document.getElementById('pod-selected').style.display = 'none';
+  const polSel = document.getElementById('pol-selected'); if (polSel) polSel.style.display = 'none';
+  const podSel = document.getElementById('pod-selected'); if (podSel) podSel.style.display = 'none';
   document.getElementById('pol-addr-wrap')?.style && (document.getElementById('pol-addr-wrap').style.display = 'none');
   document.getElementById('pod-addr-wrap')?.style && (document.getElementById('pod-addr-wrap').style.display = 'none');
 
@@ -6330,7 +6427,7 @@ function clearOceanForm() {
   // 화물 초기화
   oceanCargoList = []; oceanCargoSeq = 0;
   addOceanCargo();
-  document.getElementById('clp-result').style.display = 'none';
+  const clpEl = document.getElementById('clp-result'); if (clpEl) clpEl.style.display = 'none';
 
   // 구간 초기화
   initCharges(1, DEFAULT_S1);
@@ -6346,7 +6443,7 @@ function clearOceanForm() {
   const dgEl = document.getElementById('dg-on');
   if (dgEl && dgEl.checked) { dgEl.checked = false; dgEl.dispatchEvent(new Event('change')); }
 
-  toast('✓ 해상 견적 입력 내용이 초기화됐습니다');
+  if (typeof updateLiveBar === 'function') updateLiveBar();
 }
 
 // ── 항공 전체 지우기 ──
@@ -6490,6 +6587,9 @@ function scheduleDraftSave() {
   // 잠금 화면이 떠있으면 저장 안 함
   const lock = document.getElementById('site-lock');
   if (lock && lock.style.display !== 'none' && getComputedStyle(lock).display !== 'none') return;
+  // 온보딩 투어 진행 중에는 저장 안 함 (샘플 로드가 draft로 저장되는 것 방지)
+  const tour = document.getElementById('tour-overlay');
+  if (tour && getComputedStyle(tour).display !== 'none') return;
   clearTimeout(_draftTimer);
   _draftTimer = setTimeout(() => {
     try {
@@ -6513,7 +6613,7 @@ function showDraftSaved() {
   ind.style.opacity = '1';
   ind.textContent = '✓ 임시저장됨';
   clearTimeout(ind._fadeTimer);
-  ind._fadeTimer = setTimeout(() => { ind.style.opacity = '0.4'; }, 2000);
+  ind._fadeTimer = setTimeout(() => { ind.style.opacity = '0.65'; }, 2000);
 }
 
 // 작성 중이던 draft 복원
