@@ -3,8 +3,7 @@
 //  화주용 시황 코멘트 생성 (Gemini + 구글 검색 Grounding 프록시)
 //
 //  ▸ API 키는 Vercel 환경변수(GEMINI_API_KEY)에 저장됩니다.
-//    → HTML/브라우저에 절대 노출되지 않습니다.
-//  ▸ Gemini는 무료 한도가 넉넉합니다 (분당 15회 / 일 1,500회, 결제수단 불필요).
+//  ▸ 429(요청 과다) 발생 시 여러 모델로 자동 재시도합니다.
 // ════════════════════════════════════════════════════════════
 
 export default async function handler(req, res) {
@@ -55,52 +54,77 @@ export default async function handler(req, res) {
 - 영업 담당자가 입력한 시황 키워드: "${keywords}"
 
 [작성 지침]
-1. 위 키워드와 관련된 최신 물류/운임 시황을 검색하여 사실에 근거해 작성하세요.
+1. 위 키워드와 관련된 최신 물류/운임 시황을 반영해 사실에 근거해 작성하세요.
 2. ${toneGuide}
 3. 화주에게 바로 보낼 수 있는 한국어 비즈니스 메일 본문 형태로 작성하세요.
 4. 분량은 4~6문장 내외로 간결하게. 과장하지 말고 신뢰감 있게.
-5. 구체적 수치(유가 $, 지수 등)는 검색으로 확인된 경우에만 신중히 인용하고, 불확실하면 정성적으로 표현하세요.
+5. 구체적 수치(유가 $, 지수 등)는 확실한 경우에만 신중히 인용하고, 불확실하면 정성적으로 표현하세요.
 6. 인사말로 시작해서, 시황 설명 → (해당 시 운임 영향) → 마무리 순으로 작성하세요.
 7. 메일 본문만 출력하세요. 제목이나 설명, 부연, 마크다운 기호는 넣지 마세요.`;
 
-    // ── Gemini API 호출 (구글 검색 Grounding 포함) ──
-    const MODEL = 'gemini-2.0-flash';  // 무료 · 빠름 · 검색 지원
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+    // ── 시도할 모델 목록 (429 시 순서대로 폴백) ──
+    const MODELS = [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-flash-latest',
+    ];
 
-    const geminiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        tools: [{ google_search: {} }],   // 구글 검색 Grounding (무료)
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-      }),
+    let lastErr = '';
+    let lastStatus = 0;
+
+    for (const model of MODELS) {
+      // 검색 도구 포함 호출 → 실패 시 검색 없이도 재시도
+      for (const useSearch of [true, false]) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+        const body = {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        };
+        if (useSearch) body.tools = [{ google_search: {} }];
+
+        let r;
+        try {
+          r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+        } catch (e) {
+          lastErr = String(e); lastStatus = 0;
+          continue;
+        }
+
+        if (r.ok) {
+          const data = await r.json();
+          const text = (data.candidates?.[0]?.content?.parts || [])
+            .map(p => p.text || '').join('\n').trim();
+          if (text) {
+            return res.status(200).json({ comment: text, _model: model, _search: useSearch });
+          }
+          lastErr = '응답이 비어있음'; lastStatus = 502;
+          continue;
+        }
+
+        // 실패 — 상태/메시지 기록
+        lastStatus = r.status;
+        lastErr = (await r.text()).slice(0, 200);
+
+        // 429(과다요청)/503(혼잡)이면 다음 모델로, 그 외 오류면 검색 토글만 한 번 더 시도
+        if (r.status !== 429 && r.status !== 503 && r.status !== 500) {
+          // 검색 끄고 재시도할 가치가 있는 건 useSearch=true였을 때뿐
+          if (!useSearch) break;
+        }
+      }
+    }
+
+    // 모든 모델 실패
+    return res.status(lastStatus || 502).json({
+      error: lastStatus === 429
+        ? '현재 무료 사용량 한도에 도달했습니다. 1~2분 후 다시 시도해주세요.'
+        : `Gemini API 오류 (${lastStatus})`,
+      detail: lastErr,
     });
-
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      return res.status(geminiRes.status).json({
-        error: `Gemini API 오류 (${geminiRes.status})`,
-        detail: errText.slice(0, 300),
-      });
-    }
-
-    const data = await geminiRes.json();
-
-    // ── 응답에서 텍스트 추출 ──
-    const text = (data.candidates?.[0]?.content?.parts || [])
-      .map(p => p.text || '')
-      .join('\n')
-      .trim();
-
-    if (!text) {
-      return res.status(502).json({
-        error: 'AI 응답이 비어있습니다. 다시 시도해주세요.',
-        detail: JSON.stringify(data).slice(0, 200),
-      });
-    }
-
-    return res.status(200).json({ comment: text });
 
   } catch (err) {
     return res.status(500).json({ error: '서버 처리 중 오류', detail: String(err).slice(0, 300) });
